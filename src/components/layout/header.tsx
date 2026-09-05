@@ -1,4 +1,4 @@
-import { Bell, CalendarDays, HelpCircle } from "lucide-react";
+import { Bell, CalendarDays, ChevronDown, HelpCircle } from "lucide-react";
 import Link from "next/link";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
@@ -45,11 +45,16 @@ export function Header({ profile }: { profile: CurrentProfile }) {
           {/* Cham bao chua doc — noi dung/logic thuc te do agent thong-bao-realtime (Giai doan 8) xu ly */}
         </Button>
         <DropdownMenu>
-          <DropdownMenuTrigger render={<Button variant="ghost" className="ml-1 gap-2 px-2" />}>
+          <DropdownMenuTrigger render={<Button variant="outline" className="ml-1 gap-2 px-2" />}>
             <Avatar className="h-7 w-7">
-              <AvatarFallback className="text-xs">{initials}</AvatarFallback>
+              <AvatarFallback className="bg-primary/10 text-xs font-medium text-primary">
+                {initials}
+              </AvatarFallback>
             </Avatar>
-            <span className="hidden text-sm sm:inline">{profile.full_name}</span>
+            <span className="hidden max-w-40 truncate text-sm sm:inline">
+              {profile.full_name}
+            </span>
+            <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end" className="w-56">
             <DropdownMenuLabel className="flex flex-col">

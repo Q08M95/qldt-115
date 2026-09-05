@@ -74,7 +74,7 @@ export default async function NhanSuDetailPage({
               <ProfileForm
                 profile={profile}
                 showRole
-                onSubmit={(formData) => updateProfileByAdmin(profile.id, formData)}
+                onSubmit={updateProfileByAdmin.bind(null, profile.id)}
               />
             ) : (
               <dl className="grid max-w-lg grid-cols-2 gap-x-4 gap-y-3 text-sm">

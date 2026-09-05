@@ -46,8 +46,10 @@ export default async function NhanSuPage({
     .select("id, full_name, role, hoc_vi, chuyen_mon, trang_thai_hoat_dong")
     .order("full_name");
 
-  if (role) query = query.eq("role", role);
-  if (trang_thai) query = query.eq("trang_thai_hoat_dong", trang_thai === "hoat_dong");
+  if (role && role !== "all") query = query.eq("role", role);
+  if (trang_thai && trang_thai !== "all") {
+    query = query.eq("trang_thai_hoat_dong", trang_thai === "hoat_dong");
+  }
   if (q) query = query.ilike("full_name", `%${q}%`);
 
   const { data: profiles } = await query;
