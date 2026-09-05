@@ -401,7 +401,7 @@ create table audit_log (
 | `chuong_trinh_dao_tao`, `chuong_trinh_mau_bai_giang` | Full | Full | Chỉ đọc |
 | `lop_hoc`, `bai_giang` | Full | Full | Chỉ đọc |
 | `dang_ky_giang_day` | Full | Đọc tất cả, sửa `trang_thai`/`nguoi_duyet_id` | Đọc/tạo của chính mình, không tự sửa `trang_thai` |
-| `lich_giang` | Full | Full | Chỉ đọc (lịch liên quan đến mình) |
+| `lich_giang` | Full | Full | Đọc toàn bộ (lịch chung toàn trung tâm, không phải dữ liệu nhạy cảm — khớp toggle "Tất cả ↔ Của tôi" ở Giai đoạn 6), không tự sửa |
 | `kpi_ky`, `kpi_tieu_chi`, `kpi_tieu_chi_theo_ky` | Full | Đọc | Đọc |
 | `danh_gia_kpi` | Full | Full (là người chấm điểm) | Chỉ đọc điểm của chính mình |
 | `kpi_tong_hop` | Full | Full | Chỉ đọc của chính mình |
@@ -590,6 +590,7 @@ create table audit_log (
 **Mục tiêu:** Đưa hệ thống vào sử dụng thật, có tài liệu vận hành đi kèm.
 
 **Công việc:**
+0. Bật lại "Confirm email" trong Supabase Auth (đã tắt tạm ở Giai đoạn 2 để test nhanh 4 tài khoản mẫu — xem [docs/kiem-thu-phan-quyen.md](docs/kiem-thu-phan-quyen.md)).
 1. Kiểm tra lại toàn bộ biến môi trường production trên Vercel.
 2. Merge nhánh cuối cùng vào `main`, xác nhận deploy production ổn định.
 3. Gắn domain riêng nếu có, cấu hình HTTPS (Vercel tự động).
