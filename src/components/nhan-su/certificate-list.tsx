@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,14 +39,26 @@ export function CertificateList({
   canEdit: boolean;
 }) {
   const [isPending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
 
   async function handleView(fileUrl: string) {
-    const url = await getCertificateSignedUrl(fileUrl);
-    window.open(url, "_blank", "noopener,noreferrer");
+    setError(null);
+    const result = await getCertificateSignedUrl(fileUrl);
+    if (result.error || !result.url) {
+      setError(result.error ?? "Không lấy được liên kết file");
+      return;
+    }
+    window.open(result.url, "_blank", "noopener,noreferrer");
   }
 
   function handleDelete(id: string, fileUrl: string) {
-    startTransition(() => deleteCertificate(id, fileUrl, profileId));
+    setError(null);
+    startTransition(async () => {
+      const result = await deleteCertificate(id, fileUrl, profileId);
+      if (result?.error) {
+        setError(result.error);
+      }
+    });
   }
 
   if (certificates.length === 0) {
@@ -54,7 +66,13 @@ export function CertificateList({
   }
 
   return (
-    <div className="overflow-x-auto rounded-md border">
+    <div className="flex flex-col gap-2">
+      {error ? (
+        <p className="text-sm text-destructive" role="alert">
+          {error}
+        </p>
+      ) : null}
+      <div className="overflow-x-auto rounded-md border">
       <Table>
         <TableHeader>
           <TableRow>
@@ -106,6 +124,7 @@ export function CertificateList({
           ))}
         </TableBody>
       </Table>
+      </div>
     </div>
   );
 }

@@ -4,10 +4,10 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth";
 
-export async function updateOwnProfile(formData: FormData) {
+export async function updateOwnProfile(formData: FormData): Promise<{ error?: string }> {
   const current = await getCurrentProfile();
   if (!current) {
-    throw new Error("Chưa đăng nhập");
+    return { error: "Chưa đăng nhập" };
   }
 
   const supabase = await createClient();
@@ -23,8 +23,9 @@ export async function updateOwnProfile(formData: FormData) {
 
   const { error } = await supabase.from("profiles").update(payload).eq("id", current.id);
   if (error) {
-    throw new Error(error.message);
+    return { error: error.message };
   }
 
   revalidatePath("/ho-so");
+  return {};
 }

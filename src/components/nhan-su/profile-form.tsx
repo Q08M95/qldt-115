@@ -42,7 +42,7 @@ export function ProfileForm({
 }: {
   profile: EditableProfile;
   showRole: boolean;
-  onSubmit: (formData: FormData) => Promise<void>;
+  onSubmit: (formData: FormData) => Promise<{ error?: string } | void>;
 }) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -52,11 +52,11 @@ export function ProfileForm({
     setError(null);
     setSuccess(false);
     startTransition(async () => {
-      try {
-        await onSubmit(formData);
+      const result = await onSubmit(formData);
+      if (result?.error) {
+        setError(result.error);
+      } else {
         setSuccess(true);
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Có lỗi xảy ra");
       }
     });
   }

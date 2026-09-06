@@ -7,10 +7,12 @@ import { getCurrentProfile } from "@/lib/auth";
 
 const ROLES = ["admin", "quan_ly_dao_tao", "giang_vien", "tro_giang"] as const;
 
-export async function createProfile(formData: FormData) {
+// Loi mong doi tra ve qua gia tri (khong throw) — Next.js che message cua
+// loi throw trong production (chi con "digest" chung chung).
+export async function createProfile(formData: FormData): Promise<{ error?: string }> {
   const current = await getCurrentProfile();
   if (current?.role !== "admin") {
-    throw new Error("Chỉ admin được thêm nhân sự mới");
+    return { error: "Chỉ admin được thêm nhân sự mới" };
   }
 
   const email = String(formData.get("email") ?? "");
@@ -19,8 +21,11 @@ export async function createProfile(formData: FormData) {
   const hocVi = String(formData.get("hoc_vi") ?? "") || null;
   const chuyenMon = String(formData.get("chuyen_mon") ?? "") || null;
 
+  if (!email.trim() || !fullName.trim()) {
+    return { error: "Vui lòng nhập đủ email và họ tên" };
+  }
   if (!ROLES.includes(role as (typeof ROLES)[number])) {
-    throw new Error("Vai trò không hợp lệ");
+    return { error: "Vai trò không hợp lệ" };
   }
 
   // Tao tai khoan auth.users qua Admin API — bat buoc dung service role vi
@@ -35,25 +40,33 @@ export async function createProfile(formData: FormData) {
   });
 
   if (error || !data.user) {
-    throw new Error(error?.message ?? "Không tạo được tài khoản");
+    return { error: error?.message ?? "Không tạo được tài khoản" };
   }
 
   // Trigger da tu tao 1 dong profiles (role mac dinh tro_giang) — cap nhat
   // lai cho dung thong tin admin vua nhap. Dung admin client de bo qua gioi
   // han cua trigger enforce_profiles_update_scope (chi admin that qua UI
   // moi lam duoc buoc nay, o day dang chay dung boi admin).
-  await admin
+  const { error: updateError } = await admin
     .from("profiles")
     .update({ full_name: fullName, role, hoc_vi: hocVi, chuyen_mon: chuyenMon })
     .eq("id", data.user.id);
+
+  if (updateError) {
+    return { error: updateError.message };
+  }
 
   // Khong gui mat khau tam qua bat ky kenh nao o day — nhan su moi tu dung
   // "Quen mat khau" voi dung email nay de tao mat khau lan dau (tai su dung
   // ha tang email cua Giai doan 2, khong can Giai doan 8 moi hoat dong).
   revalidatePath("/nhan-su");
+  return {};
 }
 
-export async function toggleActive(id: string, nextValue: boolean) {
+export async function toggleActive(
+  id: string,
+  nextValue: boolean,
+): Promise<{ error?: string }> {
   const supabase = await createClient();
   const { error } = await supabase
     .from("profiles")
@@ -61,14 +74,18 @@ export async function toggleActive(id: string, nextValue: boolean) {
     .eq("id", id);
 
   if (error) {
-    throw new Error(error.message);
+    return { error: error.message };
   }
 
   revalidatePath("/nhan-su");
   revalidatePath(`/nhan-su/${id}`);
+  return {};
 }
 
-export async function updateProfileByAdmin(id: string, formData: FormData) {
+export async function updateProfileByAdmin(
+  id: string,
+  formData: FormData,
+): Promise<{ error?: string }> {
   const supabase = await createClient();
 
   const payload = {
@@ -85,8 +102,9 @@ export async function updateProfileByAdmin(id: string, formData: FormData) {
   const { error } = await supabase.from("profiles").update(payload).eq("id", id);
 
   if (error) {
-    throw new Error(error.message);
+    return { error: error.message };
   }
 
   revalidatePath(`/nhan-su/${id}`);
+  return {};
 }

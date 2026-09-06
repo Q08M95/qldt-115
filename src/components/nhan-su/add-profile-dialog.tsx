@@ -38,11 +38,11 @@ export function AddProfileDialog() {
   function handleSubmit(formData: FormData) {
     setError(null);
     startTransition(async () => {
-      try {
-        await createProfile(formData);
+      const result = await createProfile(formData);
+      if (result?.error) {
+        setError(result.error);
+      } else {
         setOpen(false);
-      } catch (e) {
-        setError(e instanceof Error ? e.message : "Có lỗi xảy ra");
       }
     });
   }
