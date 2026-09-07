@@ -3,6 +3,25 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 
+// Supabase Storage tu choi key co dau tieng Viet/khoang trang ("Invalid
+// key"). Bo dau (theo ma Unicode, khong dung ky tu dau nao truc tiep trong
+// nguon de tranh loi encoding) + thay ky tu khong an toan bang "_" truoc
+// khi dung lam ten file luu tru (ten hien thi that van luu nguyen ven o
+// cot ten_chung_chi).
+function sanitizeFileName(name: string): string {
+  const decomposed = name.normalize("NFD");
+  let stripped = "";
+  for (const ch of decomposed) {
+    const code = ch.codePointAt(0) ?? 0;
+    if (code >= 0x0300 && code <= 0x036f) continue; // dau to hop (combining diacritical marks)
+    stripped += ch;
+  }
+  return stripped
+    .replace(/đ/g, "d") // đ
+    .replace(/Đ/g, "D") // Đ
+    .replace(/[^a-zA-Z0-9.-]/g, "_");
+}
+
 // Cac loi "mong doi" (validation, RLS tu choi...) tra ve qua gia tri, KHONG
 // throw — Next.js che toan bo message cua loi throw trong production
 // (chi con "digest" chung chung, xem docs Handling expected errors), khien
@@ -26,7 +45,7 @@ export async function uploadCertificate(
   }
 
   const supabase = await createClient();
-  const path = `${profileId}/${crypto.randomUUID()}-${file.name}`;
+  const path = `${profileId}/${crypto.randomUUID()}-${sanitizeFileName(file.name)}`;
 
   const { error: uploadError } = await supabase.storage.from("chung-chi").upload(path, file);
   if (uploadError) {
