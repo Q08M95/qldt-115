@@ -74,7 +74,9 @@ export function AddProfileDialog() {
             <Label htmlFor="role">Vai trò</Label>
             <Select name="role" defaultValue="tro_giang">
               <SelectTrigger id="role">
-                <SelectValue />
+                <SelectValue>
+                  {(value: string) => ROLE_OPTIONS.find((r) => r.value === value)?.label ?? value}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 {ROLE_OPTIONS.map((r) => (
