@@ -52,6 +52,7 @@ export function CertificateList({
   }
 
   function handleDelete(id: string, fileUrl: string) {
+    if (!window.confirm("Xoá chứng chỉ này? Không thể hoàn tác.")) return;
     setError(null);
     startTransition(async () => {
       const result = await deleteCertificate(id, fileUrl, profileId);

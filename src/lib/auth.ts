@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 
 export type CurrentProfile = {
@@ -18,8 +19,12 @@ export type CurrentProfile = {
  * Lay user + profile hien tai o Server Component/Server Action. Tra ve null
  * neu chua dang nhap — middleware da chan hau het truong hop nay, nhung
  * ham nay van kiem tra lai de an toan khi goi truc tiep.
+ *
+ * Boc qua React cache(): layout.tsx VA tung page.tsx deu goi ham nay doc
+ * lap trong cung 1 request — khong cache se chay 2 lan supabase.auth.getUser()
+ * (round-trip xac thuc JWT) + 2 lan truy van profiles cho MOI lan tai trang.
  */
-export async function getCurrentProfile(): Promise<CurrentProfile | null> {
+export const getCurrentProfile = cache(async (): Promise<CurrentProfile | null> => {
   const supabase = await createClient();
   const {
     data: { user },
@@ -50,4 +55,4 @@ export async function getCurrentProfile(): Promise<CurrentProfile | null> {
     so_dien_thoai: profile.so_dien_thoai,
     ngay_vao_lam: profile.ngay_vao_lam,
   };
-}
+});

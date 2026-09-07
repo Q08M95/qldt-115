@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -47,6 +47,12 @@ export function ProfileForm({
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    if (!success) return;
+    const timeout = setTimeout(() => setSuccess(false), 2500);
+    return () => clearTimeout(timeout);
+  }, [success]);
 
   function handleSubmit(formData: FormData) {
     setError(null);
@@ -138,16 +144,16 @@ export function ProfileForm({
           {error}
         </p>
       ) : null}
-      {success ? (
-        <p className="text-sm text-muted-foreground" role="status">
-          Đã lưu.
-        </p>
-      ) : null}
 
-      <div>
+      <div className="flex items-center gap-3">
         <Button type="submit" disabled={isPending}>
           {isPending ? "Đang lưu..." : "Lưu thay đổi"}
         </Button>
+        {success ? (
+          <span className="text-sm text-muted-foreground" role="status">
+            Đã lưu.
+          </span>
+        ) : null}
       </div>
     </form>
   );

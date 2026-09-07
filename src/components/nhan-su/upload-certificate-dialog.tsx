@@ -32,8 +32,13 @@ export function UploadCertificateDialog({ profileId }: { profileId: string }) {
     });
   }
 
+  function handleOpenChange(next: boolean) {
+    setOpen(next);
+    if (next) setError(null);
+  }
+
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger render={<Button size="sm" variant="outline" />}>
         <Plus className="h-4 w-4" />
         Thêm chứng chỉ
