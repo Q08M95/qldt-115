@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
+import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -39,13 +40,11 @@ export function CertificateList({
   canEdit: boolean;
 }) {
   const [isPending, startTransition] = useTransition();
-  const [error, setError] = useState<string | null>(null);
 
   async function handleView(fileUrl: string) {
-    setError(null);
     const result = await getCertificateSignedUrl(fileUrl);
     if (result.error || !result.url) {
-      setError(result.error ?? "Không lấy được liên kết file");
+      toast.error(result.error ?? "Không lấy được liên kết file");
       return;
     }
     window.open(result.url, "_blank", "noopener,noreferrer");
@@ -53,11 +52,12 @@ export function CertificateList({
 
   function handleDelete(id: string, fileUrl: string) {
     if (!window.confirm("Xoá chứng chỉ này? Không thể hoàn tác.")) return;
-    setError(null);
     startTransition(async () => {
       const result = await deleteCertificate(id, fileUrl, profileId);
       if (result?.error) {
-        setError(result.error);
+        toast.error(result.error);
+      } else {
+        toast.success("Đã xoá chứng chỉ");
       }
     });
   }
@@ -68,11 +68,6 @@ export function CertificateList({
 
   return (
     <div className="flex flex-col gap-2">
-      {error ? (
-        <p className="text-sm text-destructive" role="alert">
-          {error}
-        </p>
-      ) : null}
       <div className="overflow-x-auto rounded-md border">
       <Table>
         <TableHeader>

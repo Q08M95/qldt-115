@@ -4,13 +4,7 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import type { CurrentProfile } from "@/lib/auth";
 import { logout } from "@/app/(app)/actions";
-
-const ROLE_LABEL: Record<CurrentProfile["role"], string> = {
-  admin: "Quản trị viên",
-  quan_ly_dao_tao: "Quản lý đào tạo",
-  giang_vien: "Giảng viên",
-  tro_giang: "Trợ giảng",
-};
+import { ROLE_LABEL } from "@/lib/constants/roles";
 
 // Co y khong dung DropdownMenu o day: dat form dang xuat ben trong 1 menu
 // component (Base UI) tung gay loi diu hanh vi (menu tu chan/nuot su kien

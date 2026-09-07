@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useState, useTransition } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,13 +12,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-const ROLE_OPTIONS = [
-  { value: "giang_vien", label: "Giảng viên" },
-  { value: "tro_giang", label: "Trợ giảng" },
-  { value: "quan_ly_dao_tao", label: "Quản lý đào tạo" },
-  { value: "admin", label: "Quản trị viên" },
-];
+import { ROLE_OPTIONS } from "@/lib/constants/roles";
 
 export type EditableProfile = {
   full_name: string;
@@ -46,23 +41,15 @@ export function ProfileForm({
 }) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
-
-  useEffect(() => {
-    if (!success) return;
-    const timeout = setTimeout(() => setSuccess(false), 2500);
-    return () => clearTimeout(timeout);
-  }, [success]);
 
   function handleSubmit(formData: FormData) {
     setError(null);
-    setSuccess(false);
     startTransition(async () => {
       const result = await onSubmit(formData);
       if (result?.error) {
         setError(result.error);
       } else {
-        setSuccess(true);
+        toast.success("Đã lưu hồ sơ.");
       }
     });
   }
@@ -145,16 +132,9 @@ export function ProfileForm({
         </p>
       ) : null}
 
-      <div className="flex items-center gap-3">
-        <Button type="submit" disabled={isPending}>
-          {isPending ? "Đang lưu..." : "Lưu thay đổi"}
-        </Button>
-        {success ? (
-          <span className="text-sm text-muted-foreground" role="status">
-            Đã lưu.
-          </span>
-        ) : null}
-      </div>
+      <Button type="submit" disabled={isPending}>
+        {isPending ? "Đang lưu..." : "Lưu thay đổi"}
+      </Button>
     </form>
   );
 }

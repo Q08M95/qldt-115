@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Plus } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -28,6 +29,7 @@ export function UploadCertificateDialog({ profileId }: { profileId: string }) {
         setError(result.error);
       } else {
         setOpen(false);
+        toast.success("Đã thêm chứng chỉ");
       }
     });
   }

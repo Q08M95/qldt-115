@@ -1,12 +1,6 @@
 import { PageHeader } from "@/components/layout/page-header";
 import { getCurrentProfile } from "@/lib/auth";
-
-const ROLE_LABEL: Record<string, string> = {
-  admin: "Quản trị viên",
-  quan_ly_dao_tao: "Quản lý đào tạo",
-  giang_vien: "Giảng viên",
-  tro_giang: "Trợ giảng",
-};
+import { ROLE_LABEL } from "@/lib/constants/roles";
 
 // Stub tam thoi cho Giai doan 3 (chi de co diem neo cho luong dang nhap va
 // sidebar/header). Noi dung dashboard that theo tung vai tro se do agent

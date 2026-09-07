@@ -5,17 +5,12 @@ import { PageHeader } from "@/components/layout/page-header";
 import { CertificateList } from "@/components/nhan-su/certificate-list";
 import { UploadCertificateDialog } from "@/components/nhan-su/upload-certificate-dialog";
 import { ToggleActiveButton } from "@/components/nhan-su/toggle-active-button";
+import { ResendInviteButton } from "@/components/nhan-su/resend-invite-button";
 import { ProfileForm } from "@/components/nhan-su/profile-form";
 import { getCurrentProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { ROLE_LABEL } from "@/lib/constants/roles";
 import { updateProfileByAdmin } from "../actions";
-
-const ROLE_LABEL: Record<string, string> = {
-  admin: "Quản trị viên",
-  quan_ly_dao_tao: "Quản lý đào tạo",
-  giang_vien: "Giảng viên",
-  tro_giang: "Trợ giảng",
-};
 
 export default async function NhanSuDetailPage({
   params,
@@ -50,7 +45,10 @@ export default async function NhanSuDetailPage({
         items={[{ label: "Nhân sự", href: "/nhan-su" }, { label: profile.full_name }]}
         actions={
           isAdmin || isQuanLy ? (
-            <ToggleActiveButton id={profile.id} active={profile.trang_thai_hoat_dong} />
+            <div className="flex items-center gap-2">
+              {isAdmin ? <ResendInviteButton profileId={profile.id} /> : null}
+              <ToggleActiveButton id={profile.id} active={profile.trang_thai_hoat_dong} />
+            </div>
           ) : null
         }
       />

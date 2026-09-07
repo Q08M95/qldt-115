@@ -2,6 +2,28 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { getCurrentProfile } from "@/lib/auth";
+
+const ALLOWED_MIME_TYPES = new Set([
+  "application/pdf",
+  "image/jpeg",
+  "image/png",
+  "image/webp",
+]);
+const MAX_FILE_SIZE_BYTES = 8 * 1024 * 1024; // 8MB — con du bien do voi gioi han body 10MB da cau hinh o next.config.ts
+
+// input type="file" accept=".pdf,image/*" o client chi la goi y UI, ai cung
+// bypass duoc bang cach doi ten file/gui request thang toi action nay — bat
+// buoc kiem tra lai loai va dung luong file o server.
+function validateFile(file: File): string | null {
+  if (!ALLOWED_MIME_TYPES.has(file.type)) {
+    return "Chỉ chấp nhận file PDF hoặc ảnh (JPEG/PNG/WEBP)";
+  }
+  if (file.size > MAX_FILE_SIZE_BYTES) {
+    return "File vượt quá 8MB, vui lòng chọn file nhỏ hơn";
+  }
+  return null;
+}
 
 // Supabase Storage tu choi key co dau tieng Viet/khoang trang ("Invalid
 // key"). Bo dau (theo ma Unicode, khong dung ky tu dau nao truc tiep trong
@@ -30,6 +52,11 @@ export async function uploadCertificate(
   profileId: string,
   formData: FormData,
 ): Promise<{ error?: string }> {
+  const current = await getCurrentProfile();
+  if (!current || (current.role !== "admin" && current.id !== profileId)) {
+    return { error: "Bạn không có quyền thêm chứng chỉ cho hồ sơ này" };
+  }
+
   const file = formData.get("file") as File | null;
   const tenChungChi = String(formData.get("ten_chung_chi") ?? "");
   const noiCap = String(formData.get("noi_cap") ?? "") || null;
@@ -42,6 +69,10 @@ export async function uploadCertificate(
   }
   if (!file || file.size === 0) {
     return { error: "Vui lòng chọn file chứng chỉ" };
+  }
+  const fileError = validateFile(file);
+  if (fileError) {
+    return { error: fileError };
   }
 
   const supabase = await createClient();
@@ -76,6 +107,11 @@ export async function deleteCertificate(
   fileUrl: string,
   profileId: string,
 ): Promise<{ error?: string }> {
+  const current = await getCurrentProfile();
+  if (!current || (current.role !== "admin" && current.id !== profileId)) {
+    return { error: "Bạn không có quyền xoá chứng chỉ này" };
+  }
+
   const supabase = await createClient();
 
   const { error } = await supabase.from("chung_chi").delete().eq("id", certId);

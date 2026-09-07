@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { Plus } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -22,13 +23,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { createProfile } from "@/app/(app)/nhan-su/actions";
-
-const ROLE_OPTIONS = [
-  { value: "giang_vien", label: "Giảng viên" },
-  { value: "tro_giang", label: "Trợ giảng" },
-  { value: "quan_ly_dao_tao", label: "Quản lý đào tạo" },
-  { value: "admin", label: "Quản trị viên" },
-];
+import { ROLE_OPTIONS } from "@/lib/constants/roles";
 
 export function AddProfileDialog() {
   const [open, setOpen] = useState(false);
@@ -43,6 +38,7 @@ export function AddProfileDialog() {
         setError(result.error);
       } else {
         setOpen(false);
+        toast.success("Đã tạo tài khoản nhân sự mới");
       }
     });
   }
