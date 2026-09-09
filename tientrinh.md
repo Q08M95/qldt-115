@@ -439,7 +439,7 @@ create table audit_log (
 **Điều kiện hoàn thành (Gate → Giai đoạn 4):**
 - [ ] CRUD nhân sự hoạt động đầy đủ đúng phân quyền đã kiểm thử ở Giai đoạn 2.
 - [ ] Upload/xem chứng chỉ qua Storage hoạt động.
-- [ ] Có tối thiểu 6-8 hồ sơ nhân sự mẫu thực tế (đa dạng vai trò/học vị) để làm dữ liệu nền cho các module sau — **không dùng dữ liệu rác** vì sẽ dùng lại đến cuối dự án.
+- [x] Dữ liệu nhân sự nền lấy từ **danh sách thật của trung tâm** (`data quan ly dao tao.xlsx`, sheet "NHÂN SỰ" + "QUẢN LÝ CHỨNG CHỈ"), không phải dữ liệu bịa — 53 hồ sơ (27 giảng viên, 26 trợ giảng), mỗi hồ sơ ánh xạ: `full_name`←Họ và tên, `role`←Vai trò, `hoc_vi`←Học vị/Chức danh, `chuc_danh`←Văn bằng chuyên môn, `chuyen_mon`←Phạm vi hành nghề (dùng để khớp chuyên môn ở CLAUDE.md mục 2.1), `don_vi_cong_tac`←Khoa/phòng công tác, `trang_thai_hoat_dong`←Trạng thái công tác. Cột `CCHN/GPHN` (có/không) và sheet "QUẢN LÝ CHỨNG CHỈ" không có cột tương ứng trong `profiles` nên được chuyển thành các dòng `chung_chi` riêng (CCHN/GPHN → 1 dòng `bat_buoc = true`; các chứng chỉ khác → `bat_buoc = false`). Cột "MÃ NHÂN SỰ"/"NHÓM PHÂN LOẠI" trong file gốc không có trường phù hợp và trùng lặp thông tin đã có (khoa/phòng, vai trò) nên không lưu riêng.
 
 ---
 

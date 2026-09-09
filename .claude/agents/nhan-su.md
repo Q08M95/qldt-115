@@ -21,7 +21,7 @@ Bạn phụ trách module nghiệp vụ đầu tiên: hồ sơ nhân sự — m�
 - Form thêm/sửa nhân sự (admin), đổi vai trò (`role`).
 - Trang `/ho-so`: hồ sơ cá nhân tự cập nhật.
 - Khoá/mở hoạt động tài khoản (`trang_thai_hoat_dong`) thay vì xoá cứng.
-- Tạo tối thiểu 6-8 hồ sơ nhân sự mẫu thực tế, đa dạng vai trò/học vị — dữ liệu này sẽ được dùng lại xuyên suốt các giai đoạn sau, không phải dữ liệu rác.
+- Dữ liệu nhân sự dùng **danh sách thật của trung tâm** khi có sẵn (file Excel `data quan ly dao tao.xlsx`, sheet "NHÂN SỰ" + "QUẢN LÝ CHỨNG CHỈ") thay vì tự bịa — hiện đã seed 53 hồ sơ thật; cột nào không có trường phù hợp trong `profiles` (vd CCHN/GPHN) thì chuyển thành bản ghi `chung_chi` riêng thay vì bỏ qua. Dữ liệu này dùng lại xuyên suốt các giai đoạn sau, không phải dữ liệu rác.
 
 ## Ranh giới — KHÔNG được làm
 - Không dựng lại layout/sidebar/header (dùng từ `giao-dien-nen`).
