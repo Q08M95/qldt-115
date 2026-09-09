@@ -49,6 +49,78 @@ type AuditLogRow = {
   created_at: string;
 };
 
+type ChuongTrinhDaoTaoRow = {
+  id: string;
+  ten_chuong_trinh: string;
+  mo_ta: string | null;
+  created_at: string;
+};
+
+type ChuongTrinhMauBaiGiangRow = {
+  id: string;
+  chuong_trinh_id: string;
+  ten_bai: string;
+  chuyen_de: string | null;
+  thoi_luong_tiet: number;
+  thu_tu: number;
+  created_at: string;
+};
+
+type LopHocTrangThai =
+  | "cho_khai_giang"
+  | "dang_dien_ra"
+  | "hoan_thanh"
+  | "thieu_nhan_su"
+  | "huy";
+
+type LopHocRow = {
+  id: string;
+  chuong_trinh_id: string | null;
+  ten_lop: string;
+  mo_ta: string | null;
+  loai_lop: string | null;
+  hinh_thuc: "truc_tiep" | "truc_tuyen" | "ket_hop";
+  co_kinh_phi: boolean;
+  la_lop_gap: boolean;
+  la_gio_hiem: boolean;
+  la_lop_cong_dong: boolean;
+  ngay_khai_giang: string | null;
+  ngay_ket_thuc: string | null;
+  so_hoc_vien_du_kien: number | null;
+  so_giang_vien_can: number;
+  so_tro_giang_can: number;
+  trang_thai: LopHocTrangThai;
+  nguoi_phu_trach_id: string | null;
+  created_by: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+type BaiGiangRow = {
+  id: string;
+  lop_hoc_id: string;
+  ten_bai: string;
+  chuyen_de: string | null;
+  thoi_luong_tiet: number;
+  thu_tu: number;
+  created_at: string;
+};
+
+type LichGiangRow = {
+  id: string;
+  lop_hoc_id: string;
+  bai_giang_id: string | null;
+  giang_vien_id: string | null;
+  tro_giang_id: string | null;
+  ngay_gio: string | null;
+  buoi: "sang" | "chieu" | "toi" | null;
+  dia_diem: string | null;
+  trang_thai: "du_kien" | "da_xac_nhan" | "da_ban_giao" | "huy";
+  ly_do_huy: string | null;
+  thoi_diem_huy: string | null;
+  created_at: string;
+};
+
 export type Database = {
   public: {
     Tables: {
@@ -72,9 +144,63 @@ export type Database = {
         Update: never;
         Relationships: [];
       };
+      chuong_trinh_dao_tao: {
+        Row: ChuongTrinhDaoTaoRow;
+        Insert: Partial<Omit<ChuongTrinhDaoTaoRow, "ten_chuong_trinh">> &
+          Pick<ChuongTrinhDaoTaoRow, "ten_chuong_trinh">;
+        Update: Partial<ChuongTrinhDaoTaoRow>;
+        Relationships: [];
+      };
+      chuong_trinh_mau_bai_giang: {
+        Row: ChuongTrinhMauBaiGiangRow;
+        Insert: Partial<Omit<ChuongTrinhMauBaiGiangRow, "chuong_trinh_id" | "ten_bai">> &
+          Pick<ChuongTrinhMauBaiGiangRow, "chuong_trinh_id" | "ten_bai">;
+        Update: Partial<ChuongTrinhMauBaiGiangRow>;
+        Relationships: [];
+      };
+      lop_hoc: {
+        Row: LopHocRow;
+        Insert: Partial<Omit<LopHocRow, "ten_lop">> & Pick<LopHocRow, "ten_lop">;
+        Update: Partial<LopHocRow>;
+        Relationships: [];
+      };
+      bai_giang: {
+        Row: BaiGiangRow;
+        Insert: Partial<Omit<BaiGiangRow, "lop_hoc_id" | "ten_bai">> &
+          Pick<BaiGiangRow, "lop_hoc_id" | "ten_bai">;
+        Update: Partial<BaiGiangRow>;
+        Relationships: [];
+      };
+      lich_giang: {
+        Row: LichGiangRow;
+        Insert: Partial<Omit<LichGiangRow, "lop_hoc_id">> & Pick<LichGiangRow, "lop_hoc_id">;
+        Update: Partial<LichGiangRow>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
-    Functions: Record<string, never>;
+    Functions: {
+      tao_lop_hoc: {
+        Args: {
+          p_ten_lop: string;
+          p_mo_ta: string | null;
+          p_loai_lop: string | null;
+          p_hinh_thuc: string;
+          p_co_kinh_phi: boolean;
+          p_la_lop_gap: boolean;
+          p_la_gio_hiem: boolean;
+          p_la_lop_cong_dong: boolean;
+          p_ngay_khai_giang: string | null;
+          p_ngay_ket_thuc: string | null;
+          p_so_hoc_vien_du_kien: number | null;
+          p_so_giang_vien_can: number;
+          p_so_tro_giang_can: number;
+          p_nguoi_phu_trach_id: string | null;
+          p_chuong_trinh_id: string | null;
+        };
+        Returns: string;
+      };
+    };
     Enums: Record<string, never>;
     CompositeTypes: Record<string, never>;
   };
