@@ -18,9 +18,7 @@ type ProfileRow = {
   hoc_vi: string | null;
   chuc_danh: string | null;
   chuyen_mon: string | null;
-  don_vi_cong_tac: string | null;
-  so_dien_thoai: string | null;
-  ngay_vao_lam: string | null;
+  khoa_phong_cong_tac: string | null;
   nhom_phan_loai: number | null;
   trang_thai_hoat_dong: boolean;
   created_at: string;

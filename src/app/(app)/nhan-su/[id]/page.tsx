@@ -94,12 +94,8 @@ export default async function NhanSuDetailPage({
                 <dd>{profile.chuc_danh ?? "—"}</dd>
                 <dt className="text-muted-foreground">Chuyên môn</dt>
                 <dd>{profile.chuyen_mon ?? "—"}</dd>
-                <dt className="text-muted-foreground">Đơn vị công tác</dt>
-                <dd>{profile.don_vi_cong_tac ?? "—"}</dd>
-                <dt className="text-muted-foreground">Số điện thoại</dt>
-                <dd>{profile.so_dien_thoai ?? "—"}</dd>
-                <dt className="text-muted-foreground">Ngày vào làm</dt>
-                <dd>{profile.ngay_vao_lam ?? "—"}</dd>
+                <dt className="text-muted-foreground">Khoa/Phòng công tác</dt>
+                <dd>{profile.khoa_phong_cong_tac ?? "—"}</dd>
                 {isQuanLy ? (
                   <>
                     <dt className="text-muted-foreground">Email</dt>

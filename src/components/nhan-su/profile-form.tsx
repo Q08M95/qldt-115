@@ -21,9 +21,7 @@ export type EditableProfile = {
   hoc_vi: string | null;
   chuc_danh: string | null;
   chuyen_mon: string | null;
-  don_vi_cong_tac: string | null;
-  so_dien_thoai: string | null;
-  ngay_vao_lam: string | null;
+  khoa_phong_cong_tac: string | null;
   nhom_phan_loai?: number | null;
 };
 
@@ -131,32 +129,12 @@ export function ProfileForm({
       ) : null}
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor="don_vi_cong_tac">Đơn vị công tác</Label>
+        <Label htmlFor="khoa_phong_cong_tac">Khoa/Phòng công tác</Label>
         <Input
-          id="don_vi_cong_tac"
-          name="don_vi_cong_tac"
-          defaultValue={profile.don_vi_cong_tac ?? ""}
+          id="khoa_phong_cong_tac"
+          name="khoa_phong_cong_tac"
+          defaultValue={profile.khoa_phong_cong_tac ?? ""}
         />
-      </div>
-
-      <div className="grid grid-cols-2 gap-4">
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="so_dien_thoai">Số điện thoại</Label>
-          <Input
-            id="so_dien_thoai"
-            name="so_dien_thoai"
-            defaultValue={profile.so_dien_thoai ?? ""}
-          />
-        </div>
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="ngay_vao_lam">Ngày vào làm</Label>
-          <Input
-            id="ngay_vao_lam"
-            name="ngay_vao_lam"
-            type="date"
-            defaultValue={profile.ngay_vao_lam ?? ""}
-          />
-        </div>
       </div>
 
       {error ? (

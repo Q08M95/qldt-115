@@ -107,9 +107,7 @@ create table profiles (
   hoc_vi text,
   chuc_danh text,
   chuyen_mon text,
-  don_vi_cong_tac text,
-  so_dien_thoai text,
-  ngay_vao_lam date,
+  khoa_phong_cong_tac text,  -- doi ten tu don_vi_cong_tac 2026-09-10, khop dung "KHOA/PHÒNG CÔNG TÁC" trong Excel goc
   nhom_phan_loai smallint check (nhom_phan_loai between 1 and 5),  -- phan tang noi bo, xem ghi chu duoi
   trang_thai_hoat_dong boolean default true,
   created_at timestamptz default now(),
@@ -377,6 +375,11 @@ create table audit_log (
 > - Đăng nhập lần đầu cho nhân sự thật: admin nhập đúng **email thật** của người đó (qua `createProfile` hoặc `updateProfileEmail`), nhân sự tự bấm "Quên mật khẩu" ở trang đăng nhập để tự đặt mật khẩu — không có mật khẩu tạm nào được admin biết/chuyển tay. 52 hồ sơ import hàng loạt từ Excel ở bước seed trước đó đang dùng email nội bộ tạm (`+mã nhân sự@gmail.com`, chỉ nhận được bởi tài khoản dev) — cần admin cập nhật lại bằng email thật của từng người qua nút "Sửa email" trước khi người đó đăng nhập được.
 > - RPC mới `xoa_nhan_su(p_id)`: xoá cứng 1 nhân sự, tự kiểm tra không còn dữ liệu tham chiếu ở các bảng chưa có `on delete cascade` tới `profiles` (lịch giảng, đăng ký, đánh giá KPI...) trước khi xoá, báo lỗi rõ ràng gợi ý dùng khoá hoạt động thay thế nếu còn dữ liệu — không dựa vào việc parse lỗi khoá ngoại chung chung từ Admin API.
 
+> **Sửa đổi 2026-09-10 vào `profiles` + `chung_chi` (theo yêu cầu người dùng, ngoại lệ CLAUDE.md mục 4):**
+> - Bỏ `so_dien_thoai`, `ngay_vao_lam` — không quan trọng với nghiệp vụ hiện tại; đã kiểm tra cả 58 hồ sơ đang có đều trống 2 cột này nên không mất dữ liệu.
+> - Đổi tên `don_vi_cong_tac` → `khoa_phong_cong_tac` cho khớp đúng tên cột "KHOA/PHÒNG CÔNG TÁC" trong `data quan ly dao tao.xlsx` (nhãn hiển thị cũng đổi thành "Khoa/Phòng công tác").
+> - Nới quyền xem `chung_chi` (bảng + Storage bucket `chung-chi`): trước đây `chung_chi_select` chỉ cho `admin`/`quan_ly_dao_tao` hoặc chính chủ xem — nay mọi `authenticated` đều xem được chứng chỉ của bất kỳ ai (giống triết lý `profiles_select` "đọc tất cả để biết đồng nghiệp"). Quyền **sửa/xoá không đổi** — vẫn chỉ `admin` hoặc chính chủ (`chung_chi_insert/update/delete` giữ nguyên).
+
 ### 1.3. Trigger & function nền tảng
 1. Trigger tự tạo `profiles` khi có `auth.users` mới đăng ký (role mặc định thấp nhất, admin nâng quyền thủ công sau).
 2. Trigger `updated_at` tự cập nhật cho các bảng có cột này.
@@ -404,7 +407,7 @@ create table audit_log (
 | Bảng | admin | quan_ly_dao_tao | giang_vien / tro_giang |
 |---|---|---|---|
 | `profiles` | Full | Đọc tất cả, sửa trạng thái hoạt động | Đọc tất cả (để biết đồng nghiệp), chỉ sửa hồ sơ của chính mình |
-| `chung_chi` | Full | Đọc tất cả | Chỉ CRUD của chính mình |
+| `chung_chi` | Full | Đọc tất cả | Đọc tất cả (để biết đồng nghiệp, xem CLAUDE.md mục 4, sửa 2026-09-10), chỉ CRUD của chính mình |
 | `chuong_trinh_dao_tao`, `chuong_trinh_mau_bai_giang` | Full | Full | Chỉ đọc |
 | `lop_hoc`, `bai_giang` | Full | Full | Chỉ đọc |
 | `dang_ky_giang_day` | Full | Đọc tất cả, sửa `trang_thai`/`nguoi_duyet_id` | Đọc/tạo của chính mình, không tự sửa `trang_thai` |

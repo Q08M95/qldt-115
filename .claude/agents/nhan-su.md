@@ -17,7 +17,7 @@ Bạn phụ trách module nghiệp vụ đầu tiên: hồ sơ nhân sự — m�
 
 ## Phạm vi phụ trách
 - Trang `/nhan-su`: danh sách nhân sự dạng bảng, lọc theo vai trò/trạng thái hoạt động, tìm kiếm theo tên. Cột Email/Nhóm phân loại chỉ admin/quan_ly_dao_tao thấy (bỏ khỏi mọi component truyền cho vai trò khác, không chỉ ẩn bằng CSS).
-- Trang `/nhan-su/[id]`: chi tiết hồ sơ + tab Chứng chỉ (upload/xem qua Supabase Storage).
+- Trang `/nhan-su/[id]`: chi tiết hồ sơ (trường: họ tên, vai trò, học vị, chức danh, chuyên môn, `khoa_phong_cong_tac` — đổi tên từ `don_vi_cong_tac` 2026-09-10, đã bỏ số điện thoại/ngày vào làm vì không quan trọng) + tab Chứng chỉ (upload/xem qua Supabase Storage). Tab Chứng chỉ: mọi `authenticated` xem được của bất kỳ ai (RLS `chung_chi_select`/`chung_chi_storage_select` đã nới thành `using (true)`/`bucket_id = 'chung-chi'` 2026-09-10), nhưng chỉ admin hoặc chính chủ sửa/xoá được (`canEditCertificates = isAdmin || isSelf`, không đổi).
 - Form thêm/sửa nhân sự (admin), đổi vai trò (`role`), đổi email đăng nhập thật (`updateProfileEmail` — phải đổi cả `auth.users.email` qua Admin API lẫn cột `profiles.email`, tự gửi email đặt mật khẩu lần đầu tới địa chỉ mới), phân nhóm nội bộ 1-5 (`nhom_phan_loai`, chỉ admin sửa được).
 - Trang `/ho-so`: hồ sơ cá nhân tự cập nhật — không hiển thị `nhom_phan_loai` dù là hồ sơ của chính mình.
 - Khoá/mở hoạt động tài khoản (`trang_thai_hoat_dong`) cho trường hợp thông thường, **cộng thêm xoá cứng** (RPC `xoa_nhan_su`, admin only) cho trường hợp thêm nhầm — RPC tự kiểm tra không còn dữ liệu tham chiếu trước khi xoá, báo lỗi rõ ràng nếu còn (gợi ý dùng khoá thay vì xoá).

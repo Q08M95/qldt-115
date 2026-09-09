@@ -16,9 +16,7 @@ export async function updateOwnProfile(formData: FormData): Promise<{ error?: st
     hoc_vi: String(formData.get("hoc_vi") ?? "") || null,
     chuc_danh: String(formData.get("chuc_danh") ?? "") || null,
     chuyen_mon: String(formData.get("chuyen_mon") ?? "") || null,
-    don_vi_cong_tac: String(formData.get("don_vi_cong_tac") ?? "") || null,
-    so_dien_thoai: String(formData.get("so_dien_thoai") ?? "") || null,
-    ngay_vao_lam: String(formData.get("ngay_vao_lam") ?? "") || null,
+    khoa_phong_cong_tac: String(formData.get("khoa_phong_cong_tac") ?? "") || null,
   };
 
   const { error } = await supabase.from("profiles").update(payload).eq("id", current.id);

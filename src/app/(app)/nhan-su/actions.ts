@@ -107,9 +107,7 @@ export async function updateProfileByAdmin(
     hoc_vi: formData.get("hoc_vi"),
     chuc_danh: formData.get("chuc_danh"),
     chuyen_mon: formData.get("chuyen_mon"),
-    don_vi_cong_tac: formData.get("don_vi_cong_tac"),
-    so_dien_thoai: formData.get("so_dien_thoai"),
-    ngay_vao_lam: formData.get("ngay_vao_lam"),
+    khoa_phong_cong_tac: formData.get("khoa_phong_cong_tac"),
     nhom_phan_loai: nhomRaw === "none" || !nhomRaw ? null : Number(nhomRaw),
   });
   if (!parsed.success) {

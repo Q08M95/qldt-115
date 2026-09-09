@@ -37,9 +37,7 @@ export const updateProfileByAdminSchema = z.object({
   hoc_vi: optionalText,
   chuc_danh: optionalText,
   chuyen_mon: optionalText,
-  don_vi_cong_tac: optionalText,
-  so_dien_thoai: optionalText,
-  ngay_vao_lam: optionalText,
+  khoa_phong_cong_tac: optionalText,
   nhom_phan_loai: optionalNhom,
 });
 

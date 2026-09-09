@@ -22,9 +22,7 @@ export default async function HoSoPage() {
             hoc_vi: profile.hoc_vi,
             chuc_danh: profile.chuc_danh,
             chuyen_mon: profile.chuyen_mon,
-            don_vi_cong_tac: profile.don_vi_cong_tac,
-            so_dien_thoai: profile.so_dien_thoai,
-            ngay_vao_lam: profile.ngay_vao_lam,
+            khoa_phong_cong_tac: profile.khoa_phong_cong_tac,
           }}
           showRole={false}
           onSubmit={updateOwnProfile}
