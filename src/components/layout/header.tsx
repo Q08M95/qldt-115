@@ -2,12 +2,14 @@ import { Bell, CalendarDays, HelpCircle } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { UserMenu } from "@/components/layout/user-menu";
+import { MobileNav } from "@/components/layout/mobile-nav";
 import type { CurrentProfile } from "@/lib/auth";
 
 export function Header({ profile }: { profile: CurrentProfile }) {
   return (
     <header className="flex h-14 items-center justify-between border-b bg-background px-4">
       <div className="flex items-center gap-1 md:hidden">
+        <MobileNav role={profile.role} />
         <span className="text-sm font-semibold">QLĐT 115</span>
       </div>
       <div className="flex flex-1 items-center justify-end gap-1">

@@ -78,8 +78,8 @@ export default async function NhanSuPage({
                   <TableRow>
                     <TableHead>Họ và tên</TableHead>
                     <TableHead>Vai trò</TableHead>
-                    <TableHead>Học vị</TableHead>
-                    <TableHead>Chuyên môn</TableHead>
+                    <TableHead className="hidden md:table-cell">Học vị</TableHead>
+                    <TableHead className="hidden md:table-cell">Chuyên môn</TableHead>
                     <TableHead>Trạng thái</TableHead>
                     <TableHead className="text-right">Hành động</TableHead>
                   </TableRow>
@@ -93,8 +93,8 @@ export default async function NhanSuPage({
                         </Link>
                       </TableCell>
                       <TableCell>{ROLE_LABEL[p.role] ?? p.role}</TableCell>
-                      <TableCell>{p.hoc_vi ?? "—"}</TableCell>
-                      <TableCell>{p.chuyen_mon ?? "—"}</TableCell>
+                      <TableCell className="hidden md:table-cell">{p.hoc_vi ?? "—"}</TableCell>
+                      <TableCell className="hidden md:table-cell">{p.chuyen_mon ?? "—"}</TableCell>
                       <TableCell>
                         <Badge variant={p.trang_thai_hoat_dong ? "default" : "secondary"}>
                           {p.trang_thai_hoat_dong ? "Đang hoạt động" : "Đã khoá"}

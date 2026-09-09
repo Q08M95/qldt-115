@@ -24,7 +24,11 @@ export function PageHeader({
   actions?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-wrap items-center justify-between gap-2 border-b bg-background px-4 py-3 md:px-6">
+    // Dinh o dau khi cuon (sticky) + kinh mo (CLAUDE.md muc 3.1): PageHeader
+    // nam trong <main overflow-y-auto>, noi dung se cuon o duoi lop nay nen
+    // hieu ung mo moi co y nghia thi giac (khac header ngoai cung khong co
+    // gi cuon phia sau, giu nguyen nen dac).
+    <div className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-2 border-b bg-background/85 px-4 py-3 backdrop-blur-md md:px-6">
       <Breadcrumb>
         <BreadcrumbList>
           {items.map((item, index) => {
