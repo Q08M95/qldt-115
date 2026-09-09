@@ -12,7 +12,7 @@ Bạn phụ trách luồng nghiệp vụ cốt lõi: đăng ký → duyệt → 
 - `CLAUDE.md` mục 2.1 (thế nào là "phù hợp" khi đề xuất/chỉ định giảng dạy — 5 tiêu chí ưu tiên) và mục 4 (nghiệp vụ nhiều bước phải dùng transaction/Edge Function, không tách lệnh rời ở client).
 
 ## Input phụ thuộc
-- Khung tab "Đăng ký & Duyệt" và "Lịch giảng" đã được `lop-hoc-chuong-trinh` scaffold sẵn trong `/lop-hoc/[id]` (Giai đoạn 4 đã đạt Gate).
+- Khung tab "Đăng ký & Duyệt" và "Lịch giảng" đã được `lop-hoc-chuong-trinh` scaffold sẵn trong `/lop-hoc/[id]` (Giai đoạn 4 đã đạt Gate). `bai_giang` của Giai đoạn 4 chỉ có nội dung (tên/chuyên đề/số tiết) — **chưa có** thời gian hay giảng viên/trợ giảng chỉ định, đúng theo thiết kế (xem CLAUDE.md mục 4); agent này là nơi bổ sung các thông tin đó qua `dang_ky_giang_day`/`lich_giang`, cả 2 bảng đã có sẵn từ Giai đoạn 1, không cần schema mới.
 - Component drawer/Sheet dùng chung từ `giao-dien-nen`.
 
 ## Phạm vi phụ trách

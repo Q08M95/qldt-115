@@ -449,16 +449,17 @@ create table audit_log (
 
 **Công việc:**
 1. Trang `/cau-hinh/chuong-trinh` (thuộc nhóm sidebar "Cấu hình", chỉ admin/quản lý): CRUD danh mục `chuong_trinh_dao_tao` + danh sách bài giảng mẫu (`chuong_trinh_mau_bai_giang`) của mỗi chương trình — làm trước để có sẵn khung dùng lại khi mở lớp.
-2. Trang `/lop-hoc` (thuộc nhóm sidebar "Đào tạo"): danh sách lớp, filter theo trạng thái/hình thức, badge màu trạng thái.
-3. Form tạo lớp học: chọn **chương trình mẫu (tuỳ chọn)** — nếu chọn, hệ thống tự động **copy** toàn bộ `chuong_trinh_mau_bai_giang` thành các dòng `bai_giang` của riêng lớp này; nếu không chọn, tạo lớp trống rồi thêm bài giảng thủ công. Đầy đủ trường khác (loại lớp, hình thức, tính chất lớp, số lượng cần, người phụ trách).
+2. Trang `/lop-hoc` (thuộc nhóm sidebar "Đào tạo"): danh sách lớp, filter theo trạng thái/đối tượng học viên, badge màu trạng thái.
+3. Form tạo lớp học: chọn **chương trình mẫu (tuỳ chọn)** — nếu chọn, hệ thống tự động **copy** toàn bộ `chuong_trinh_mau_bai_giang` thành các dòng `bai_giang` của riêng lớp này; nếu không chọn, tạo lớp trống rồi thêm bài giảng thủ công. Đầy đủ trường khác (loại lớp, đối tượng học viên, tính chất lớp, số lượng cần, người được chỉ định phụ trách).
 4. Trang chi tiết `/lop-hoc/[id]`: dùng cấu trúc **tab con** thay vì nhiều trang rời — tab "Bài giảng" (danh sách bài giảng + tình trạng nhân sự đã gán/còn thiếu) hoàn thiện ở giai đoạn này; khung tab "Đăng ký & Duyệt" và "Lịch giảng" sẽ lắp nội dung vào cùng vị trí này ở Giai đoạn 5-6 (không tạo trang quản lý đăng ký hay lịch giảng rời cho từng lớp — xem [CLAUDE.md](CLAUDE.md) mục 3).
-5. CRUD bài giảng gắn với lớp (chuyên đề, số tiết, thứ tự) — **thêm/sửa/xoá tự do cho từng lớp**, không ảnh hưởng chương trình mẫu gốc hay lớp khác, để mỗi lần mở lớp mới có thể có số buổi/nội dung khác nhau dễ dàng.
+5. CRUD bài giảng gắn với lớp (chuyên đề, số tiết) — **thêm/sửa/xoá tự do cho từng lớp**, không ảnh hưởng chương trình mẫu gốc hay lớp khác, để mỗi lần mở lớp mới có thể có số buổi/nội dung khác nhau dễ dàng. Thứ tự bài giảng sắp xếp bằng **kéo-thả** (không nhập số thứ tự thủ công), lưu lại qua 1 lệnh cập nhật gộp (RPC), không tách nhiều lệnh rời.
 6. Logic tự động: cập nhật `trang_thai = 'thieu_nhan_su'` khi số nhân sự đã gán (qua `lich_giang`) chưa đạt `so_giang_vien_can`/`so_tro_giang_can`; tự chuyển `dang_dien_ra` khi đến `ngay_khai_giang`; `hoan_thanh` khi qua `ngay_ket_thuc` (có thể làm bằng Supabase scheduled function hoặc kiểm tra khi load trang).
+7. **Ranh giới quan trọng với Giai đoạn 5-6**: `bai_giang` chỉ chứa nội dung/giáo án (tên bài, chuyên đề, số tiết) — **không** thêm thời gian, giảng viên/trợ giảng chỉ định, hay tiến độ đăng ký vào bảng này. Các thông tin đó (thời gian, người dạy, đăng ký, duyệt, thanh tiến độ theo chỉ tiêu) đã có sẵn chỗ đúng trong schema Giai đoạn 1 là `dang_ky_giang_day` (Giai đoạn 5) và `lich_giang` (Giai đoạn 6) — lắp vào đúng 2 tab rỗng đã scaffold ở mục 4, không gộp vào tab "Bài giảng" (quyết định chốt 2026-09-10).
 
 **Điều kiện hoàn thành (Gate → Giai đoạn 5):**
 - [ ] Toàn bộ vòng đời trạng thái lớp học hoạt động đúng như thiết kế.
 - [ ] Tạo được lớp từ chương trình mẫu (copy đúng danh sách bài giảng) **và** tạo được lớp không dùng chương trình mẫu, cả 2 đều sửa bài giảng riêng được sau đó.
-- [ ] Có tối thiểu 5-6 lớp học mẫu với nhiều trạng thái khác nhau, số buổi/bài giảng không giống nhau giữa các lớp — dùng làm nền cho Giai đoạn 5.
+- [ ] Có tối thiểu 5-6 lớp học mẫu với nhiều trạng thái khác nhau, số buổi/bài giảng không giống nhau giữa các lớp — dùng làm nền cho Giai đoạn 5. (Đã seed bằng dữ liệu thật của trung tâm khi có sẵn — xem `data quan ly dao tao.xlsx` ở gốc repo — ưu tiên hơn dữ liệu bịa nếu người dùng cung cấp được.)
 
 ---
 
