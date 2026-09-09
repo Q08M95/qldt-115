@@ -69,7 +69,7 @@ Một khi kỳ đã `da_chot`, điểm và xếp hạng không được sửa tr
 
 ---
 
-## 3. Design System (tham chiếu từ `maugiaodien.png`, tinh chỉnh theo hướng webapp quản lý hiện đại)
+## 3. Design System (tham chiếu từ `maugiaodien.png` cho bố cục, tinh chỉnh chi tiết theo mục 3.1-3.2 dưới đây)
 
 Toàn bộ UI phải nhất quán theo phong cách đã có trong ảnh mẫu, kết hợp thêm các pattern điều hướng hiện đại để **giảm số mục sidebar và giảm số lần người dùng phải nhảy qua lại giữa các trang** để hoàn thành một luồng nghiệp vụ:
 
@@ -100,6 +100,30 @@ Toàn bộ UI phải nhất quán theo phong cách đã có trong ảnh mẫu, k
 - **Ngôn ngữ hiển thị**: toàn bộ label, tiêu đề, trạng thái hiển thị cho người dùng bằng **Tiếng Việt có dấu**. Component/biến/hàm trong code viết bằng tiếng Anh.
 - **Trạng thái rỗng**: khi chưa có dữ liệu (vd "Điểm KPI trung bình: Chưa có dữ liệu" như trong ảnh mẫu), luôn hiển thị placeholder rõ ràng, không để trống hoặc hiện lỗi.
 - **Component**: dùng shadcn/ui làm nền (bao gồm `Sheet`/`Drawer` cho pattern duyệt nhanh, `Breadcrumb` cho ngữ cảnh trang, `Tabs` cho các trang gộp nhiều view), không tự tạo lại các component cơ bản (button, table, card, dialog...) đã có sẵn.
+
+### 3.1. Hiệu ứng kính mờ (glassmorphism) — dùng CÓ CHỌN LỌC
+
+Quyết định chốt ngày 2026-09-09 sau khi tham khảo 1 ảnh mẫu dashboard phong cách kính mờ/pastel do người dùng cung cấp: **không áp dụng kính mờ toàn app**, chỉ dùng cho lớp nổi tạm thời, vì 2 lý do kỹ thuật:
+1. Nền bán trong suốt làm giảm độ tương phản của bảng màu 6 tông đã kiểm chứng OKLCH/CVD ở trên — rủi ro nhất trên các trang bảng/form dữ liệu dày đặc (Nhân sự, Lớp học, KPI...), vốn chiếm phần lớn diện tích màn hình của app này (khác ảnh mẫu tham khảo, vốn toàn card + chart).
+2. `backdrop-filter: blur()` tốn GPU; lặp lại ở nhiều phần tử cùng lúc (nhiều dòng bảng, nhiều card xếp chồng) gây giật/tụt pin trên mobile — đi ngược nguyên tắc "mượt" của app.
+
+**Được áp dụng kính mờ** (lớp nổi, số lượng ít, hiển thị tạm thời):
+- Dropdown thông báo, tooltip, popover.
+- Nền overlay phía sau `Dialog`/`Sheet`/`Drawer` khi mở.
+- Header khi cuộn trang (sticky header nền mờ nhẹ thay vì nền đặc cứng).
+
+**KHÔNG áp dụng kính mờ** (nội dung chính, hiển thị liên tục, nhiều phần tử lặp lại):
+- Nền bảng dữ liệu, từng dòng bảng, form nhập liệu, danh sách dài, stat card chính — giữ nền đặc theo token màu hiện có (`--card`, `--popover`...).
+
+**Thông số thống nhất khi áp dụng**: dựa trên token nền hiện có (`--popover`/`--card`), không tạo màu mới — thêm opacity ~80-90% (light mode) / ~75-85% (dark mode) + `backdrop-blur-md` (8-12px) + viền 1px mờ (trắng/đen ~10-20% opacity) + bóng đổ mềm. Mọi agent khi cần thêm 1 phần tử kính mờ mới đều dùng đúng công thức này, không tự sáng tạo giá trị riêng.
+
+### 3.2. Responsive / Mobile-first — bắt buộc từ MỌI giai đoạn, không chỉ Giai đoạn 11
+
+Trước đây responsive chỉ được xử lý gộp ở Giai đoạn 11. Từ 2026-09-09, mỗi giai đoạn (kể cả các giai đoạn module nghiệp vụ 3-9) phải tự đảm bảo **responsive cơ bản trên mobile** (≥375px) trước khi coi là đạt Gate của giai đoạn đó — Giai đoạn 11 chỉ còn là đợt rà soát toàn diện lần cuối, xử lý phần còn sót, không phải lần đầu tiên nghĩ đến mobile.
+
+- **Sidebar trên mobile** (dưới breakpoint `md`, ~768px): không hiển thị cố định như desktop — chuyển thành `Sheet`/`Drawer` trượt ra khi bấm icon hamburger ở Header.
+- **Bảng dữ liệu dài trên mobile**: ưu tiên cân nhắc dạng danh sách/card dọc thay vì bắt cuộn ngang một bảng nhiều cột, tuỳ theo số cột thực tế của từng trang (không bắt buộc cứng nếu bảng ít cột vẫn đọc được).
+- **Cách người dùng xem trước giao diện mobile** (vì môi trường chạy Claude Code hiện tại không có trình duyệt thật để tự chụp responsive): dùng Chrome DevTools (phím tắt `Ctrl+Shift+M` — Toggle device toolbar) khi chạy `npm run dev`, hoặc mở thẳng URL đã deploy (`qldt-115.vercel.app`) bằng điện thoại thật — đây là cách đáng tin cậy nhất để đối chiếu.
 
 ---
 

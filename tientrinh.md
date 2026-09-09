@@ -574,10 +574,10 @@ create table audit_log (
 **Mục tiêu:** Đánh bóng sản phẩm trước khi đưa vào sử dụng thật.
 
 **Công việc:**
-1. Responsive đầy đủ (mobile/tablet/desktop).
+1. Rà soát responsive lần cuối trên toàn bộ trang (mobile/tablet/desktop) — theo [CLAUDE.md](CLAUDE.md) mục 3.2, mỗi giai đoạn trước đã tự đảm bảo responsive cơ bản, ở đây chỉ xử lý các trường hợp còn sót và kiểm tra tổng thể xuyên suốt app.
 2. Trạng thái loading/empty/error nhất quán trên toàn bộ trang.
 3. Tối ưu truy vấn (index cho các cột hay filter: `trang_thai`, `profile_id`, `lop_hoc_id`...).
-4. Rà soát UI đồng bộ theo đúng phong cách đã thiết kế (spacing, icon, và đúng bảng màu đã chốt ở [CLAUDE.md](CLAUDE.md) mục 3 — không tự đặt màu mới ngoài bảng đó).
+4. Rà soát UI đồng bộ theo đúng phong cách đã thiết kế (spacing, icon, phạm vi dùng kính mờ đúng mục 3.1, và đúng bảng màu đã chốt ở [CLAUDE.md](CLAUDE.md) mục 3 — không tự đặt màu mới ngoài bảng đó).
 
 **Điều kiện hoàn thành (Gate → Giai đoạn 12):**
 - [ ] Không còn màn hình "vỡ layout" trên các kích thước màn hình phổ biến.
@@ -611,3 +611,4 @@ create table audit_log (
 - **Không bắt đầu Giai đoạn N+1 khi Giai đoạn N chưa đạt đủ "Điều kiện hoàn thành".** Nếu phát hiện thiếu sót ở giai đoạn trước trong lúc làm giai đoạn sau, dừng lại, quay về sửa tận gốc trước khi tiếp tục — không vá tạm ở lớp trên.
 - Mỗi Giai đoạn nên merge vào `main` qua một Pull Request riêng, tên nhánh theo dạng `feature/giai-doan-<số>-<ten>`, để lịch sử Git phản ánh đúng trình tự đã lên kế hoạch.
 - Schema database chốt ở Giai đoạn 1 — nếu Giai đoạn 3 trở đi phát hiện cần thêm cột/bảng, đó là dấu hiệu cần xem lại thiết kế tổng thể, không nên "thêm đại cho xong việc".
+- **Responsive mobile là điều kiện của MỌI giai đoạn có UI (3 trở đi), không riêng Giai đoạn 11** (xem [CLAUDE.md](CLAUDE.md) mục 3.2) — mỗi giai đoạn tự kiểm tra không vỡ layout ở khổ mobile (≥375px) trước khi coi là đạt Gate; Giai đoạn 11 chỉ rà soát toàn diện lần cuối.

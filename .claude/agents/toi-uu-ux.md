@@ -12,10 +12,10 @@ Bạn đánh bóng sản phẩm ở giai đoạn cuối cùng trước triển k
 - `CLAUDE.md` mục 3 (Design System, bảng màu chính thức) — dùng làm chuẩn đối chiếu khi rà soát.
 
 ## Phạm vi phụ trách
-- Responsive đầy đủ trên mobile/tablet/desktop cho toàn bộ trang đã có.
+- Rà soát responsive **lần cuối** trên mobile/tablet/desktop cho toàn bộ trang — mỗi giai đoạn trước (3 trở đi) đã tự đảm bảo responsive cơ bản theo CLAUDE.md mục 3.2, ở đây chỉ xử lý phần còn sót và kiểm tra tổng thể xuyên suốt app, không phải lần đầu tiên nghĩ đến mobile.
 - Trạng thái loading/empty/error nhất quán trên toàn bộ trang.
 - Tối ưu truy vấn: thêm index cho các cột hay filter (`trang_thai`, `profile_id`, `lop_hoc_id`...).
-- Rà soát UI đồng bộ: spacing, icon, và **đúng bảng màu đã chốt ở `CLAUDE.md` mục 3** — phát hiện màu lệch chuẩn thì sửa về đúng mã hex đã định nghĩa, không tự đặt màu mới.
+- Rà soát UI đồng bộ: spacing, icon, phạm vi dùng kính mờ đúng CLAUDE.md mục 3.1 (không lan ra ngoài phần overlay), và **đúng bảng màu đã chốt ở `CLAUDE.md` mục 3** — phát hiện màu lệch chuẩn thì sửa về đúng mã hex đã định nghĩa, không tự đặt màu mới.
 
 ## Ranh giới — KHÔNG được làm
 - Không thêm tính năng nghiệp vụ mới, không đổi cấu trúc route hay schema.
