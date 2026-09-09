@@ -14,9 +14,12 @@ import { PageHeader } from "@/components/layout/page-header";
 import { AddProfileDialog } from "@/components/nhan-su/add-profile-dialog";
 import { NhanSuFilters } from "@/components/nhan-su/nhan-su-filters";
 import { ToggleActiveButton } from "@/components/nhan-su/toggle-active-button";
+import { DeleteProfileButton } from "@/components/nhan-su/delete-profile-button";
+import { PersonAvatar } from "@/components/nhan-su/person-avatar";
 import { getCurrentProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { ROLE_LABEL, ROLE_VALUES } from "@/lib/constants/roles";
+import { NHOM_PHAN_LOAI_LABEL } from "@/lib/constants/nhan-su";
 
 const PAGE_SIZE = 20;
 
@@ -28,12 +31,20 @@ export default async function NhanSuPage({
   const { role, trang_thai, q, page: pageParam } = await searchParams;
   const page = Math.max(1, Number(pageParam) || 1);
   const current = await getCurrentProfile();
-  const canManage = current?.role === "admin" || current?.role === "quan_ly_dao_tao";
+  const isAdmin = current?.role === "admin";
+  const canManage = isAdmin || current?.role === "quan_ly_dao_tao";
 
   const supabase = await createClient();
+  // email/nhom_phan_loai la du lieu quan ly noi bo — luon lay ve nhung chi
+  // render trong JSX khi canManage, khong bao gio truyen vao component con
+  // cho giang_vien/tro_giang (React Server Component chi serialize ve
+  // client dung phan thuc su duoc render).
   let query = supabase
     .from("profiles")
-    .select("id, full_name, role, hoc_vi, chuyen_mon, trang_thai_hoat_dong", { count: "exact" })
+    .select(
+      "id, full_name, role, email, hoc_vi, chuyen_mon, nhom_phan_loai, trang_thai_hoat_dong",
+      { count: "exact" },
+    )
     .order("full_name");
 
   if (role && (ROLE_VALUES as readonly string[]).includes(role)) {
@@ -80,6 +91,12 @@ export default async function NhanSuPage({
                     <TableHead>Vai trò</TableHead>
                     <TableHead className="hidden md:table-cell">Học vị</TableHead>
                     <TableHead className="hidden md:table-cell">Chuyên môn</TableHead>
+                    {canManage ? (
+                      <TableHead className="hidden lg:table-cell">Email</TableHead>
+                    ) : null}
+                    {canManage ? (
+                      <TableHead className="hidden lg:table-cell">Nhóm phân loại</TableHead>
+                    ) : null}
                     <TableHead>Trạng thái</TableHead>
                     <TableHead className="text-right">Hành động</TableHead>
                   </TableRow>
@@ -88,22 +105,36 @@ export default async function NhanSuPage({
                   {profiles.map((p) => (
                     <TableRow key={p.id}>
                       <TableCell className="font-medium">
-                        <Link href={`/nhan-su/${p.id}`} className="hover:underline">
+                        <Link href={`/nhan-su/${p.id}`} className="flex items-center gap-2 hover:underline">
+                          <PersonAvatar fullName={p.full_name} role={p.role} size="sm" />
                           {p.full_name}
                         </Link>
                       </TableCell>
                       <TableCell>{ROLE_LABEL[p.role] ?? p.role}</TableCell>
                       <TableCell className="hidden md:table-cell">{p.hoc_vi ?? "—"}</TableCell>
                       <TableCell className="hidden md:table-cell">{p.chuyen_mon ?? "—"}</TableCell>
+                      {canManage ? (
+                        <TableCell className="hidden lg:table-cell">{p.email ?? "—"}</TableCell>
+                      ) : null}
+                      {canManage ? (
+                        <TableCell className="hidden lg:table-cell">
+                          {p.nhom_phan_loai
+                            ? NHOM_PHAN_LOAI_LABEL[p.nhom_phan_loai as 1 | 2 | 3 | 4 | 5]
+                            : "—"}
+                        </TableCell>
+                      ) : null}
                       <TableCell>
                         <Badge variant={p.trang_thai_hoat_dong ? "default" : "secondary"}>
                           {p.trang_thai_hoat_dong ? "Đang hoạt động" : "Đã khoá"}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        {canManage ? (
-                          <ToggleActiveButton id={p.id} active={p.trang_thai_hoat_dong} />
-                        ) : null}
+                        <div className="flex items-center justify-end gap-2">
+                          {canManage ? (
+                            <ToggleActiveButton id={p.id} active={p.trang_thai_hoat_dong} />
+                          ) : null}
+                          {isAdmin ? <DeleteProfileButton id={p.id} /> : null}
+                        </div>
                       </TableCell>
                     </TableRow>
                   ))}

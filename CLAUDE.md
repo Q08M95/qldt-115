@@ -100,6 +100,7 @@ Toàn bộ UI phải nhất quán theo phong cách đã có trong ảnh mẫu, k
 - **Ngôn ngữ hiển thị**: toàn bộ label, tiêu đề, trạng thái hiển thị cho người dùng bằng **Tiếng Việt có dấu**. Component/biến/hàm trong code viết bằng tiếng Anh.
 - **Trạng thái rỗng**: khi chưa có dữ liệu (vd "Điểm KPI trung bình: Chưa có dữ liệu" như trong ảnh mẫu), luôn hiển thị placeholder rõ ràng, không để trống hoặc hiện lỗi.
 - **Component**: dùng shadcn/ui làm nền (bao gồm `Sheet`/`Drawer` cho pattern duyệt nhanh, `Breadcrumb` cho ngữ cảnh trang, `Tabs` cho các trang gộp nhiều view), không tự tạo lại các component cơ bản (button, table, card, dialog...) đã có sẵn.
+- **Đại diện nhân sự**: không dùng ảnh đại diện tải lên — mọi nơi cần thể hiện 1 người (header, danh sách nhân sự, trang chi tiết...) dùng chung component `PersonAvatar` (huy hiệu chữ cái đầu họ tên, tô nền theo đúng màu vai trò ở bảng trên: giảng viên tím, trợ giảng hồng, admin/quản lý đào tạo xanh dương) kèm hiển thị đầy đủ họ tên bên cạnh — không tự bịa màu ngẫu nhiên theo hash tên vì sẽ phá vỡ bảng màu đã kiểm chứng CVD.
 
 ### 3.1. Hiệu ứng kính mờ (glassmorphism) — dùng CÓ CHỌN LỌC
 

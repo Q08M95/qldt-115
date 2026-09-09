@@ -103,13 +103,14 @@ create table profiles (
   id uuid primary key references auth.users(id) on delete cascade,
   full_name text not null,
   role text not null check (role in ('admin','quan_ly_dao_tao','giang_vien','tro_giang')),
+  email text,          -- mirror auth.users.email, dong bo qua trigger + cac action doi email
   hoc_vi text,
   chuc_danh text,
   chuyen_mon text,
   don_vi_cong_tac text,
   so_dien_thoai text,
   ngay_vao_lam date,
-  avatar_url text,
+  nhom_phan_loai smallint check (nhom_phan_loai between 1 and 5),  -- phan tang noi bo, xem ghi chu duoi
   trang_thai_hoat_dong boolean default true,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
@@ -369,6 +370,13 @@ create table audit_log (
 );
 ```
 
+> **Sửa đổi 2026-09-11 vào `profiles` (theo yêu cầu người dùng, ngoại lệ CLAUDE.md mục 4):**
+> - Bỏ cột `avatar_url` — không dùng ảnh đại diện, thay bằng huy hiệu chữ cái đầu tô theo màu vai trò ở tầng UI (`PersonAvatar`), không cần lưu file.
+> - Thêm `email` — client không truy vấn được `auth.users` qua PostgREST nên cần bản sao trong `profiles` để admin/quản lý xem danh sách email; đồng bộ qua trigger `handle_new_user` lúc tạo và action `updateProfileEmail` lúc admin sửa (kèm gọi Admin API đổi cả `auth.users.email`, không chỉ cột này).
+> - Thêm `nhom_phan_loai` (1-5) — phân tầng nội bộ, lấy đúng dữ liệu cột "NHÓM PHÂN LOẠI" trong `data quan ly dao tao.xlsx`: 1 = Ban giám đốc, 2 = Giảng viên là bác sĩ, 3 = Giảng viên không là bác sĩ, 4 = Trợ giảng là bác sĩ, 5 = Trợ giảng không là bác sĩ. Chỉ `admin`/`quan_ly_dao_tao` đọc/sửa được (trigger `enforce_profiles_update_scope` chặn `giang_vien`/`tro_giang` tự sửa, tầng UI không truyền trường này vào bất kỳ component nào khi người xem không phải admin/quản lý). Đây là phân tầng tổ chức, không thay thế `role` — một người `giang_vien` (nhóm 2/3) vẫn có thể đăng ký `vai_tro = 'tro_giang'` cho 1 lớp cụ thể qua `dang_ky_giang_day`, không cần đổi `role`.
+> - Đăng nhập lần đầu cho nhân sự thật: admin nhập đúng **email thật** của người đó (qua `createProfile` hoặc `updateProfileEmail`), nhân sự tự bấm "Quên mật khẩu" ở trang đăng nhập để tự đặt mật khẩu — không có mật khẩu tạm nào được admin biết/chuyển tay. 52 hồ sơ import hàng loạt từ Excel ở bước seed trước đó đang dùng email nội bộ tạm (`+mã nhân sự@gmail.com`, chỉ nhận được bởi tài khoản dev) — cần admin cập nhật lại bằng email thật của từng người qua nút "Sửa email" trước khi người đó đăng nhập được.
+> - RPC mới `xoa_nhan_su(p_id)`: xoá cứng 1 nhân sự, tự kiểm tra không còn dữ liệu tham chiếu ở các bảng chưa có `on delete cascade` tới `profiles` (lịch giảng, đăng ký, đánh giá KPI...) trước khi xoá, báo lỗi rõ ràng gợi ý dùng khoá hoạt động thay thế nếu còn dữ liệu — không dựa vào việc parse lỗi khoá ngoại chung chung từ Admin API.
+
 ### 1.3. Trigger & function nền tảng
 1. Trigger tự tạo `profiles` khi có `auth.users` mới đăng ký (role mặc định thấp nhất, admin nâng quyền thủ công sau).
 2. Trigger `updated_at` tự cập nhật cho các bảng có cột này.
@@ -429,17 +437,19 @@ create table audit_log (
 **Mục tiêu:** Quản lý hồ sơ nhân sự hoàn chỉnh — đây là module nghiệp vụ đầu tiên, mọi module sau đều tham chiếu đến nhân sự.
 
 **Công việc:**
-1. Layout chính: Sidebar nhóm thu gọn được (Tổng quan riêng lẻ; nhóm Đào tạo gồm Lớp học/Lịch giảng; nhóm Nhân sự; nhóm Đánh giá gồm Đánh giá & KPI; nhóm Cấu hình gồm Chương trình đào tạo/Cấu hình KPI — chỉ admin/quản lý thấy nhóm này) + Header (icon lịch, trợ giúp, chuông thông báo, avatar) + breadcrumb ngữ cảnh đầu vùng nội dung — chi tiết cấu trúc menu và các pattern điều hướng (drawer duyệt nhanh, nút inline, dashboard theo vai trò) xem [CLAUDE.md](CLAUDE.md) mục 3.
-2. Trang `/nhan-su`: danh sách nhân sự dạng bảng, lọc theo vai trò/trạng thái hoạt động, tìm kiếm theo tên.
+1. Layout chính: Sidebar nhóm thu gọn được (Tổng quan riêng lẻ; nhóm Đào tạo gồm Lớp học/Lịch giảng; nhóm Nhân sự; nhóm Đánh giá gồm Đánh giá & KPI; nhóm Cấu hình gồm Chương trình đào tạo/Cấu hình KPI — chỉ admin/quản lý thấy nhóm này) + Header (icon lịch, trợ giúp, chuông thông báo, huy hiệu tên viết tắt thay avatar ảnh) + breadcrumb ngữ cảnh đầu vùng nội dung — chi tiết cấu trúc menu và các pattern điều hướng (drawer duyệt nhanh, nút inline, dashboard theo vai trò) xem [CLAUDE.md](CLAUDE.md) mục 3.
+2. Trang `/nhan-su`: danh sách nhân sự dạng bảng, lọc theo vai trò/trạng thái hoạt động, tìm kiếm theo tên. Cột Email/Nhóm phân loại chỉ hiện với admin/quản lý đào tạo.
 3. Trang `/nhan-su/[id]`: chi tiết hồ sơ + tab Chứng chỉ (upload/xem file qua Supabase Storage).
-4. Form thêm/sửa nhân sự (admin), bao gồm đổi vai trò (`role`).
+4. Form thêm/sửa nhân sự (admin), bao gồm đổi vai trò (`role`), đổi email đăng nhập thật (tự gửi email đặt mật khẩu lần đầu tới email mới), phân nhóm nội bộ (chỉ admin/quản lý thấy — xem ghi chú `profiles` ở mục 1.2).
 5. Trang `/ho-so`: hồ sơ cá nhân tự cập nhật (giảng viên/trợ giảng).
-6. Chức năng khoá/mở hoạt động một tài khoản (`trang_thai_hoat_dong`) thay vì xoá cứng.
+6. Chức năng khoá/mở hoạt động một tài khoản (`trang_thai_hoat_dong`) — dùng cho trường hợp thông thường (nghỉ việc, tạm ngưng). Bổ sung **xoá cứng** (`admin`, RPC `xoa_nhan_su`) cho trường hợp thêm nhầm/dữ liệu rác — tự chặn và báo lỗi rõ ràng nếu nhân sự đã có dữ liệu tham chiếu (lịch giảng, đăng ký, đánh giá...), khi đó phải dùng khoá hoạt động thay vì xoá.
+7. Đăng nhập lần đầu cho nhân sự thật: **không có mật khẩu tạm truyền tay** — admin nhập đúng email thật, nhân sự tự bấm "Quên mật khẩu" ở trang đăng nhập để tự đặt mật khẩu (tái dùng hạ tầng email của Giai đoạn 2), có nút "Gửi lại email đặt mật khẩu" cho trường hợp thất lạc.
 
 **Điều kiện hoàn thành (Gate → Giai đoạn 4):**
-- [ ] CRUD nhân sự hoạt động đầy đủ đúng phân quyền đã kiểm thử ở Giai đoạn 2.
+- [ ] CRUD nhân sự hoạt động đầy đủ đúng phân quyền đã kiểm thử ở Giai đoạn 2, gồm cả xoá cứng có kiểm tra ràng buộc.
 - [ ] Upload/xem chứng chỉ qua Storage hoạt động.
-- [x] Dữ liệu nhân sự nền lấy từ **danh sách thật của trung tâm** (`data quan ly dao tao.xlsx`, sheet "NHÂN SỰ" + "QUẢN LÝ CHỨNG CHỈ"), không phải dữ liệu bịa — 53 hồ sơ (27 giảng viên, 26 trợ giảng), mỗi hồ sơ ánh xạ: `full_name`←Họ và tên, `role`←Vai trò, `hoc_vi`←Học vị/Chức danh, `chuc_danh`←Văn bằng chuyên môn, `chuyen_mon`←Phạm vi hành nghề (dùng để khớp chuyên môn ở CLAUDE.md mục 2.1), `don_vi_cong_tac`←Khoa/phòng công tác, `trang_thai_hoat_dong`←Trạng thái công tác. Cột `CCHN/GPHN` (có/không) và sheet "QUẢN LÝ CHỨNG CHỈ" không có cột tương ứng trong `profiles` nên được chuyển thành các dòng `chung_chi` riêng (CCHN/GPHN → 1 dòng `bat_buoc = true`; các chứng chỉ khác → `bat_buoc = false`). Cột "MÃ NHÂN SỰ"/"NHÓM PHÂN LOẠI" trong file gốc không có trường phù hợp và trùng lặp thông tin đã có (khoa/phòng, vai trò) nên không lưu riêng.
+- [x] Dữ liệu nhân sự nền lấy từ **danh sách thật của trung tâm** (`data quan ly dao tao.xlsx`, sheet "NHÂN SỰ" + "QUẢN LÝ CHỨNG CHỈ"), không phải dữ liệu bịa — 53 hồ sơ (27 giảng viên, 26 trợ giảng), mỗi hồ sơ ánh xạ: `full_name`←Họ và tên, `role`←Vai trò, `hoc_vi`←Học vị/Chức danh, `chuc_danh`←Văn bằng chuyên môn, `chuyen_mon`←Phạm vi hành nghề (dùng để khớp chuyên môn ở CLAUDE.md mục 2.1), `don_vi_cong_tac`←Khoa/phòng công tác, `trang_thai_hoat_dong`←Trạng thái công tác, `nhom_phan_loai`←NHÓM PHÂN LOẠI. Cột `CCHN/GPHN` (có/không) và sheet "QUẢN LÝ CHỨNG CHỈ" không có cột tương ứng trong `profiles` nên được chuyển thành các dòng `chung_chi` riêng (CCHN/GPHN → 1 dòng `bat_buoc = true`; các chứng chỉ khác → `bat_buoc = false`). Cột "MÃ NHÂN SỰ" trong file gốc chỉ dùng tạm để đối chiếu lúc import, không có trường lưu riêng.
+- [ ] 52/53 hồ sơ import hàng loạt đang dùng email nội bộ tạm (`+mã nhân sự@gmail.com`) — cần admin cập nhật email thật qua "Sửa email" trước khi những người này đăng nhập được lần đầu (không thuộc phạm vi Claude Code, cần người dùng cung cấp danh sách email thật).
 
 ---
 

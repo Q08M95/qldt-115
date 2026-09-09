@@ -1,7 +1,7 @@
 import { LogOut } from "lucide-react";
 import Link from "next/link";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
+import { PersonAvatar } from "@/components/nhan-su/person-avatar";
 import type { CurrentProfile } from "@/lib/auth";
 import { logout } from "@/app/(app)/actions";
 import { ROLE_LABEL } from "@/lib/constants/roles";
@@ -11,8 +11,6 @@ import { ROLE_LABEL } from "@/lib/constants/roles";
 // click). Dung lai dung co che <form action={...}> don gian, giong het
 // cach /login, /register da chay dung, de giam rui ro toi da.
 export function UserMenu({ profile }: { profile: CurrentProfile }) {
-  const initials = profile.full_name?.trim()?.slice(0, 2)?.toUpperCase() || "??";
-
   return (
     <div className="ml-1 flex items-center gap-2">
       <Button
@@ -21,11 +19,7 @@ export function UserMenu({ profile }: { profile: CurrentProfile }) {
         title={`${profile.full_name} — ${ROLE_LABEL[profile.role]}`}
         render={<Link href="/ho-so" />}
       >
-        <Avatar className="h-7 w-7">
-          <AvatarFallback className="bg-primary/10 text-xs font-medium text-primary">
-            {initials}
-          </AvatarFallback>
-        </Avatar>
+        <PersonAvatar fullName={profile.full_name} role={profile.role} size="sm" />
         <span className="hidden max-w-40 truncate text-sm sm:inline">{profile.full_name}</span>
       </Button>
       <form action={logout}>

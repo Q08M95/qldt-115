@@ -6,10 +6,14 @@ import { CertificateList } from "@/components/nhan-su/certificate-list";
 import { UploadCertificateDialog } from "@/components/nhan-su/upload-certificate-dialog";
 import { ToggleActiveButton } from "@/components/nhan-su/toggle-active-button";
 import { ResendInviteButton } from "@/components/nhan-su/resend-invite-button";
+import { DeleteProfileButton } from "@/components/nhan-su/delete-profile-button";
+import { EditEmailDialog } from "@/components/nhan-su/edit-email-dialog";
+import { PersonAvatar } from "@/components/nhan-su/person-avatar";
 import { ProfileForm } from "@/components/nhan-su/profile-form";
 import { getCurrentProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { ROLE_LABEL } from "@/lib/constants/roles";
+import { NHOM_PHAN_LOAI_LABEL } from "@/lib/constants/nhan-su";
 import { updateProfileByAdmin } from "../actions";
 
 export default async function NhanSuDetailPage({
@@ -46,19 +50,27 @@ export default async function NhanSuDetailPage({
         actions={
           isAdmin || isQuanLy ? (
             <div className="flex items-center gap-2">
+              {isAdmin ? <EditEmailDialog profileId={profile.id} currentEmail={profile.email} /> : null}
               {isAdmin ? <ResendInviteButton profileId={profile.id} /> : null}
               <ToggleActiveButton id={profile.id} active={profile.trang_thai_hoat_dong} />
+              {isAdmin ? <DeleteProfileButton id={profile.id} redirectAfter="/nhan-su" /> : null}
             </div>
           ) : null
         }
       />
       <div className="flex flex-col gap-4 p-4 md:p-6">
         <div className="flex flex-wrap items-center gap-3">
+          <PersonAvatar fullName={profile.full_name} role={profile.role} size="lg" />
           <h1 className="text-xl font-semibold">{profile.full_name}</h1>
           <Badge variant="outline">{ROLE_LABEL[profile.role] ?? profile.role}</Badge>
           <Badge variant={profile.trang_thai_hoat_dong ? "default" : "secondary"}>
             {profile.trang_thai_hoat_dong ? "Đang hoạt động" : "Đã khoá"}
           </Badge>
+          {(isAdmin || isQuanLy) && profile.nhom_phan_loai ? (
+            <Badge variant="outline">
+              {NHOM_PHAN_LOAI_LABEL[profile.nhom_phan_loai as 1 | 2 | 3 | 4 | 5]}
+            </Badge>
+          ) : null}
         </div>
 
         <Tabs defaultValue="ho-so">
@@ -88,6 +100,18 @@ export default async function NhanSuDetailPage({
                 <dd>{profile.so_dien_thoai ?? "—"}</dd>
                 <dt className="text-muted-foreground">Ngày vào làm</dt>
                 <dd>{profile.ngay_vao_lam ?? "—"}</dd>
+                {isQuanLy ? (
+                  <>
+                    <dt className="text-muted-foreground">Email</dt>
+                    <dd>{profile.email ?? "—"}</dd>
+                    <dt className="text-muted-foreground">Nhóm phân loại</dt>
+                    <dd>
+                      {profile.nhom_phan_loai
+                        ? NHOM_PHAN_LOAI_LABEL[profile.nhom_phan_loai as 1 | 2 | 3 | 4 | 5]
+                        : "Chưa phân nhóm"}
+                    </dd>
+                  </>
+                ) : null}
               </dl>
             )}
           </TabsContent>

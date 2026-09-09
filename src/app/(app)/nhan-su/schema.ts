@@ -13,6 +13,16 @@ const optionalText = z
   .optional()
   .transform((v) => v || null);
 
+// nullish() (khong chi optional()) vi action truyen thang null khi nguoi
+// dung chon sentinel "none" o Select — xem readUpdateFields trong actions.ts.
+const optionalNhom = z
+  .number()
+  .int()
+  .min(1)
+  .max(5)
+  .nullish()
+  .transform((v) => v ?? null);
+
 export const createProfileSchema = z.object({
   full_name: z.string().trim().min(1, "Vui lòng nhập họ tên"),
   email: z.email("Email không hợp lệ"),
@@ -30,4 +40,9 @@ export const updateProfileByAdminSchema = z.object({
   don_vi_cong_tac: optionalText,
   so_dien_thoai: optionalText,
   ngay_vao_lam: optionalText,
+  nhom_phan_loai: optionalNhom,
+});
+
+export const updateProfileEmailSchema = z.object({
+  email: z.email("Email không hợp lệ"),
 });

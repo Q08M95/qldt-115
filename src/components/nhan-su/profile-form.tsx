@@ -13,6 +13,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ROLE_OPTIONS } from "@/lib/constants/roles";
+import { NHOM_PHAN_LOAI_VALUES, NHOM_PHAN_LOAI_LABEL } from "@/lib/constants/nhan-su";
 
 export type EditableProfile = {
   full_name: string;
@@ -23,6 +24,7 @@ export type EditableProfile = {
   don_vi_cong_tac: string | null;
   so_dien_thoai: string | null;
   ngay_vao_lam: string | null;
+  nhom_phan_loai?: number | null;
 };
 
 /**
@@ -96,6 +98,37 @@ export function ProfileForm({
         <Label htmlFor="chuyen_mon">Chuyên môn</Label>
         <Input id="chuyen_mon" name="chuyen_mon" defaultValue={profile.chuyen_mon ?? ""} />
       </div>
+
+      {showRole ? (
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="nhom_phan_loai">Nhóm phân loại nội bộ</Label>
+          <Select
+            name="nhom_phan_loai"
+            defaultValue={profile.nhom_phan_loai ? String(profile.nhom_phan_loai) : "none"}
+          >
+            <SelectTrigger id="nhom_phan_loai">
+              <SelectValue>
+                {(value: string) =>
+                  value === "none"
+                    ? "Chưa phân nhóm"
+                    : NHOM_PHAN_LOAI_LABEL[Number(value) as 1 | 2 | 3 | 4 | 5]
+                }
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">Chưa phân nhóm</SelectItem>
+              {NHOM_PHAN_LOAI_VALUES.map((v) => (
+                <SelectItem key={v} value={String(v)}>
+                  {NHOM_PHAN_LOAI_LABEL[v]}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <p className="text-xs text-muted-foreground">
+            Chỉ admin và quản lý đào tạo nhìn thấy trường này.
+          </p>
+        </div>
+      ) : null}
 
       <div className="flex flex-col gap-2">
         <Label htmlFor="don_vi_cong_tac">Đơn vị công tác</Label>

@@ -6,7 +6,6 @@ export type CurrentProfile = {
   email: string | undefined;
   full_name: string;
   role: "admin" | "quan_ly_dao_tao" | "giang_vien" | "tro_giang";
-  avatar_url: string | null;
   hoc_vi: string | null;
   chuc_danh: string | null;
   chuyen_mon: string | null;
@@ -35,7 +34,7 @@ export const getCurrentProfile = cache(async (): Promise<CurrentProfile | null> 
   const { data: profile } = await supabase
     .from("profiles")
     .select(
-      "id, full_name, role, avatar_url, hoc_vi, chuc_danh, chuyen_mon, don_vi_cong_tac, so_dien_thoai, ngay_vao_lam",
+      "id, full_name, role, hoc_vi, chuc_danh, chuyen_mon, don_vi_cong_tac, so_dien_thoai, ngay_vao_lam",
     )
     .eq("id", user.id)
     .single();
@@ -47,7 +46,6 @@ export const getCurrentProfile = cache(async (): Promise<CurrentProfile | null> 
     email: user.email,
     full_name: profile.full_name,
     role: profile.role,
-    avatar_url: profile.avatar_url,
     hoc_vi: profile.hoc_vi,
     chuc_danh: profile.chuc_danh,
     chuyen_mon: profile.chuyen_mon,

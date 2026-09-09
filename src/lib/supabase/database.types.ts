@@ -14,13 +14,14 @@ type ProfileRow = {
   id: string;
   full_name: string;
   role: ProfileRole;
+  email: string | null;
   hoc_vi: string | null;
   chuc_danh: string | null;
   chuyen_mon: string | null;
   don_vi_cong_tac: string | null;
   so_dien_thoai: string | null;
   ngay_vao_lam: string | null;
-  avatar_url: string | null;
+  nhom_phan_loai: number | null;
   trang_thai_hoat_dong: boolean;
   created_at: string;
   updated_at: string;
@@ -204,6 +205,10 @@ export type Database = {
       };
       reorder_chuong_trinh_mau_bai_giang: {
         Args: { p_chuong_trinh_id: string; p_ids: string[] };
+        Returns: undefined;
+      };
+      xoa_nhan_su: {
+        Args: { p_id: string };
         Returns: undefined;
       };
     };

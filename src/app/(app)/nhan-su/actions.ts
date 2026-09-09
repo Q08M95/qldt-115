@@ -5,7 +5,12 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentProfile } from "@/lib/auth";
-import { createProfileSchema, updateProfileByAdminSchema, firstIssueMessage } from "./schema";
+import {
+  createProfileSchema,
+  updateProfileByAdminSchema,
+  updateProfileEmailSchema,
+  firstIssueMessage,
+} from "./schema";
 
 // Loi mong doi tra ve qua gia tri (khong throw) — Next.js che message cua
 // loi throw trong production (chi con "digest" chung chung).
@@ -95,6 +100,7 @@ export async function updateProfileByAdmin(
     return { error: "Chỉ admin được sửa hồ sơ nhân sự khác" };
   }
 
+  const nhomRaw = formData.get("nhom_phan_loai");
   const parsed = updateProfileByAdminSchema.safeParse({
     full_name: formData.get("full_name"),
     role: formData.get("role"),
@@ -104,6 +110,7 @@ export async function updateProfileByAdmin(
     don_vi_cong_tac: formData.get("don_vi_cong_tac"),
     so_dien_thoai: formData.get("so_dien_thoai"),
     ngay_vao_lam: formData.get("ngay_vao_lam"),
+    nhom_phan_loai: nhomRaw === "none" || !nhomRaw ? null : Number(nhomRaw),
   });
   if (!parsed.success) {
     return { error: firstIssueMessage(parsed) };
@@ -145,5 +152,72 @@ export async function resendInvite(profileId: string): Promise<{ error?: string 
     return { error: resetError.message };
   }
 
+  return {};
+}
+
+// Sua email dang nhap that cho 1 nhan su (vd ho so tao tu du lieu Excel
+// dung email noi bo tam, nay co email that cua nguoi do) — phai doi qua
+// admin API vi day la truong dinh danh dang nhap cua auth.users, khong
+// chi la cot du lieu thuong trong profiles. Tu dong gui luon email dat
+// mat khau ngay sau khi doi de giam thao tac cho admin.
+export async function updateProfileEmail(
+  id: string,
+  formData: FormData,
+): Promise<{ error?: string }> {
+  const current = await getCurrentProfile();
+  if (current?.role !== "admin") {
+    return { error: "Chỉ admin được sửa email đăng nhập" };
+  }
+
+  const parsed = updateProfileEmailSchema.safeParse({ email: formData.get("email") });
+  if (!parsed.success) {
+    return { error: firstIssueMessage(parsed) };
+  }
+
+  const admin = createAdminClient();
+  const { error: updateError } = await admin.auth.admin.updateUserById(id, {
+    email: parsed.data.email,
+    email_confirm: true,
+  });
+  if (updateError) {
+    return { error: updateError.message };
+  }
+
+  const { error: profileError } = await admin
+    .from("profiles")
+    .update({ email: parsed.data.email })
+    .eq("id", id);
+  if (profileError) {
+    return { error: profileError.message };
+  }
+
+  const origin = (await headers()).get("origin");
+  const supabase = await createClient();
+  await supabase.auth.resetPasswordForEmail(parsed.data.email, {
+    redirectTo: `${origin}/auth/confirm?next=/dat-lai-mat-khau`,
+  });
+
+  revalidatePath("/nhan-su");
+  revalidatePath(`/nhan-su/${id}`);
+  return {};
+}
+
+// Xoa cung 1 nhan su — chi thanh cong khi chua co du lieu lien quan (lich
+// giang, dang ky, danh gia KPI...), kiem tra trong RPC xoa_nhan_su thay vi
+// bat loi rang buoc khoa ngoai chung chung tu GoTrue Admin API. Truong hop
+// da co du lieu thi dung khoa hoat dong (toggleActive) thay vi xoa.
+export async function deleteProfile(id: string): Promise<{ error?: string }> {
+  const current = await getCurrentProfile();
+  if (current?.role !== "admin") {
+    return { error: "Chỉ admin được xoá nhân sự" };
+  }
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("xoa_nhan_su", { p_id: id });
+  if (error) {
+    return { error: error.message };
+  }
+
+  revalidatePath("/nhan-su");
   return {};
 }
