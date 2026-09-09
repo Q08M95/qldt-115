@@ -47,6 +47,10 @@ security definer
 set search_path = public
 as $$
 begin
+  if auth.uid() is null then
+    return new; -- ket noi service_role (backend tin cay), xem migration 20260905040000
+  end if;
+
   if public.is_admin() then
     return new;
   end if;
