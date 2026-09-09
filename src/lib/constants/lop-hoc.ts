@@ -31,12 +31,11 @@ export const TRANG_THAI_LOP_CLASSNAME: Partial<Record<TrangThaiLop, string>> = {
   thieu_nhan_su: "border-data-canh-bao/40 bg-data-canh-bao/10 text-data-canh-bao",
 };
 
-export const HINH_THUC_VALUES = ["truc_tiep", "truc_tuyen", "ket_hop"] as const;
+export const DOI_TUONG_HOC_VIEN_VALUES = ["nhan_vien_y_te", "cong_dong"] as const;
 
-export type HinhThucLop = (typeof HINH_THUC_VALUES)[number];
+export type DoiTuongHocVien = (typeof DOI_TUONG_HOC_VIEN_VALUES)[number];
 
-export const HINH_THUC_LABEL: Record<HinhThucLop, string> = {
-  truc_tiep: "Trực tiếp",
-  truc_tuyen: "Trực tuyến",
-  ket_hop: "Kết hợp",
+export const DOI_TUONG_HOC_VIEN_LABEL: Record<DoiTuongHocVien, string> = {
+  nhan_vien_y_te: "Nhân viên y tế",
+  cong_dong: "Cộng đồng",
 };

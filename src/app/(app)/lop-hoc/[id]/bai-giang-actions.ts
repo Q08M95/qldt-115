@@ -13,7 +13,6 @@ const baiGiangSchema = z.object({
     .optional()
     .transform((v) => v || null),
   thoi_luong_tiet: z.coerce.number().int().min(1, "Số tiết phải >= 1"),
-  thu_tu: z.coerce.number().int().min(1, "Thứ tự phải >= 1"),
 });
 
 async function requireQuanLy() {
@@ -35,14 +34,20 @@ export async function createBaiGiang(
     ten_bai: formData.get("ten_bai"),
     chuyen_de: formData.get("chuyen_de"),
     thoi_luong_tiet: formData.get("thoi_luong_tiet"),
-    thu_tu: formData.get("thu_tu"),
   });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Dữ liệu không hợp lệ" };
 
   const supabase = await createClient();
+  // Thu_tu khong con nhap tay (keo-tha thay the) — luon them vao cuoi danh
+  // sach hien co cua lop nay.
+  const { count } = await supabase
+    .from("bai_giang")
+    .select("id", { count: "exact", head: true })
+    .eq("lop_hoc_id", lopHocId);
+
   const { error } = await supabase
     .from("bai_giang")
-    .insert({ ...parsed.data, lop_hoc_id: lopHocId });
+    .insert({ ...parsed.data, lop_hoc_id: lopHocId, thu_tu: (count ?? 0) + 1 });
   if (error) return { error: error.message };
 
   revalidatePath(`/lop-hoc/${lopHocId}`);
@@ -61,7 +66,6 @@ export async function updateBaiGiang(
     ten_bai: formData.get("ten_bai"),
     chuyen_de: formData.get("chuyen_de"),
     thoi_luong_tiet: formData.get("thoi_luong_tiet"),
-    thu_tu: formData.get("thu_tu"),
   });
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Dữ liệu không hợp lệ" };
 
@@ -82,6 +86,26 @@ export async function deleteBaiGiang(
 
   const supabase = await createClient();
   const { error } = await supabase.from("bai_giang").delete().eq("id", id);
+  if (error) return { error: error.message };
+
+  revalidatePath(`/lop-hoc/${lopHocId}`);
+  return {};
+}
+
+// Sap xep lai bang keo-tha — goi RPC gop 1 cau UPDATE set-based thay vi N
+// lan update roi rac tu client (CLAUDE.md muc 4).
+export async function reorderBaiGiang(
+  lopHocId: string,
+  orderedIds: string[],
+): Promise<{ error?: string }> {
+  const denied = await requireQuanLy();
+  if (denied) return denied;
+
+  const supabase = await createClient();
+  const { error } = await supabase.rpc("reorder_bai_giang", {
+    p_lop_hoc_id: lopHocId,
+    p_ids: orderedIds,
+  });
   if (error) return { error: error.message };
 
   revalidatePath(`/lop-hoc/${lopHocId}`);

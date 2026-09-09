@@ -79,10 +79,9 @@ type LopHocRow = {
   ten_lop: string;
   mo_ta: string | null;
   loai_lop: string | null;
-  hinh_thuc: "truc_tiep" | "truc_tuyen" | "ket_hop";
+  doi_tuong_hoc_vien: "nhan_vien_y_te" | "cong_dong" | null;
   co_kinh_phi: boolean;
   la_lop_gap: boolean;
-  la_gio_hiem: boolean;
   la_lop_cong_dong: boolean;
   ngay_khai_giang: string | null;
   ngay_ket_thuc: string | null;
@@ -185,10 +184,9 @@ export type Database = {
           p_ten_lop: string;
           p_mo_ta: string | null;
           p_loai_lop: string | null;
-          p_hinh_thuc: string;
+          p_doi_tuong_hoc_vien: string | null;
           p_co_kinh_phi: boolean;
           p_la_lop_gap: boolean;
-          p_la_gio_hiem: boolean;
           p_la_lop_cong_dong: boolean;
           p_ngay_khai_giang: string | null;
           p_ngay_ket_thuc: string | null;
@@ -199,6 +197,14 @@ export type Database = {
           p_chuong_trinh_id: string | null;
         };
         Returns: string;
+      };
+      reorder_bai_giang: {
+        Args: { p_lop_hoc_id: string; p_ids: string[] };
+        Returns: undefined;
+      };
+      reorder_chuong_trinh_mau_bai_giang: {
+        Args: { p_chuong_trinh_id: string; p_ids: string[] };
+        Returns: undefined;
       };
     };
     Enums: Record<string, never>;

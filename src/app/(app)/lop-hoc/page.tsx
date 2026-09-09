@@ -19,9 +19,10 @@ import {
   TRANG_THAI_LOP_LABEL,
   TRANG_THAI_LOP_BADGE,
   TRANG_THAI_LOP_CLASSNAME,
-  HINH_THUC_LABEL,
+  TRANG_THAI_LOP_VALUES,
+  DOI_TUONG_HOC_VIEN_LABEL,
+  DOI_TUONG_HOC_VIEN_VALUES,
 } from "@/lib/constants/lop-hoc";
-import { TRANG_THAI_LOP_VALUES, HINH_THUC_VALUES } from "@/lib/constants/lop-hoc";
 import { computeTrangThaiLop, demNhanSuDaGan } from "@/lib/lop-hoc/trang-thai";
 
 const PAGE_SIZE = 20;
@@ -29,9 +30,9 @@ const PAGE_SIZE = 20;
 export default async function LopHocPage({
   searchParams,
 }: {
-  searchParams: Promise<{ trang_thai?: string; hinh_thuc?: string; page?: string }>;
+  searchParams: Promise<{ trang_thai?: string; doi_tuong?: string; page?: string }>;
 }) {
-  const { trang_thai, hinh_thuc, page: pageParam } = await searchParams;
+  const { trang_thai, doi_tuong, page: pageParam } = await searchParams;
   const page = Math.max(1, Number(pageParam) || 1);
   const current = await getCurrentProfile();
   const canManage = current?.role === "admin" || current?.role === "quan_ly_dao_tao";
@@ -41,7 +42,7 @@ export default async function LopHocPage({
   let query = supabase
     .from("lop_hoc")
     .select(
-      "id, ten_lop, hinh_thuc, trang_thai, ngay_khai_giang, ngay_ket_thuc, so_giang_vien_can, so_tro_giang_can, nguoi_phu_trach_id",
+      "id, ten_lop, doi_tuong_hoc_vien, trang_thai, ngay_khai_giang, ngay_ket_thuc, so_giang_vien_can, so_tro_giang_can, nguoi_phu_trach_id",
       { count: "exact" },
     )
     .order("created_at", { ascending: false });
@@ -52,8 +53,8 @@ export default async function LopHocPage({
   if (trang_thai && (TRANG_THAI_LOP_VALUES as readonly string[]).includes(trang_thai)) {
     query = query.eq("trang_thai", trang_thai as (typeof TRANG_THAI_LOP_VALUES)[number]);
   }
-  if (hinh_thuc && (HINH_THUC_VALUES as readonly string[]).includes(hinh_thuc)) {
-    query = query.eq("hinh_thuc", hinh_thuc as (typeof HINH_THUC_VALUES)[number]);
+  if (doi_tuong && (DOI_TUONG_HOC_VIEN_VALUES as readonly string[]).includes(doi_tuong)) {
+    query = query.eq("doi_tuong_hoc_vien", doi_tuong as (typeof DOI_TUONG_HOC_VIEN_VALUES)[number]);
   }
 
   const from = (page - 1) * PAGE_SIZE;
@@ -96,7 +97,7 @@ export default async function LopHocPage({
   function pageHref(nextPage: number) {
     const params = new URLSearchParams();
     if (trang_thai && trang_thai !== "all") params.set("trang_thai", trang_thai);
-    if (hinh_thuc && hinh_thuc !== "all") params.set("hinh_thuc", hinh_thuc);
+    if (doi_tuong && doi_tuong !== "all") params.set("doi_tuong", doi_tuong);
     if (nextPage > 1) params.set("page", String(nextPage));
     const qs = params.toString();
     return qs ? `/lop-hoc?${qs}` : "/lop-hoc";
@@ -109,7 +110,7 @@ export default async function LopHocPage({
         actions={canManage ? <AddClassDialog programs={programs ?? []} profiles={profiles ?? []} /> : null}
       />
       <div className="flex flex-col gap-4 p-4 md:p-6">
-        <LopHocFilters trangThai={trang_thai ?? "all"} hinhThuc={hinh_thuc ?? "all"} />
+        <LopHocFilters trangThai={trang_thai ?? "all"} doiTuong={doi_tuong ?? "all"} />
 
         {rows.length === 0 ? (
           <EmptyState title="Chưa có lớp học phù hợp bộ lọc" />
@@ -120,8 +121,8 @@ export default async function LopHocPage({
                 <TableHeader>
                   <TableRow>
                     <TableHead>Tên lớp</TableHead>
-                    <TableHead className="hidden md:table-cell">Hình thức</TableHead>
-                    <TableHead className="hidden md:table-cell">Người phụ trách</TableHead>
+                    <TableHead className="hidden md:table-cell">Đối tượng</TableHead>
+                    <TableHead className="hidden md:table-cell">Người được chỉ định</TableHead>
                     <TableHead>Khai giảng</TableHead>
                     <TableHead>Trạng thái</TableHead>
                   </TableRow>
@@ -135,7 +136,9 @@ export default async function LopHocPage({
                         </Link>
                       </TableCell>
                       <TableCell className="hidden md:table-cell">
-                        {HINH_THUC_LABEL[lop.hinh_thuc]}
+                        {lop.doi_tuong_hoc_vien
+                          ? DOI_TUONG_HOC_VIEN_LABEL[lop.doi_tuong_hoc_vien]
+                          : "—"}
                       </TableCell>
                       <TableCell className="hidden md:table-cell">
                         {lop.nguoi_phu_trach_id

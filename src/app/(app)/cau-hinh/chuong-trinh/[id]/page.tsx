@@ -57,10 +57,7 @@ export default async function ChuongTrinhDetailPage({
           <h2 className="text-sm font-medium text-muted-foreground">
             Danh sách bài giảng mẫu ({baiGiangMau?.length ?? 0})
           </h2>
-          <MauBaiGiangDialog
-            chuongTrinhId={program.id}
-            nextThuTu={(baiGiangMau?.length ?? 0) + 1}
-          />
+          <MauBaiGiangDialog chuongTrinhId={program.id} />
         </div>
 
         <MauBaiGiangList chuongTrinhId={program.id} items={baiGiangMau ?? []} canEdit />

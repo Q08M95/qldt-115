@@ -7,16 +7,19 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { HINH_THUC_LABEL, HINH_THUC_VALUES, type HinhThucLop } from "@/lib/constants/lop-hoc";
+import {
+  DOI_TUONG_HOC_VIEN_LABEL,
+  DOI_TUONG_HOC_VIEN_VALUES,
+  type DoiTuongHocVien,
+} from "@/lib/constants/lop-hoc";
 
 export type ClassFormDefaults = {
   ten_lop?: string;
   mo_ta?: string | null;
   loai_lop?: string | null;
-  hinh_thuc?: string;
+  doi_tuong_hoc_vien?: string | null;
   co_kinh_phi?: boolean;
   la_lop_gap?: boolean;
-  la_gio_hiem?: boolean;
   la_lop_cong_dong?: boolean;
   ngay_khai_giang?: string | null;
   ngay_ket_thuc?: string | null;
@@ -62,17 +65,25 @@ export function ClassFormFields({
           />
         </div>
         <div className="flex flex-col gap-2">
-          <Label htmlFor="hinh_thuc">Hình thức</Label>
-          <Select name="hinh_thuc" defaultValue={defaults?.hinh_thuc ?? "truc_tiep"}>
-            <SelectTrigger id="hinh_thuc">
+          <Label htmlFor="doi_tuong_hoc_vien">Đối tượng học viên</Label>
+          <Select
+            name="doi_tuong_hoc_vien"
+            defaultValue={defaults?.doi_tuong_hoc_vien ?? "none"}
+          >
+            <SelectTrigger id="doi_tuong_hoc_vien">
               <SelectValue>
-                {(value: string) => HINH_THUC_LABEL[value as HinhThucLop] ?? value}
+                {(value: string) =>
+                  value === "none"
+                    ? "Chưa chọn"
+                    : DOI_TUONG_HOC_VIEN_LABEL[value as DoiTuongHocVien]
+                }
               </SelectValue>
             </SelectTrigger>
             <SelectContent>
-              {HINH_THUC_VALUES.map((v) => (
+              <SelectItem value="none">Chưa chọn</SelectItem>
+              {DOI_TUONG_HOC_VIEN_VALUES.map((v) => (
                 <SelectItem key={v} value={v}>
-                  {HINH_THUC_LABEL[v]}
+                  {DOI_TUONG_HOC_VIEN_LABEL[v]}
                 </SelectItem>
               ))}
             </SelectContent>
@@ -137,7 +148,7 @@ export function ClassFormFields({
       </div>
 
       <div className="flex flex-col gap-2">
-        <Label htmlFor="nguoi_phu_trach_id">Người phụ trách</Label>
+        <Label htmlFor="nguoi_phu_trach_id">Người được chỉ định</Label>
         <Select name="nguoi_phu_trach_id" defaultValue={defaults?.nguoi_phu_trach_id ?? "none"}>
           <SelectTrigger id="nguoi_phu_trach_id">
             <SelectValue>
@@ -178,16 +189,7 @@ export function ClassFormFields({
               defaultChecked={defaults?.la_lop_gap ?? false}
               className="h-4 w-4"
             />
-            Lớp gấp
-          </label>
-          <label className="flex items-center gap-2 text-sm font-normal">
-            <input
-              type="checkbox"
-              name="la_gio_hiem"
-              defaultChecked={defaults?.la_gio_hiem ?? false}
-              className="h-4 w-4"
-            />
-            Giờ hiểm
+            Lớp đột xuất
           </label>
           <label className="flex items-center gap-2 text-sm font-normal">
             <input

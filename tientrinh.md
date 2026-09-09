@@ -77,12 +77,12 @@ Mỗi giai đoạn dưới đây có **1 sub-agent chịu trách nhiệm chính*
 - `kpi_ky` — các kỳ đánh giá (vd Học kỳ 1/2026, Cuối năm 2026)
 - `kpi_tieu_chi` — danh mục tiêu chí đánh giá, thuộc 4 nhóm cố định: Khối lượng & Cống hiến, Chất lượng & Phản hồi, Năng lực chuyên môn, Ý thức tổ chức (chi tiết công thức xem [CLAUDE.md](CLAUDE.md) mục 2.2)
 - `kpi_tieu_chi_theo_ky` — trọng số của từng tiêu chí, **cấu hình lại được theo từng kỳ** (không hard-code)
-- `kpi_he_so_quy_doi` — hệ số quy đổi tiết dạy theo tính chất lớp (không kinh phí/gấp/giờ hiểm/cộng đồng), cấu hình theo từng kỳ
+- `kpi_he_so_quy_doi` — hệ số quy đổi tiết dạy theo tính chất lớp (không kinh phí/đột xuất/cộng đồng), cấu hình theo từng kỳ
 - `danh_gia_kpi` — điểm chi tiết từng tiêu chí, phân biệt người đánh giá là quản lý hay đồng nghiệp
 - `kpi_tong_hop` — điểm tổng hợp theo từng nhóm A/B/C/D + xếp hạng tăng/giữ/hạ nhóm theo kỳ
 
 **Nhóm Lời mời giảng dạy & Khảo sát chất lượng**
-- `loi_moi_giang_day` — lời mời dạy lớp gấp/giờ hiểm/cộng đồng, dùng để đo "mức độ sẵn sàng" (đo được cả khi từ chối)
+- `loi_moi_giang_day` — lời mời dạy lớp đột xuất/cộng đồng, dùng để đo "mức độ sẵn sàng" (đo được cả khi từ chối)
 - `khao_sat_hoc_vien` — điểm khảo sát ý kiến học viên (ẩn danh) cho từng giảng viên/trợ giảng theo lớp
 
 **Nhóm Hoạt động & Phát triển nhân sự**
@@ -152,10 +152,9 @@ create table lop_hoc (
   ten_lop text not null,
   mo_ta text,
   loai_lop text,                  -- vd: đào tạo mới, tập huấn định kỳ...
-  hinh_thuc text default 'truc_tiep' check (hinh_thuc in ('truc_tiep','truc_tuyen','ket_hop')),
+  doi_tuong_hoc_vien text check (doi_tuong_hoc_vien in ('nhan_vien_y_te','cong_dong')),
   co_kinh_phi boolean default true,       -- dùng tính hệ số quy đổi KPI Nhóm A (lớp không kinh phí hệ số cao hơn)
-  la_lop_gap boolean default false,       -- lớp phát sinh gấp, thời gian chuẩn bị ngắn
-  la_gio_hiem boolean default false,      -- dạy ngoài giờ hành chính/đêm/cuối tuần/lễ tết
+  la_lop_gap boolean default false,       -- lớp đột xuất, thời gian chuẩn bị ngắn
   la_lop_cong_dong boolean default false, -- lớp phục vụ cộng đồng, không thù lao
   ngay_khai_giang date,
   ngay_ket_thuc date,
@@ -273,13 +272,13 @@ create table kpi_tong_hop (
 create table kpi_he_so_quy_doi (
   id uuid primary key default gen_random_uuid(),
   kpi_ky_id uuid references kpi_ky(id) on delete cascade not null,
-  loai_he_so text not null check (loai_he_so in ('khong_kinh_phi','lop_gap','gio_hiem','lop_cong_dong')),
+  loai_he_so text not null check (loai_he_so in ('khong_kinh_phi','lop_gap','lop_cong_dong')),
   gia_tri numeric not null,          -- hệ số cộng thêm, vd 0.3
   created_at timestamptz default now(),
   unique (kpi_ky_id, loai_he_so)
 );
 
--- Lời mời dạy lớp gấp/giờ hiểm/cộng đồng — đo "mức độ sẵn sàng" kể cả khi bị từ chối (KPI Nhóm A)
+-- Lời mời dạy lớp đột xuất/cộng đồng — đo "mức độ sẵn sàng" kể cả khi bị từ chối (KPI Nhóm A)
 create table loi_moi_giang_day (
   id uuid primary key default gen_random_uuid(),
   profile_id uuid references profiles(id) not null,
@@ -505,7 +504,7 @@ create table audit_log (
 1. Trang `/cau-hinh/kpi` (thuộc nhóm sidebar "Cấu hình", chỉ admin): quản lý `kpi_ky` (tạo kỳ đánh giá mới, mở/chốt kỳ), quản lý `kpi_tieu_chi` theo đúng 4 nhóm đã chốt ở [CLAUDE.md](CLAUDE.md) mục 2.2 (Khối lượng & Cống hiến 40%, Chất lượng & Phản hồi 30%, Năng lực chuyên môn 20%, Ý thức tổ chức 10%), gán trọng số theo từng kỳ qua `kpi_tieu_chi_theo_ky` (validate tổng trọng số = 100%), cấu hình hệ số quy đổi qua `kpi_he_so_quy_doi` và ngưỡng xếp hạng.
 2. Trang `/kpi` (thuộc nhóm sidebar "Đánh giá") dùng **tab con** thay vì nhiều route rời:
    - Tab "Nhập điểm" (admin/quản lý): chỉ cần nhập tay các tiêu chí định tính (nhận xét quản lý/đồng nghiệp, ý thức tổ chức); các tiêu chí định lượng **tự động tính từ dữ liệu hệ thống**, không nhập tay:
-     - Nhóm A: `lich_giang` (đã `da_ban_giao`) nhân hệ số theo `lop_hoc.co_kinh_phi/la_lop_gap/la_gio_hiem/la_lop_cong_dong` qua `kpi_he_so_quy_doi`, cộng tỷ lệ chấp nhận từ `loi_moi_giang_day`.
+     - Nhóm A: `lich_giang` (đã `da_ban_giao`) nhân hệ số theo `lop_hoc.co_kinh_phi/la_lop_gap/la_lop_cong_dong` qua `kpi_he_so_quy_doi`, cộng tỷ lệ chấp nhận từ `loi_moi_giang_day`.
      - Nhóm B: điểm trung bình `khao_sat_hoc_vien`, tỷ lệ huỷ phút chót từ `lich_giang.thoi_diem_huy` so với `ngay_gio`.
      - Nhóm C: hiệu lực `chung_chi` (có hệ số suy giảm theo `ngay_cap`) cộng điểm `hoat_dong_hoc_thuat`.
      - Nhóm D: `mentor_mentee` đã hoàn thành, `hoat_dong_chung`, `ky_luat_khen_thuong`.

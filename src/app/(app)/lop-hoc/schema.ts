@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { HINH_THUC_VALUES } from "@/lib/constants/lop-hoc";
+import { DOI_TUONG_HOC_VIEN_VALUES } from "@/lib/constants/lop-hoc";
 
 export function firstIssueMessage(result: { success: false; error: z.ZodError }) {
   return result.error.issues[0]?.message ?? "Dữ liệu không hợp lệ";
@@ -25,16 +25,20 @@ const optionalId = z
   .nullish()
   .transform((v) => v || null);
 
+const optionalDoiTuong = z
+  .enum(DOI_TUONG_HOC_VIEN_VALUES)
+  .nullish()
+  .transform((v) => v || null);
+
 const flag = z.preprocess((v) => v === "on" || v === true, z.boolean());
 
 export const createLopHocSchema = z.object({
   ten_lop: z.string().trim().min(1, "Vui lòng nhập tên lớp"),
   mo_ta: optionalText,
   loai_lop: optionalText,
-  hinh_thuc: z.enum(HINH_THUC_VALUES),
+  doi_tuong_hoc_vien: optionalDoiTuong,
   co_kinh_phi: flag,
   la_lop_gap: flag,
-  la_gio_hiem: flag,
   la_lop_cong_dong: flag,
   ngay_khai_giang: optionalDate,
   ngay_ket_thuc: optionalDate,

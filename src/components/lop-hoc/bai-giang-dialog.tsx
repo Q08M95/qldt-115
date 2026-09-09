@@ -27,11 +27,9 @@ export type BaiGiang = {
 export function BaiGiangDialog({
   lopHocId,
   baiGiang,
-  nextThuTu,
 }: {
   lopHocId: string;
   baiGiang?: BaiGiang;
-  nextThuTu?: number;
 }) {
   const mode = baiGiang ? "edit" : "create";
   const [open, setOpen] = useState(false);
@@ -86,29 +84,16 @@ export function BaiGiangDialog({
             <Label htmlFor="chuyen_de">Chuyên đề</Label>
             <Input id="chuyen_de" name="chuyen_de" defaultValue={baiGiang?.chuyen_de ?? ""} />
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="thoi_luong_tiet">Số tiết</Label>
-              <Input
-                id="thoi_luong_tiet"
-                name="thoi_luong_tiet"
-                type="number"
-                min={1}
-                defaultValue={baiGiang?.thoi_luong_tiet ?? 1}
-                required
-              />
-            </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="thu_tu">Thứ tự</Label>
-              <Input
-                id="thu_tu"
-                name="thu_tu"
-                type="number"
-                min={1}
-                defaultValue={baiGiang?.thu_tu ?? nextThuTu ?? 1}
-                required
-              />
-            </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="thoi_luong_tiet">Số tiết</Label>
+            <Input
+              id="thoi_luong_tiet"
+              name="thoi_luong_tiet"
+              type="number"
+              min={1}
+              defaultValue={baiGiang?.thoi_luong_tiet ?? 1}
+              required
+            />
           </div>
           {error ? (
             <p className="text-sm text-destructive" role="alert">

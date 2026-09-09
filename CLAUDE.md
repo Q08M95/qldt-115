@@ -37,7 +37,7 @@ Khi hệ thống gợi ý hoặc admin chỉ định giảng viên/trợ giảng
 KPI tính theo kỳ (`kpi_ky`), gồm **4 nhóm tiêu chí cố định**. Trọng số dưới đây là mặc định — trọng số dùng để tính thật sự luôn đọc từ `kpi_tieu_chi_theo_ky` (cấu hình được theo từng kỳ, không hard-code trong code).
 
 **Nhóm A — Khối lượng công việc & Cống hiến (40%)**
-- Số tiết giảng dạy/trợ giảng thực tế, **quy đổi theo hệ số tính chất lớp**: lớp không kinh phí, lớp gấp, giờ hiểm, lớp cộng đồng đều cộng thêm hệ số (đọc từ `kpi_he_so_quy_doi`, cấu hình theo kỳ) để khuyến khích cống hiến — tính từ `lich_giang` đã `da_ban_giao`, nhân hệ số theo cờ `lop_hoc.co_kinh_phi / la_lop_gap / la_gio_hiem / la_lop_cong_dong`.
+- Số tiết giảng dạy/trợ giảng thực tế, **quy đổi theo hệ số tính chất lớp**: lớp không kinh phí, lớp đột xuất, lớp cộng đồng đều cộng thêm hệ số (đọc từ `kpi_he_so_quy_doi`, cấu hình theo kỳ) để khuyến khích cống hiến — tính từ `lich_giang` đã `da_ban_giao`, nhân hệ số theo cờ `lop_hoc.co_kinh_phi / la_lop_gap / la_lop_cong_dong`.
 - Mức độ sẵn sàng = tỷ lệ `chap_nhan` trên tổng số lời mời trong `loi_moi_giang_day` (đo được cả khi từ chối, không chỉ đếm số lớp đã dạy).
 - Cả 2 thành phần chuẩn hoá theo percentile trong kỳ trước khi gộp, để công bằng giữa các kỳ có tổng khối lượng công việc chung khác nhau.
 

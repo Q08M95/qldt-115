@@ -13,7 +13,7 @@ import {
   TRANG_THAI_LOP_LABEL,
   TRANG_THAI_LOP_BADGE,
   TRANG_THAI_LOP_CLASSNAME,
-  HINH_THUC_LABEL,
+  DOI_TUONG_HOC_VIEN_LABEL,
 } from "@/lib/constants/lop-hoc";
 import { dongBoTrangThaiLop, demNhanSuDaGan } from "@/lib/lop-hoc/trang-thai";
 
@@ -64,10 +64,9 @@ export default async function LopHocDetailPage({
                   ten_lop: lop.ten_lop,
                   mo_ta: lop.mo_ta,
                   loai_lop: lop.loai_lop,
-                  hinh_thuc: lop.hinh_thuc,
+                  doi_tuong_hoc_vien: lop.doi_tuong_hoc_vien,
                   co_kinh_phi: lop.co_kinh_phi,
                   la_lop_gap: lop.la_lop_gap,
-                  la_gio_hiem: lop.la_gio_hiem,
                   la_lop_cong_dong: lop.la_lop_cong_dong,
                   ngay_khai_giang: lop.ngay_khai_giang,
                   ngay_ket_thuc: lop.ngay_ket_thuc,
@@ -86,7 +85,9 @@ export default async function LopHocDetailPage({
       <div className="flex flex-col gap-4 p-4 md:p-6">
         <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-xl font-semibold">{lop.ten_lop}</h1>
-          <Badge variant="outline">{HINH_THUC_LABEL[lop.hinh_thuc]}</Badge>
+          {lop.doi_tuong_hoc_vien ? (
+            <Badge variant="outline">{DOI_TUONG_HOC_VIEN_LABEL[lop.doi_tuong_hoc_vien]}</Badge>
+          ) : null}
           <Badge
             variant={TRANG_THAI_LOP_BADGE[trangThaiThucTe]}
             className={TRANG_THAI_LOP_CLASSNAME[trangThaiThucTe]}
@@ -100,7 +101,7 @@ export default async function LopHocDetailPage({
           <dd className="col-span-1 sm:col-span-2">{lop.ngay_khai_giang ?? "—"}</dd>
           <dt className="text-muted-foreground">Ngày kết thúc</dt>
           <dd className="col-span-1 sm:col-span-2">{lop.ngay_ket_thuc ?? "—"}</dd>
-          <dt className="text-muted-foreground">Người phụ trách</dt>
+          <dt className="text-muted-foreground">Người được chỉ định</dt>
           <dd className="col-span-1 sm:col-span-2">{nguoiPhuTrach?.full_name ?? "—"}</dd>
           <dt className="text-muted-foreground">Nhân sự đã gán</dt>
           <dd className="col-span-1 sm:col-span-2">
@@ -127,7 +128,7 @@ export default async function LopHocDetailPage({
                 <h2 className="text-sm font-medium text-muted-foreground">
                   {baiGiang?.length ?? 0} bài giảng
                 </h2>
-                <BaiGiangDialog lopHocId={lop.id} nextThuTu={(baiGiang?.length ?? 0) + 1} />
+                <BaiGiangDialog lopHocId={lop.id} />
               </div>
             ) : null}
             <BaiGiangList lopHocId={lop.id} items={baiGiang ?? []} canEdit={canManage} />

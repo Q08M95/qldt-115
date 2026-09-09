@@ -15,14 +15,14 @@ async function requireQuanLy() {
 
 function readLopHocFields(formData: FormData) {
   const nguoiPhuTrach = formData.get("nguoi_phu_trach_id");
+  const doiTuong = formData.get("doi_tuong_hoc_vien");
   return {
     ten_lop: formData.get("ten_lop"),
     mo_ta: formData.get("mo_ta"),
     loai_lop: formData.get("loai_lop"),
-    hinh_thuc: formData.get("hinh_thuc"),
+    doi_tuong_hoc_vien: doiTuong === "none" ? null : doiTuong,
     co_kinh_phi: formData.get("co_kinh_phi"),
     la_lop_gap: formData.get("la_lop_gap"),
-    la_gio_hiem: formData.get("la_gio_hiem"),
     la_lop_cong_dong: formData.get("la_lop_cong_dong"),
     ngay_khai_giang: formData.get("ngay_khai_giang"),
     ngay_ket_thuc: formData.get("ngay_ket_thuc"),
@@ -53,10 +53,9 @@ export async function createLopHoc(formData: FormData): Promise<{ error?: string
     p_ten_lop: parsed.data.ten_lop,
     p_mo_ta: parsed.data.mo_ta,
     p_loai_lop: parsed.data.loai_lop,
-    p_hinh_thuc: parsed.data.hinh_thuc,
+    p_doi_tuong_hoc_vien: parsed.data.doi_tuong_hoc_vien,
     p_co_kinh_phi: parsed.data.co_kinh_phi,
     p_la_lop_gap: parsed.data.la_lop_gap,
-    p_la_gio_hiem: parsed.data.la_gio_hiem,
     p_la_lop_cong_dong: parsed.data.la_lop_cong_dong,
     p_ngay_khai_giang: parsed.data.ngay_khai_giang,
     p_ngay_ket_thuc: parsed.data.ngay_ket_thuc,

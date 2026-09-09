@@ -1,19 +1,29 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import { toast } from "sonner";
-import { Button } from "@/components/ui/button";
+import { GripVertical } from "lucide-react";
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { Button } from "@/components/ui/button";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { EmptyState } from "@/components/ui/empty-state";
 import { BaiGiangDialog, type BaiGiang } from "./bai-giang-dialog";
-import { deleteBaiGiang } from "@/app/(app)/lop-hoc/[id]/bai-giang-actions";
+import { deleteBaiGiang, reorderBaiGiang } from "@/app/(app)/lop-hoc/[id]/bai-giang-actions";
 
 export function BaiGiangList({
   lopHocId,
@@ -24,7 +34,20 @@ export function BaiGiangList({
   items: BaiGiang[];
   canEdit: boolean;
 }) {
+  const [ordered, setOrdered] = useState(items);
+  const [prevItems, setPrevItems] = useState(items);
+  // Dong bo lai khi du lieu server thay doi that (them/sua/xoa) — theo
+  // huong dan React "Adjusting state when a prop changes" thay vi useEffect.
+  if (items !== prevItems) {
+    setPrevItems(items);
+    setOrdered(items);
+  }
+
   const [isPending, startTransition] = useTransition();
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 4 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
 
   function handleDelete(id: string) {
     if (!window.confirm("Xoá bài giảng này? Không thể hoàn tác.")) return;
@@ -38,9 +61,32 @@ export function BaiGiangList({
     });
   }
 
-  const tongTiet = items.reduce((sum, b) => sum + b.thoi_luong_tiet, 0);
+  function handleDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
 
-  if (items.length === 0) {
+    const oldIndex = ordered.findIndex((b) => b.id === active.id);
+    const newIndex = ordered.findIndex((b) => b.id === over.id);
+    const next = [...ordered];
+    const [moved] = next.splice(oldIndex, 1);
+    next.splice(newIndex, 0, moved);
+    setOrdered(next);
+
+    startTransition(async () => {
+      const result = await reorderBaiGiang(
+        lopHocId,
+        next.map((b) => b.id),
+      );
+      if (result?.error) {
+        toast.error(result.error);
+        setOrdered(items); // revert ve thu tu server dang co
+      }
+    });
+  }
+
+  const tongTiet = ordered.reduce((sum, b) => sum + b.thoi_luong_tiet, 0);
+
+  if (ordered.length === 0) {
     return (
       <EmptyState
         title="Lớp chưa có bài giảng nào"
@@ -55,45 +101,84 @@ export function BaiGiangList({
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead className="w-14">TT</TableHead>
+              {canEdit ? <TableHead className="w-8" /> : null}
               <TableHead>Tên bài giảng</TableHead>
               <TableHead className="hidden md:table-cell">Chuyên đề</TableHead>
               <TableHead>Số tiết</TableHead>
               {canEdit ? <TableHead className="text-right">Hành động</TableHead> : null}
             </TableRow>
           </TableHeader>
-          <TableBody>
-            {items.map((b) => (
-              <TableRow key={b.id}>
-                <TableCell className="text-muted-foreground">{b.thu_tu}</TableCell>
-                <TableCell className="font-medium">{b.ten_bai}</TableCell>
-                <TableCell className="hidden md:table-cell">{b.chuyen_de ?? "—"}</TableCell>
-                <TableCell>{b.thoi_luong_tiet}</TableCell>
-                {canEdit ? (
-                  <TableCell className="flex justify-end gap-2">
-                    <BaiGiangDialog
-                      lopHocId={lopHocId}
-                      baiGiang={b}
-                      nextThuTu={items.length + 1}
-                    />
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      disabled={isPending}
-                      onClick={() => handleDelete(b.id)}
-                    >
-                      Xoá
-                    </Button>
-                  </TableCell>
-                ) : null}
-              </TableRow>
-            ))}
-          </TableBody>
+          <DndContext
+            sensors={sensors}
+            collisionDetection={closestCenter}
+            onDragEnd={handleDragEnd}
+          >
+            <SortableContext
+              items={ordered.map((b) => b.id)}
+              strategy={verticalListSortingStrategy}
+            >
+              <TableBody>
+                {ordered.map((b) => (
+                  <SortableBaiGiangRow
+                    key={b.id}
+                    baiGiang={b}
+                    lopHocId={lopHocId}
+                    canEdit={canEdit}
+                    isPending={isPending}
+                    onDelete={handleDelete}
+                  />
+                ))}
+              </TableBody>
+            </SortableContext>
+          </DndContext>
         </Table>
       </div>
       <p className="text-xs text-muted-foreground">
-        Tổng {items.length} bài giảng — {tongTiet} tiết.
+        Tổng {ordered.length} bài giảng — {tongTiet} tiết.
       </p>
     </div>
+  );
+}
+
+function SortableBaiGiangRow({
+  baiGiang,
+  lopHocId,
+  canEdit,
+  isPending,
+  onDelete,
+}: {
+  baiGiang: BaiGiang;
+  lopHocId: string;
+  canEdit: boolean;
+  isPending: boolean;
+  onDelete: (id: string) => void;
+}) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
+    id: baiGiang.id,
+  });
+
+  return (
+    <TableRow
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition }}
+      className={isDragging ? "relative z-10 bg-muted" : undefined}
+    >
+      {canEdit ? (
+        <TableCell className="w-8 cursor-grab touch-none text-muted-foreground active:cursor-grabbing" {...attributes} {...listeners}>
+          <GripVertical className="h-4 w-4" />
+        </TableCell>
+      ) : null}
+      <TableCell className="font-medium">{baiGiang.ten_bai}</TableCell>
+      <TableCell className="hidden md:table-cell">{baiGiang.chuyen_de ?? "—"}</TableCell>
+      <TableCell>{baiGiang.thoi_luong_tiet}</TableCell>
+      {canEdit ? (
+        <TableCell className="flex justify-end gap-2">
+          <BaiGiangDialog lopHocId={lopHocId} baiGiang={baiGiang} />
+          <Button size="sm" variant="ghost" disabled={isPending} onClick={() => onDelete(baiGiang.id)}>
+            Xoá
+          </Button>
+        </TableCell>
+      ) : null}
+    </TableRow>
   );
 }
