@@ -10,25 +10,16 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { TRANG_THAI_LOP_LABEL, DOI_TUONG_HOC_VIEN_LABEL } from "@/lib/constants/lop-hoc";
-
-const TRANG_THAI_FILTER_LABEL: Record<string, string> = {
-  all: "Tất cả trạng thái",
-  ...TRANG_THAI_LOP_LABEL,
-};
+import { DOI_TUONG_HOC_VIEN_LABEL } from "@/lib/constants/lop-hoc";
 
 const DOI_TUONG_FILTER_LABEL: Record<string, string> = {
   all: "Tất cả đối tượng",
   ...DOI_TUONG_HOC_VIEN_LABEL,
 };
 
-export function LopHocFilters({
-  trangThai,
-  doiTuong,
-}: {
-  trangThai: string;
-  doiTuong: string;
-}) {
+// Bo filter "Trang thai" — danh sach lop hoc gio da nhom san theo 3 trang
+// thai (the/card, xem lop-hoc/page.tsx), filter rieng se trung lap.
+export function LopHocFilters({ doiTuong }: { doiTuong: string }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -38,7 +29,6 @@ export function LopHocFilters({
     const params = new URLSearchParams(searchParams.toString());
     if (value && value !== "all") params.set(key, value);
     else params.delete(key);
-    params.delete("page");
     startTransition(() => {
       router.push(`${pathname}?${params.toString()}`, { scroll: false });
     });
@@ -50,23 +40,6 @@ export function LopHocFilters({
       style={{ opacity: isPending ? 0.6 : 1 }}
       aria-busy={isPending}
     >
-      <div className="flex flex-col gap-1">
-        <label className="text-xs text-muted-foreground" htmlFor="trang_thai">
-          Trạng thái
-        </label>
-        <Select value={trangThai} onValueChange={(value) => updateParam("trang_thai", value)}>
-          <SelectTrigger id="trang_thai" className="w-44">
-            <SelectValue>{(value: string) => TRANG_THAI_FILTER_LABEL[value] ?? value}</SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            {Object.entries(TRANG_THAI_FILTER_LABEL).map(([value, label]) => (
-              <SelectItem key={value} value={value}>
-                {label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
       <div className="flex flex-col gap-1">
         <label className="text-xs text-muted-foreground" htmlFor="doi_tuong">
           Đối tượng

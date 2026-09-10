@@ -12,6 +12,9 @@ import {
   DOI_TUONG_HOC_VIEN_VALUES,
   type DoiTuongHocVien,
 } from "@/lib/constants/lop-hoc";
+import { NHOM_PHAN_LOAI_VALUES, NHOM_PHAN_LOAI_LABEL } from "@/lib/constants/nhan-su";
+
+export type ClassFormProfile = { id: string; full_name: string; role: string };
 
 export type ClassFormDefaults = {
   ten_lop?: string;
@@ -23,11 +26,82 @@ export type ClassFormDefaults = {
   la_lop_cong_dong?: boolean;
   ngay_khai_giang?: string | null;
   ngay_ket_thuc?: string | null;
-  so_hoc_vien_du_kien?: number | null;
   so_giang_vien_can?: number;
   so_tro_giang_can?: number;
-  nguoi_phu_trach_id?: string | null;
+  mo_dang_ky?: boolean;
+  nhom_giang_vien_phu_hop?: number[] | null;
+  nhom_tro_giang_phu_hop?: number[] | null;
+  giang_vien_chi_dinh_id?: string | null;
+  tro_giang_chi_dinh_id?: string | null;
 };
+
+function ChiDinhSelect({
+  name,
+  label,
+  defaultValue,
+  options,
+}: {
+  name: string;
+  label: string;
+  defaultValue?: string | null;
+  options: ClassFormProfile[];
+}) {
+  return (
+    <div className="flex flex-col gap-2">
+      <Label htmlFor={name}>{label}</Label>
+      <Select name={name} defaultValue={defaultValue ?? "none"}>
+        <SelectTrigger id={name}>
+          <SelectValue>
+            {(value: string) =>
+              value === "none"
+                ? "Chưa chỉ định"
+                : (options.find((p) => p.id === value)?.full_name ?? "Chưa chỉ định")
+            }
+          </SelectValue>
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="none">Chưa chỉ định</SelectItem>
+          {options.map((p) => (
+            <SelectItem key={p.id} value={p.id}>
+              {p.full_name}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
+
+function NhomCheckboxGroup({
+  name,
+  label,
+  defaultValues,
+}: {
+  name: string;
+  label: string;
+  defaultValues?: number[] | null;
+}) {
+  const selected = new Set(defaultValues ?? []);
+  return (
+    <div className="flex flex-col gap-2">
+      <Label>{label}</Label>
+      <div className="flex flex-col gap-1.5">
+        {NHOM_PHAN_LOAI_VALUES.map((v) => (
+          <label key={v} className="flex items-center gap-2 text-sm font-normal">
+            <input
+              type="checkbox"
+              name={name}
+              value={v}
+              defaultChecked={selected.has(v)}
+              className="h-4 w-4"
+            />
+            {NHOM_PHAN_LOAI_LABEL[v]}
+          </label>
+        ))}
+      </div>
+    </div>
+  );
+}
 
 /**
  * Cac truong form dung chung cho AddClassDialog va EditClassDialog — chi
@@ -40,8 +114,11 @@ export function ClassFormFields({
   profiles,
 }: {
   defaults?: ClassFormDefaults;
-  profiles: { id: string; full_name: string }[];
+  profiles: ClassFormProfile[];
 }) {
+  const giangVienOptions = profiles.filter((p) => p.role === "giang_vien");
+  const troGiangOptions = profiles.filter((p) => p.role === "tro_giang");
+
   return (
     <>
       <div className="flex flex-col gap-2">
@@ -60,7 +137,7 @@ export function ClassFormFields({
           <Input
             id="loai_lop"
             name="loai_lop"
-            placeholder="vd: Đào tạo mới, Tập huấn định kỳ"
+            placeholder="vd: ACLS, BLS, ABCDE"
             defaultValue={defaults?.loai_lop ?? ""}
           />
         </div>
@@ -112,17 +189,7 @@ export function ClassFormFields({
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-4">
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="so_hoc_vien_du_kien">Số học viên dự kiến</Label>
-          <Input
-            id="so_hoc_vien_du_kien"
-            name="so_hoc_vien_du_kien"
-            type="number"
-            min={0}
-            defaultValue={defaults?.so_hoc_vien_du_kien ?? ""}
-          />
-        </div>
+      <div className="grid grid-cols-2 gap-4">
         <div className="flex flex-col gap-2">
           <Label htmlFor="so_giang_vien_can">Số GV cần</Label>
           <Input
@@ -147,27 +214,42 @@ export function ClassFormFields({
         </div>
       </div>
 
-      <div className="flex flex-col gap-2">
-        <Label htmlFor="nguoi_phu_trach_id">Người được chỉ định</Label>
-        <Select name="nguoi_phu_trach_id" defaultValue={defaults?.nguoi_phu_trach_id ?? "none"}>
-          <SelectTrigger id="nguoi_phu_trach_id">
-            <SelectValue>
-              {(value: string) =>
-                value === "none"
-                  ? "Chưa chọn"
-                  : (profiles.find((p) => p.id === value)?.full_name ?? "Chưa chọn")
-              }
-            </SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="none">Chưa chọn</SelectItem>
-            {profiles.map((p) => (
-              <SelectItem key={p.id} value={p.id}>
-                {p.full_name}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+      <label className="flex items-center gap-2 text-sm font-normal">
+        <input
+          type="checkbox"
+          name="mo_dang_ky"
+          defaultChecked={defaults?.mo_dang_ky ?? false}
+          className="h-4 w-4"
+        />
+        Mở đăng ký — cho phép nhân sự tự đăng ký dạy lớp này
+      </label>
+
+      <div className="grid grid-cols-2 gap-4">
+        <NhomCheckboxGroup
+          name="nhom_giang_vien_phu_hop"
+          label="Nhóm giảng viên phù hợp"
+          defaultValues={defaults?.nhom_giang_vien_phu_hop}
+        />
+        <NhomCheckboxGroup
+          name="nhom_tro_giang_phu_hop"
+          label="Nhóm trợ giảng phù hợp"
+          defaultValues={defaults?.nhom_tro_giang_phu_hop}
+        />
+      </div>
+
+      <div className="grid grid-cols-2 gap-4">
+        <ChiDinhSelect
+          name="giang_vien_chi_dinh_id"
+          label="Chỉ định giảng viên"
+          defaultValue={defaults?.giang_vien_chi_dinh_id}
+          options={giangVienOptions}
+        />
+        <ChiDinhSelect
+          name="tro_giang_chi_dinh_id"
+          label="Chỉ định trợ giảng"
+          defaultValue={defaults?.tro_giang_chi_dinh_id}
+          options={troGiangOptions}
+        />
       </div>
 
       <div className="flex flex-col gap-2">

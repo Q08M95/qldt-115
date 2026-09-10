@@ -1,14 +1,7 @@
 import Link from "next/link";
+import { CalendarDays, UserCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/layout/page-header";
 import { LopHocFilters } from "@/components/lop-hoc/lop-hoc-filters";
@@ -18,22 +11,19 @@ import { createClient } from "@/lib/supabase/server";
 import {
   TRANG_THAI_LOP_LABEL,
   TRANG_THAI_LOP_BADGE,
-  TRANG_THAI_LOP_CLASSNAME,
   TRANG_THAI_LOP_VALUES,
   DOI_TUONG_HOC_VIEN_LABEL,
   DOI_TUONG_HOC_VIEN_VALUES,
+  type TrangThaiLop,
 } from "@/lib/constants/lop-hoc";
-import { computeTrangThaiLop, demNhanSuDaGan } from "@/lib/lop-hoc/trang-thai";
-
-const PAGE_SIZE = 20;
+import { computeTrangThaiLop } from "@/lib/lop-hoc/trang-thai";
 
 export default async function LopHocPage({
   searchParams,
 }: {
-  searchParams: Promise<{ trang_thai?: string; doi_tuong?: string; page?: string }>;
+  searchParams: Promise<{ doi_tuong?: string }>;
 }) {
-  const { trang_thai, doi_tuong, page: pageParam } = await searchParams;
-  const page = Math.max(1, Number(pageParam) || 1);
+  const { doi_tuong } = await searchParams;
   const current = await getCurrentProfile();
   const canManage = current?.role === "admin" || current?.role === "quan_ly_dao_tao";
 
@@ -42,45 +32,34 @@ export default async function LopHocPage({
   let query = supabase
     .from("lop_hoc")
     .select(
-      "id, ten_lop, doi_tuong_hoc_vien, trang_thai, ngay_khai_giang, ngay_ket_thuc, so_giang_vien_can, so_tro_giang_can, nguoi_phu_trach_id",
-      { count: "exact" },
+      "id, ten_lop, loai_lop, doi_tuong_hoc_vien, trang_thai, ngay_khai_giang, ngay_ket_thuc, co_kinh_phi, la_lop_gap, la_lop_cong_dong, mo_dang_ky, giang_vien_chi_dinh_id, tro_giang_chi_dinh_id",
     )
-    .order("created_at", { ascending: false });
+    .order("ngay_khai_giang", { ascending: true, nullsFirst: false });
 
-  // Loc theo trang_thai da luu trong DB — gia tri nay co the tre 1 nhip so
-  // voi trang thai "dung theo thuc te" hien thi trong bang (chi duoc dong
-  // bo lai moi lan 1 admin/quan_ly tai trang, xem dongBoTrangThaiLop).
-  if (trang_thai && (TRANG_THAI_LOP_VALUES as readonly string[]).includes(trang_thai)) {
-    query = query.eq("trang_thai", trang_thai as (typeof TRANG_THAI_LOP_VALUES)[number]);
-  }
   if (doi_tuong && (DOI_TUONG_HOC_VIEN_VALUES as readonly string[]).includes(doi_tuong)) {
     query = query.eq("doi_tuong_hoc_vien", doi_tuong as (typeof DOI_TUONG_HOC_VIEN_VALUES)[number]);
   }
 
-  const from = (page - 1) * PAGE_SIZE;
-  const { data: lopHocList, count } = await query.range(from, from + PAGE_SIZE - 1);
-  const totalPages = Math.max(1, Math.ceil((count ?? 0) / PAGE_SIZE));
+  const { data: lopHocList } = await query;
 
-  const ids = (lopHocList ?? []).map((l) => l.id);
-  const [nhanSuDaGan, { data: programs }, { data: profiles }] = await Promise.all([
-    demNhanSuDaGan(ids),
-    supabase.from("chuong_trinh_dao_tao").select("id, ten_chuong_trinh").order("ten_chuong_trinh"),
-    supabase
-      .from("profiles")
-      .select("id, full_name")
-      .eq("trang_thai_hoat_dong", true)
-      .order("full_name"),
-  ]);
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("id, full_name, role")
+    .eq("trang_thai_hoat_dong", true)
+    .order("full_name");
 
-  const rows = (lopHocList ?? []).map((lop) => {
-    const gan = nhanSuDaGan[lop.id] ?? { gv: 0, tg: 0 };
-    return { ...lop, trang_thai: computeTrangThaiLop(lop, gan.gv, gan.tg) };
-  });
+  const { data: programs } = await supabase
+    .from("chuong_trinh_dao_tao")
+    .select("id, ten_chuong_trinh")
+    .order("ten_chuong_trinh");
+
+  const rows = (lopHocList ?? []).map((lop) => ({
+    ...lop,
+    trang_thai: computeTrangThaiLop(lop),
+  }));
 
   // Ghi lai vao DB cac dong bi lech — cho doi that su (khong fire-and-forget)
-  // vi Vercel co the huy cac Promise chua await ngay khi response duoc gui,
-  // lam mat ghi nhan im lang. Chi nguoi co quyen (is_quan_ly) moi ghi duoc
-  // do RLS lop_hoc_write.
+  // vi Vercel co the huy cac Promise chua await ngay khi response duoc gui.
   if (canManage) {
     const lechs = rows.filter((r, i) => r.trang_thai !== lopHocList![i].trang_thai);
     if (lechs.length > 0) {
@@ -92,100 +71,97 @@ export default async function LopHocPage({
     }
   }
 
-  const nguoiPhuTrachMap = new Map((profiles ?? []).map((p) => [p.id, p.full_name]));
+  const nguoiMap = new Map((profiles ?? []).map((p) => [p.id, p.full_name]));
 
-  function pageHref(nextPage: number) {
-    const params = new URLSearchParams();
-    if (trang_thai && trang_thai !== "all") params.set("trang_thai", trang_thai);
-    if (doi_tuong && doi_tuong !== "all") params.set("doi_tuong", doi_tuong);
-    if (nextPage > 1) params.set("page", String(nextPage));
-    const qs = params.toString();
-    return qs ? `/lop-hoc?${qs}` : "/lop-hoc";
-  }
+  const groups: { key: TrangThaiLop; items: typeof rows }[] = TRANG_THAI_LOP_VALUES.map((key) => ({
+    key,
+    items: rows.filter((r) => r.trang_thai === key),
+  }));
 
   return (
     <>
       <PageHeader
         items={[{ label: "Lớp học" }]}
-        actions={canManage ? <AddClassDialog programs={programs ?? []} profiles={profiles ?? []} /> : null}
+        actions={
+          canManage ? (
+            <AddClassDialog programs={programs ?? []} profiles={profiles ?? []} />
+          ) : null
+        }
       />
       <div className="flex flex-col gap-4 p-4 md:p-6">
-        <LopHocFilters trangThai={trang_thai ?? "all"} doiTuong={doi_tuong ?? "all"} />
+        <LopHocFilters doiTuong={doi_tuong ?? "all"} />
 
         {rows.length === 0 ? (
           <EmptyState title="Chưa có lớp học phù hợp bộ lọc" />
         ) : (
-          <>
-            <div className="overflow-x-auto rounded-md border">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Tên lớp</TableHead>
-                    <TableHead className="hidden md:table-cell">Đối tượng</TableHead>
-                    <TableHead className="hidden md:table-cell">Người được chỉ định</TableHead>
-                    <TableHead>Khai giảng</TableHead>
-                    <TableHead>Trạng thái</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {rows.map((lop) => (
-                    <TableRow key={lop.id}>
-                      <TableCell className="font-medium">
-                        <Link href={`/lop-hoc/${lop.id}`} className="hover:underline">
-                          {lop.ten_lop}
-                        </Link>
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell">
-                        {lop.doi_tuong_hoc_vien
-                          ? DOI_TUONG_HOC_VIEN_LABEL[lop.doi_tuong_hoc_vien]
-                          : "—"}
-                      </TableCell>
-                      <TableCell className="hidden md:table-cell">
-                        {lop.nguoi_phu_trach_id
-                          ? (nguoiPhuTrachMap.get(lop.nguoi_phu_trach_id) ?? "—")
-                          : "—"}
-                      </TableCell>
-                      <TableCell>{lop.ngay_khai_giang ?? "—"}</TableCell>
-                      <TableCell>
-                        <Badge
-                          variant={TRANG_THAI_LOP_BADGE[lop.trang_thai]}
-                          className={TRANG_THAI_LOP_CLASSNAME[lop.trang_thai]}
-                        >
-                          {TRANG_THAI_LOP_LABEL[lop.trang_thai]}
-                        </Badge>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </div>
-
-            {totalPages > 1 ? (
-              <div className="flex items-center justify-between text-sm text-muted-foreground">
-                <span>
-                  Trang {page}/{totalPages} — {count} lớp học
-                </span>
-                <div className="flex gap-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={page <= 1}
-                    render={page <= 1 ? undefined : <Link href={pageHref(page - 1)} />}
-                  >
-                    Trang trước
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    disabled={page >= totalPages}
-                    render={page >= totalPages ? undefined : <Link href={pageHref(page + 1)} />}
-                  >
-                    Trang sau
-                  </Button>
-                </div>
-              </div>
-            ) : null}
-          </>
+          <div className="flex flex-col gap-6">
+            {groups.map((group) =>
+              group.items.length === 0 ? null : (
+                <section key={group.key} className="flex flex-col gap-3">
+                  <div className="flex items-center gap-2">
+                    <Badge variant={TRANG_THAI_LOP_BADGE[group.key]}>
+                      {TRANG_THAI_LOP_LABEL[group.key]}
+                    </Badge>
+                    <span className="text-sm text-muted-foreground">
+                      {group.items.length} lớp
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                    {group.items.map((lop) => (
+                      <Link key={lop.id} href={`/lop-hoc/${lop.id}`}>
+                        <Card className="h-full transition-shadow hover:shadow-md">
+                          <CardHeader>
+                            <CardTitle className="flex items-start justify-between gap-2">
+                              <span>{lop.ten_lop}</span>
+                              {lop.mo_dang_ky ? (
+                                <Badge className="shrink-0 border-data-dang-ky/40 bg-data-dang-ky/10 text-data-dang-ky">
+                                  Mở đăng ký
+                                </Badge>
+                              ) : null}
+                            </CardTitle>
+                          </CardHeader>
+                          <CardContent className="flex flex-col gap-2 text-sm">
+                            <div className="flex flex-wrap gap-1.5">
+                              {lop.loai_lop ? <Badge variant="outline">{lop.loai_lop}</Badge> : null}
+                              {lop.doi_tuong_hoc_vien ? (
+                                <Badge variant="outline">
+                                  {DOI_TUONG_HOC_VIEN_LABEL[lop.doi_tuong_hoc_vien]}
+                                </Badge>
+                              ) : null}
+                              {!lop.co_kinh_phi ? <Badge variant="outline">Không kinh phí</Badge> : null}
+                              {lop.la_lop_gap ? <Badge variant="outline">Đột xuất</Badge> : null}
+                              {lop.la_lop_cong_dong ? <Badge variant="outline">Cộng đồng</Badge> : null}
+                            </div>
+                            <div className="flex items-center gap-2 text-muted-foreground">
+                              <CalendarDays className="h-4 w-4 shrink-0" />
+                              <span>
+                                {lop.ngay_khai_giang ?? "Chưa xếp ngày"}
+                                {lop.ngay_ket_thuc ? ` — ${lop.ngay_ket_thuc}` : ""}
+                              </span>
+                            </div>
+                            {lop.giang_vien_chi_dinh_id || lop.tro_giang_chi_dinh_id ? (
+                              <div className="flex items-start gap-2 text-muted-foreground">
+                                <UserCheck className="h-4 w-4 shrink-0" />
+                                <span>
+                                  {lop.giang_vien_chi_dinh_id
+                                    ? `GV: ${nguoiMap.get(lop.giang_vien_chi_dinh_id) ?? "—"}`
+                                    : null}
+                                  {lop.giang_vien_chi_dinh_id && lop.tro_giang_chi_dinh_id ? " · " : ""}
+                                  {lop.tro_giang_chi_dinh_id
+                                    ? `TG: ${nguoiMap.get(lop.tro_giang_chi_dinh_id) ?? "—"}`
+                                    : null}
+                                </span>
+                              </div>
+                            ) : null}
+                          </CardContent>
+                        </Card>
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+              ),
+            )}
+          </div>
         )}
       </div>
     </>

@@ -5,67 +5,61 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { getCurrentProfile } from "@/lib/auth";
 
-const optionalId = z
-  .string()
-  .trim()
-  .nullish()
-  .transform((v) => (v && v !== "none" ? v : null));
-
-const baiGiangSchema = z.object({
-  ten_bai: z.string().trim().min(1, "Vui lòng nhập tên bài giảng"),
-  chuyen_de: z
+const buoiGiangSchema = z.object({
+  ten_buoi: z.string().trim().min(1, "Vui lòng nhập tên buổi"),
+  so_giang_vien_can: z.coerce.number().int().min(0),
+  so_tro_giang_can: z.coerce.number().int().min(0),
+  mo_dang_ky: z.preprocess((v) => v === "on" || v === true, z.boolean()),
+  giang_vien_chi_dinh_id: z
     .string()
     .trim()
-    .optional()
-    .transform((v) => v || null),
-  // So tiet cho phep < 1 (vd 0.5) — theo yeu cau nguoi dung 2026-09-10.
-  thoi_luong_tiet: z.coerce.number().positive("Số tiết phải lớn hơn 0"),
-  buoi_giang_id: optionalId,
-  mo_dang_ky: z.preprocess((v) => v === "on" || v === true, z.boolean()),
-  giang_vien_chi_dinh_id: optionalId,
-  tro_giang_chi_dinh_id: optionalId,
+    .nullish()
+    .transform((v) => (v && v !== "none" ? v : null)),
+  tro_giang_chi_dinh_id: z
+    .string()
+    .trim()
+    .nullish()
+    .transform((v) => (v && v !== "none" ? v : null)),
 });
+
+async function requireQuanLy() {
+  const current = await getCurrentProfile();
+  if (current?.role !== "admin" && current?.role !== "quan_ly_dao_tao") {
+    return { error: "Chỉ admin/quản lý đào tạo được thao tác trên buổi giảng" };
+  }
+  return null;
+}
 
 function readFields(formData: FormData) {
   return {
-    ten_bai: formData.get("ten_bai"),
-    chuyen_de: formData.get("chuyen_de"),
-    thoi_luong_tiet: formData.get("thoi_luong_tiet"),
-    buoi_giang_id: formData.get("buoi_giang_id"),
+    ten_buoi: formData.get("ten_buoi"),
+    so_giang_vien_can: formData.get("so_giang_vien_can"),
+    so_tro_giang_can: formData.get("so_tro_giang_can"),
     mo_dang_ky: formData.get("mo_dang_ky"),
     giang_vien_chi_dinh_id: formData.get("giang_vien_chi_dinh_id"),
     tro_giang_chi_dinh_id: formData.get("tro_giang_chi_dinh_id"),
   };
 }
 
-async function requireQuanLy() {
-  const current = await getCurrentProfile();
-  if (current?.role !== "admin" && current?.role !== "quan_ly_dao_tao") {
-    return { error: "Chỉ admin/quản lý đào tạo được thao tác trên bài giảng" };
-  }
-  return null;
-}
-
-export async function createBaiGiang(
+export async function createBuoiGiang(
   lopHocId: string,
   formData: FormData,
 ): Promise<{ error?: string }> {
   const denied = await requireQuanLy();
   if (denied) return denied;
 
-  const parsed = baiGiangSchema.safeParse(readFields(formData));
+  const parsed = buoiGiangSchema.safeParse(readFields(formData));
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Dữ liệu không hợp lệ" };
 
   const supabase = await createClient();
-  // Thu_tu khong con nhap tay (keo-tha thay the) — luon them vao cuoi danh
-  // sach hien co cua lop nay.
+  // Thu_tu khong nhap tay (keo-tha thay the) — luon them vao cuoi.
   const { count } = await supabase
-    .from("bai_giang")
+    .from("buoi_giang")
     .select("id", { count: "exact", head: true })
     .eq("lop_hoc_id", lopHocId);
 
   const { error } = await supabase
-    .from("bai_giang")
+    .from("buoi_giang")
     .insert({ ...parsed.data, lop_hoc_id: lopHocId, thu_tu: (count ?? 0) + 1 });
   if (error) return { error: error.message };
 
@@ -73,7 +67,7 @@ export async function createBaiGiang(
   return {};
 }
 
-export async function updateBaiGiang(
+export async function updateBuoiGiang(
   id: string,
   lopHocId: string,
   formData: FormData,
@@ -81,18 +75,18 @@ export async function updateBaiGiang(
   const denied = await requireQuanLy();
   if (denied) return denied;
 
-  const parsed = baiGiangSchema.safeParse(readFields(formData));
+  const parsed = buoiGiangSchema.safeParse(readFields(formData));
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Dữ liệu không hợp lệ" };
 
   const supabase = await createClient();
-  const { error } = await supabase.from("bai_giang").update(parsed.data).eq("id", id);
+  const { error } = await supabase.from("buoi_giang").update(parsed.data).eq("id", id);
   if (error) return { error: error.message };
 
   revalidatePath(`/lop-hoc/${lopHocId}`);
   return {};
 }
 
-export async function deleteBaiGiang(
+export async function deleteBuoiGiang(
   id: string,
   lopHocId: string,
 ): Promise<{ error?: string }> {
@@ -100,16 +94,16 @@ export async function deleteBaiGiang(
   if (denied) return denied;
 
   const supabase = await createClient();
-  const { error } = await supabase.from("bai_giang").delete().eq("id", id);
+  // Bai giang thuoc buoi nay se ve lai trang "chua gom buoi" (on delete set
+  // null tren bai_giang.buoi_giang_id), khong bi xoa theo.
+  const { error } = await supabase.from("buoi_giang").delete().eq("id", id);
   if (error) return { error: error.message };
 
   revalidatePath(`/lop-hoc/${lopHocId}`);
   return {};
 }
 
-// Sap xep lai bang keo-tha — goi RPC gop 1 cau UPDATE set-based thay vi N
-// lan update roi rac tu client (CLAUDE.md muc 4).
-export async function reorderBaiGiang(
+export async function reorderBuoiGiang(
   lopHocId: string,
   orderedIds: string[],
 ): Promise<{ error?: string }> {
@@ -117,7 +111,7 @@ export async function reorderBaiGiang(
   if (denied) return denied;
 
   const supabase = await createClient();
-  const { error } = await supabase.rpc("reorder_bai_giang", {
+  const { error } = await supabase.rpc("reorder_buoi_giang", {
     p_lop_hoc_id: lopHocId,
     p_ids: orderedIds,
   });

@@ -32,6 +32,13 @@ const optionalDoiTuong = z
 
 const flag = z.preprocess((v) => v === "on" || v === true, z.boolean());
 
+// Mang nhom_phan_loai (1-5) chon qua checkbox — formData tra ve string[]
+// (getAll) hoac undefined neu khong tick gi ca.
+const nhomArray = z
+  .array(z.coerce.number().int().min(1).max(5))
+  .optional()
+  .transform((v) => (v && v.length > 0 ? v : null));
+
 export const createLopHocSchema = z.object({
   ten_lop: z.string().trim().min(1, "Vui lòng nhập tên lớp"),
   mo_ta: optionalText,
@@ -42,10 +49,13 @@ export const createLopHocSchema = z.object({
   la_lop_cong_dong: flag,
   ngay_khai_giang: optionalDate,
   ngay_ket_thuc: optionalDate,
-  so_hoc_vien_du_kien: z.coerce.number().int().min(0).optional().nullable(),
   so_giang_vien_can: z.coerce.number().int().min(0),
   so_tro_giang_can: z.coerce.number().int().min(0),
-  nguoi_phu_trach_id: optionalId,
+  mo_dang_ky: flag,
+  nhom_giang_vien_phu_hop: nhomArray,
+  nhom_tro_giang_phu_hop: nhomArray,
+  giang_vien_chi_dinh_id: optionalId,
+  tro_giang_chi_dinh_id: optionalId,
   chuong_trinh_id: optionalId,
 });
 

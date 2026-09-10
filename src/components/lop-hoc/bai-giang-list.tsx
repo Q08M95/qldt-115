@@ -23,15 +23,21 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { EmptyState } from "@/components/ui/empty-state";
 import { BaiGiangDialog, type BaiGiang } from "./bai-giang-dialog";
+import type { BuoiGiang } from "./buoi-giang-dialog";
+import type { ClassFormProfile } from "./class-form-fields";
 import { deleteBaiGiang, reorderBaiGiang } from "@/app/(app)/lop-hoc/[id]/bai-giang-actions";
 
 export function BaiGiangList({
   lopHocId,
   items,
+  buoiList,
+  profiles,
   canEdit,
 }: {
   lopHocId: string;
   items: BaiGiang[];
+  buoiList: BuoiGiang[];
+  profiles: ClassFormProfile[];
   canEdit: boolean;
 }) {
   const [ordered, setOrdered] = useState(items);
@@ -104,6 +110,7 @@ export function BaiGiangList({
               {canEdit ? <TableHead className="w-8" /> : null}
               <TableHead>Tên bài giảng</TableHead>
               <TableHead className="hidden md:table-cell">Chuyên đề</TableHead>
+              <TableHead className="hidden md:table-cell">Buổi</TableHead>
               <TableHead>Số tiết</TableHead>
               {canEdit ? <TableHead className="text-right">Hành động</TableHead> : null}
             </TableRow>
@@ -123,6 +130,9 @@ export function BaiGiangList({
                     key={b.id}
                     baiGiang={b}
                     lopHocId={lopHocId}
+                    buoiList={buoiList}
+                    profiles={profiles}
+                    buoiTen={buoiList.find((buoi) => buoi.id === b.buoi_giang_id)?.ten_buoi}
                     canEdit={canEdit}
                     isPending={isPending}
                     onDelete={handleDelete}
@@ -143,12 +153,18 @@ export function BaiGiangList({
 function SortableBaiGiangRow({
   baiGiang,
   lopHocId,
+  buoiList,
+  profiles,
+  buoiTen,
   canEdit,
   isPending,
   onDelete,
 }: {
   baiGiang: BaiGiang;
   lopHocId: string;
+  buoiList: BuoiGiang[];
+  profiles: ClassFormProfile[];
+  buoiTen?: string;
   canEdit: boolean;
   isPending: boolean;
   onDelete: (id: string) => void;
@@ -170,10 +186,11 @@ function SortableBaiGiangRow({
       ) : null}
       <TableCell className="font-medium">{baiGiang.ten_bai}</TableCell>
       <TableCell className="hidden md:table-cell">{baiGiang.chuyen_de ?? "—"}</TableCell>
+      <TableCell className="hidden md:table-cell">{buoiTen ?? "—"}</TableCell>
       <TableCell>{baiGiang.thoi_luong_tiet}</TableCell>
       {canEdit ? (
         <TableCell className="flex justify-end gap-2">
-          <BaiGiangDialog lopHocId={lopHocId} baiGiang={baiGiang} />
+          <BaiGiangDialog lopHocId={lopHocId} baiGiang={baiGiang} buoiList={buoiList} profiles={profiles} />
           <Button size="sm" variant="ghost" disabled={isPending} onClick={() => onDelete(baiGiang.id)}>
             Xoá
           </Button>

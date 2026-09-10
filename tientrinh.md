@@ -158,15 +158,35 @@ create table lop_hoc (
   la_lop_cong_dong boolean default false, -- lớp phục vụ cộng đồng, không thù lao
   ngay_khai_giang date,
   ngay_ket_thuc date,
-  so_hoc_vien_du_kien int,
   so_giang_vien_can int default 1,
   so_tro_giang_can int default 1,
-  trang_thai text not null default 'cho_khai_giang'
-    check (trang_thai in ('cho_khai_giang','dang_dien_ra','hoan_thanh','thieu_nhan_su','huy')),
-  nguoi_phu_trach_id uuid references profiles(id),
+  mo_dang_ky boolean default false,        -- cho phep nhan su tu dang ky day lop nay (Giai doan 5)
+  nhom_giang_vien_phu_hop smallint[],      -- gia tri thuoc nhom_phan_loai (profiles) 1-5, co the chon nhieu
+  nhom_tro_giang_phu_hop smallint[],
+  giang_vien_chi_dinh_id uuid references profiles(id),  -- chi dinh truc tiep, thay the nguoi_phu_trach_id cu
+  tro_giang_chi_dinh_id uuid references profiles(id),
+  trang_thai text not null default 'chua_mo'
+    check (trang_thai in ('chua_mo','dang_dien_ra','hoan_thanh')),
   created_by uuid references profiles(id),
   created_at timestamptz default now(),
   updated_at timestamptz default now()
+);
+
+-- 1 lop co the co nhieu buoi giang (khop sheet "DANH MUC BUOI GIANG" cua
+-- trung tam) — moi buoi gom nhieu bai giang, co the co quota GV/TG rieng va
+-- mo dang ky/chi dinh o cap buoi (dang ky gon hon: 1 buoi 1 giang vien du
+-- cho nhieu bai ben trong, khong can dang ky tung bai).
+create table buoi_giang (
+  id uuid primary key default gen_random_uuid(),
+  lop_hoc_id uuid references lop_hoc(id) on delete cascade not null,
+  ten_buoi text not null,
+  thu_tu int default 1,
+  so_giang_vien_can int default 1,
+  so_tro_giang_can int default 1,
+  mo_dang_ky boolean default false,
+  giang_vien_chi_dinh_id uuid references profiles(id),
+  tro_giang_chi_dinh_id uuid references profiles(id),
+  created_at timestamptz default now()
 );
 
 -- Độc lập hoàn toàn với chuong_trinh_mau_bai_giang: khi tạo lớp từ chương trình mẫu,
@@ -175,10 +195,14 @@ create table lop_hoc (
 create table bai_giang (
   id uuid primary key default gen_random_uuid(),
   lop_hoc_id uuid references lop_hoc(id) on delete cascade not null,
+  buoi_giang_id uuid references buoi_giang(id) on delete set null,  -- tuy chon, gom bai vao 1 buoi (xem ghi chu duoi)
   ten_bai text not null,
   chuyen_de text,
-  thoi_luong_tiet int default 1,
+  thoi_luong_tiet numeric default 1,  -- cho phep < 1 (vd 0.5 tiet)
   thu_tu int default 1,
+  mo_dang_ky boolean default false,   -- mo dang ky rieng cho tung bai (khi khong dang ky theo lop/buoi)
+  giang_vien_chi_dinh_id uuid references profiles(id),
+  tro_giang_chi_dinh_id uuid references profiles(id),
   created_at timestamptz default now()
 );
 
@@ -385,6 +409,14 @@ create table audit_log (
 > - Trang `/nhan-su`: sắp xếp danh sách theo `nhom_phan_loai` trước (rồi mới đến tên), thêm bộ lọc "Nhóm phân loại" (chỉ admin/quản lý đào tạo thấy được, khớp quy tắc hiển thị `nhom_phan_loai`), bỏ hẳn cột "Hành động" khi xem bằng vai trò `giang_vien`/`tro_giang` (không có thao tác nào dành cho họ ở đây).
 > - Sửa email đăng nhập của nhân sự: gộp vào trực tiếp form "Hồ sơ" (trường `email` cạnh các trường khác, admin sửa xong bấm Lưu là xong) thay vì mở dialog riêng — logic đổi cả `auth.users.email` và tự gửi email đặt mật khẩu khi email thay đổi vẫn giữ nguyên, chỉ đổi chỗ đặt UI.
 
+> **Sửa đổi 2026-09-10 vào `lop_hoc`/`bai_giang` + bảng `buoi_giang` mới (theo yêu cầu người dùng, ngoại lệ CLAUDE.md mục 4 — đảo ngược 1 phần ranh giới Giai đoạn 4↔5 đã chốt cùng ngày trước đó):**
+> - `trang_thai` chỉ còn 3 giá trị thuần theo ngày (`chua_mo`/`dang_dien_ra`/`hoan_thanh`), tính bởi `computeTrangThaiLop` (không còn dựa vào `lich_giang` nữa). Bỏ hẳn `thieu_nhan_su` và `huy` — theo xác nhận của người dùng: **hoãn lớp = sửa lại ngày khai giảng/kết thúc, huỷ lớp = xoá cứng lớp đó** (RPC `xoa_lop_hoc`, tự kiểm tra không còn `dang_ky_giang_day`/`lich_giang`/`loi_moi_giang_day`/`khao_sat_hoc_vien` tham chiếu trước khi xoá).
+> - Bỏ `so_hoc_vien_du_kien` (không quan trọng) và `nguoi_phu_trach_id` (1 người phụ trách chung chung) — thay bằng `giang_vien_chi_dinh_id`/`tro_giang_chi_dinh_id` (chỉ định chi tiết theo từng vai trò), lặp lại đúng 2 trường này ở cả `buoi_giang` và `bai_giang` cho 3 cấp độ chỉ định.
+> - Thêm `mo_dang_ky` (lớp/buổi/bài đều có) — cờ cho phép tự đăng ký, và `nhom_giang_vien_phu_hop`/`nhom_tro_giang_phu_hop` (`smallint[]`, chỉ ở cấp lớp) dùng đúng `nhom_phan_loai` 1-5 của `profiles` để giới hạn ai đủ điều kiện đăng ký/được chỉ định — không tạo khái niệm nhóm mới.
+> - Bảng `buoi_giang` mới: khớp cấu trúc thật (sheet "DANH MỤC BUỔI GIẢNG"), 1 lớp có nhiều buổi, 1 buổi có nhiều `bai_giang` (`bai_giang.buoi_giang_id`, tuỳ chọn — bài chưa gom buổi vẫn tồn tại độc lập). Buổi có quota GV/TG + mở đăng ký/chỉ định riêng, phục vụ đăng ký gọn hơn (1 buổi có thể chỉ cần 1 giảng viên cho nhiều bài bên trong) — đăng ký thực tế (nút bấm, duyệt) vẫn thuộc Giai đoạn 5, đợt này chỉ dựng khung dữ liệu + UI quản lý (thêm/sửa/xoá/kéo-thả buổi, gán bài vào buổi) cho `admin`/`quan_ly_dao_tao`.
+> - `bai_giang.thoi_luong_tiet` đổi từ `int` sang `numeric` — cho phép số tiết < 1 (vd 0.5).
+> - **Ranh giới Giai đoạn 4↔5-6 (CLAUDE.md mục 4) cập nhật lại**: `bai_giang`/`buoi_giang`/`lop_hoc` NAY được phép chứa người chỉ định trực tiếp (`giang_vien_chi_dinh_id`/`tro_giang_chi_dinh_id`) và cờ `mo_dang_ky` — đảo ngược quyết định 2026-09-10 (bản trước) vì chính người dùng chủ động yêu cầu lại. Tuy nhiên **luồng đăng ký tự nguyện qua `dang_ky_giang_day` (chờ duyệt) và lịch giảng chính thức qua `lich_giang` vẫn thuộc Giai đoạn 5-6** — 2 trường chỉ định mới chỉ là "gán trực tiếp không qua duyệt", không thay thế toàn bộ luồng đăng ký/duyệt.
+
 ### 1.3. Trigger & function nền tảng
 1. Trigger tự tạo `profiles` khi có `auth.users` mới đăng ký (role mặc định thấp nhất, admin nâng quyền thủ công sau).
 2. Trigger `updated_at` tự cập nhật cho các bảng có cột này.
@@ -414,7 +446,7 @@ create table audit_log (
 | `profiles` | Full | Đọc tất cả, sửa trạng thái hoạt động | Đọc tất cả (để biết đồng nghiệp), chỉ sửa hồ sơ của chính mình |
 | `chung_chi` | Full | Đọc tất cả | Đọc tất cả (để biết đồng nghiệp, xem CLAUDE.md mục 4, sửa 2026-09-10), chỉ CRUD của chính mình |
 | `chuong_trinh_dao_tao`, `chuong_trinh_mau_bai_giang` | Full | Full | Chỉ đọc |
-| `lop_hoc`, `bai_giang` | Full | Full | Chỉ đọc |
+| `lop_hoc`, `bai_giang`, `buoi_giang` | Full | Full | Chỉ đọc |
 | `dang_ky_giang_day` | Full | Đọc tất cả, sửa `trang_thai`/`nguoi_duyet_id` | Đọc/tạo của chính mình, không tự sửa `trang_thai` |
 | `lich_giang` | Full | Full | Đọc toàn bộ (lịch chung toàn trung tâm, không phải dữ liệu nhạy cảm — khớp toggle "Tất cả ↔ Của tôi" ở Giai đoạn 6), không tự sửa |
 | `kpi_ky`, `kpi_tieu_chi`, `kpi_tieu_chi_theo_ky` | Full | Đọc | Đọc |
@@ -467,16 +499,18 @@ create table audit_log (
 
 **Công việc:**
 1. Trang `/cau-hinh/chuong-trinh` (thuộc nhóm sidebar "Cấu hình", chỉ admin/quản lý): CRUD danh mục `chuong_trinh_dao_tao` + danh sách bài giảng mẫu (`chuong_trinh_mau_bai_giang`) của mỗi chương trình — làm trước để có sẵn khung dùng lại khi mở lớp.
-2. Trang `/lop-hoc` (thuộc nhóm sidebar "Đào tạo"): danh sách lớp, filter theo trạng thái/đối tượng học viên, badge màu trạng thái.
-3. Form tạo lớp học: chọn **chương trình mẫu (tuỳ chọn)** — nếu chọn, hệ thống tự động **copy** toàn bộ `chuong_trinh_mau_bai_giang` thành các dòng `bai_giang` của riêng lớp này; nếu không chọn, tạo lớp trống rồi thêm bài giảng thủ công. Đầy đủ trường khác (loại lớp, đối tượng học viên, tính chất lớp, số lượng cần, người được chỉ định phụ trách).
-4. Trang chi tiết `/lop-hoc/[id]`: dùng cấu trúc **tab con** thay vì nhiều trang rời — tab "Bài giảng" (danh sách bài giảng + tình trạng nhân sự đã gán/còn thiếu) hoàn thiện ở giai đoạn này; khung tab "Đăng ký & Duyệt" và "Lịch giảng" sẽ lắp nội dung vào cùng vị trí này ở Giai đoạn 5-6 (không tạo trang quản lý đăng ký hay lịch giảng rời cho từng lớp — xem [CLAUDE.md](CLAUDE.md) mục 3).
-5. CRUD bài giảng gắn với lớp (chuyên đề, số tiết) — **thêm/sửa/xoá tự do cho từng lớp**, không ảnh hưởng chương trình mẫu gốc hay lớp khác, để mỗi lần mở lớp mới có thể có số buổi/nội dung khác nhau dễ dàng. Thứ tự bài giảng sắp xếp bằng **kéo-thả** (không nhập số thứ tự thủ công), lưu lại qua 1 lệnh cập nhật gộp (RPC), không tách nhiều lệnh rời.
-6. Logic tự động: cập nhật `trang_thai = 'thieu_nhan_su'` khi số nhân sự đã gán (qua `lich_giang`) chưa đạt `so_giang_vien_can`/`so_tro_giang_can`; tự chuyển `dang_dien_ra` khi đến `ngay_khai_giang`; `hoan_thanh` khi qua `ngay_ket_thuc` (có thể làm bằng Supabase scheduled function hoặc kiểm tra khi load trang).
-7. **Ranh giới quan trọng với Giai đoạn 5-6**: `bai_giang` chỉ chứa nội dung/giáo án (tên bài, chuyên đề, số tiết) — **không** thêm thời gian, giảng viên/trợ giảng chỉ định, hay tiến độ đăng ký vào bảng này. Các thông tin đó (thời gian, người dạy, đăng ký, duyệt, thanh tiến độ theo chỉ tiêu) đã có sẵn chỗ đúng trong schema Giai đoạn 1 là `dang_ky_giang_day` (Giai đoạn 5) và `lich_giang` (Giai đoạn 6) — lắp vào đúng 2 tab rỗng đã scaffold ở mục 4, không gộp vào tab "Bài giảng" (quyết định chốt 2026-09-10).
+2. Trang `/lop-hoc` (thuộc nhóm sidebar "Đào tạo"): **dạng thẻ (card)**, nhóm theo 3 trạng thái (Chưa mở / Đang diễn ra / Hoàn thành — mỗi nhóm 1 section riêng, không dùng bảng + filter trạng thái nữa vì đã nhóm sẵn), filter còn lại theo đối tượng học viên. Mỗi thẻ hiện: tên lớp, loại lớp (badge, vd "ACLS"/"BLS"), đối tượng, tính chất lớp, ngày khai giảng-kết thúc, badge "Mở đăng ký" nếu `mo_dang_ky`, người được chỉ định nếu có.
+3. Form tạo lớp học: chọn **chương trình mẫu (tuỳ chọn)** — nếu chọn, hệ thống tự động **copy** toàn bộ `chuong_trinh_mau_bai_giang` thành các dòng `bai_giang` của riêng lớp này; nếu không chọn, tạo lớp trống rồi thêm bài giảng thủ công. Trường khác: loại lớp, đối tượng học viên, tính chất lớp, số GV/TG cần, cờ **mở đăng ký**, **nhóm giảng viên/trợ giảng phù hợp** (chọn nhiều trong 5 nhóm phân loại của `profiles`), **chỉ định giảng viên/trợ giảng** cụ thể (2 trường riêng, thay cho "người phụ trách" chung chung trước đây).
+4. Trang chi tiết `/lop-hoc/[id]`: dùng cấu trúc **tab con** thay vì nhiều trang rời — tab "Bài giảng" (gồm 2 phần: quản lý **Buổi giảng** và danh sách **Bài giảng**) hoàn thiện ở giai đoạn này; khung tab "Đăng ký & Duyệt" và "Lịch giảng" sẽ lắp nội dung thực (nút đăng ký, duyệt, thông báo) vào cùng vị trí này ở Giai đoạn 5-6 (xem mục 7 ranh giới bên dưới).
+5. **Buổi giảng** (`buoi_giang`, bảng mới — khớp sheet "DANH MỤC BUỔI GIẢNG" của trung tâm): 1 lớp có nhiều buổi, mỗi buổi gồm nhiều bài giảng (`bai_giang.buoi_giang_id`, tuỳ chọn — gán qua dropdown trong form sửa bài giảng, không bắt buộc mọi bài phải thuộc 1 buổi). Buổi có quota GV/TG riêng + cờ mở đăng ký + 2 trường chỉ định, sắp xếp bằng kéo-thả như bài giảng.
+6. CRUD bài giảng gắn với lớp (chuyên đề, số tiết — cho phép **số tiết < 1**, vd 0.5) — **thêm/sửa/xoá tự do cho từng lớp**, không ảnh hưởng chương trình mẫu gốc hay lớp khác. Thứ tự sắp xếp bằng **kéo-thả**, lưu qua 1 lệnh cập nhật gộp (RPC), không tách nhiều lệnh rời. Mỗi bài có thêm cờ mở đăng ký riêng + 2 trường chỉ định (dùng khi cần chỉ định/mở đăng ký ở granularity từng bài thay vì cả buổi/lớp).
+7. Logic tự động: `trang_thai` chỉ còn 3 giá trị thuần theo ngày (`chua_mo`/`dang_dien_ra`/`hoan_thanh`), tính lại mỗi lần admin/quản lý tải trang — **không còn dựa vào `lich_giang`**. Hoãn lớp = admin tự sửa lại ngày khai giảng/kết thúc; huỷ lớp = **xoá cứng** qua nút "Xoá lớp" (RPC `xoa_lop_hoc`, tự chặn nếu đã có đăng ký/lịch giảng/khảo sát liên quan).
+8. **Ranh giới với Giai đoạn 5-6 (chốt lại 2026-09-10, đảo ngược 1 phần quyết định cùng ngày trước đó)**: `lop_hoc`/`buoi_giang`/`bai_giang` được phép chứa cờ `mo_dang_ky` và 2 trường chỉ định trực tiếp (`giang_vien_chi_dinh_id`/`tro_giang_chi_dinh_id`) — đây là "gán trực tiếp không qua duyệt", **khác** với luồng tự nguyện đăng ký → chờ duyệt qua `dang_ky_giang_day` và lịch giảng chính thức qua `lich_giang`, vẫn thuộc đúng Giai đoạn 5-6 như cũ. Đợt này (Giai đoạn 4) chỉ dựng khung dữ liệu + UI cho admin/quản lý thao tác trực tiếp (bật cờ, chọn người, kéo-thả buổi/bài) — **nút "Đăng ký" thật cho giảng viên/trợ giảng tự bấm, hàng chờ duyệt, và thông báo vẫn để Giai đoạn 5 xây**.
 
 **Điều kiện hoàn thành (Gate → Giai đoạn 5):**
-- [ ] Toàn bộ vòng đời trạng thái lớp học hoạt động đúng như thiết kế.
+- [ ] Toàn bộ vòng đời trạng thái lớp học (3 trạng thái thuần theo ngày) hoạt động đúng như thiết kế; xoá lớp có kiểm tra ràng buộc dữ liệu.
 - [ ] Tạo được lớp từ chương trình mẫu (copy đúng danh sách bài giảng) **và** tạo được lớp không dùng chương trình mẫu, cả 2 đều sửa bài giảng riêng được sau đó.
+- [ ] Gom được bài giảng vào buổi giảng, sắp xếp buổi bằng kéo-thả, bật/tắt mở đăng ký và chỉ định người ở cả 3 cấp (lớp/buổi/bài).
 - [ ] Có tối thiểu 5-6 lớp học mẫu với nhiều trạng thái khác nhau, số buổi/bài giảng không giống nhau giữa các lớp — dùng làm nền cho Giai đoạn 5. (Đã seed bằng dữ liệu thật của trung tâm khi có sẵn — xem `data quan ly dao tao.xlsx` ở gốc repo — ưu tiên hơn dữ liệu bịa nếu người dùng cung cấp được.)
 
 ---

@@ -12,7 +12,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { ClassFormFields, type ClassFormDefaults } from "./class-form-fields";
+import { ClassFormFields, type ClassFormDefaults, type ClassFormProfile } from "./class-form-fields";
 import { updateLopHoc } from "@/app/(app)/lop-hoc/actions";
 
 export function EditClassDialog({
@@ -22,7 +22,7 @@ export function EditClassDialog({
 }: {
   lopHocId: string;
   defaults: ClassFormDefaults;
-  profiles: { id: string; full_name: string }[];
+  profiles: ClassFormProfile[];
 }) {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);

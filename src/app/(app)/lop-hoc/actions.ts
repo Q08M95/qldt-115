@@ -14,8 +14,9 @@ async function requireQuanLy() {
 }
 
 function readLopHocFields(formData: FormData) {
-  const nguoiPhuTrach = formData.get("nguoi_phu_trach_id");
   const doiTuong = formData.get("doi_tuong_hoc_vien");
+  const giangVienChiDinh = formData.get("giang_vien_chi_dinh_id");
+  const troGiangChiDinh = formData.get("tro_giang_chi_dinh_id");
   return {
     ten_lop: formData.get("ten_lop"),
     mo_ta: formData.get("mo_ta"),
@@ -26,15 +27,18 @@ function readLopHocFields(formData: FormData) {
     la_lop_cong_dong: formData.get("la_lop_cong_dong"),
     ngay_khai_giang: formData.get("ngay_khai_giang"),
     ngay_ket_thuc: formData.get("ngay_ket_thuc"),
-    so_hoc_vien_du_kien: formData.get("so_hoc_vien_du_kien") || undefined,
     so_giang_vien_can: formData.get("so_giang_vien_can"),
     so_tro_giang_can: formData.get("so_tro_giang_can"),
-    nguoi_phu_trach_id: nguoiPhuTrach === "none" ? null : nguoiPhuTrach,
+    mo_dang_ky: formData.get("mo_dang_ky"),
+    nhom_giang_vien_phu_hop: formData.getAll("nhom_giang_vien_phu_hop"),
+    nhom_tro_giang_phu_hop: formData.getAll("nhom_tro_giang_phu_hop"),
+    giang_vien_chi_dinh_id: giangVienChiDinh === "none" ? null : giangVienChiDinh,
+    tro_giang_chi_dinh_id: troGiangChiDinh === "none" ? null : troGiangChiDinh,
   };
 }
 
 // Tao lop hoc goi qua RPC tao_lop_hoc (xem migration
-// 20260909000000_rpc_tao_lop_hoc.sql) — gop insert lop_hoc + copy bai_giang
+// 20260914000000_lop_hoc_rework.sql) — gop insert lop_hoc + copy bai_giang
 // tu chuong trinh mau (neu co chon) vao 1 transaction, dung quy uoc CLAUDE.md
 // muc 4 (khong tach nhieu lenh roi o client cho nghiep vu nhieu buoc).
 export async function createLopHoc(formData: FormData): Promise<{ error?: string; id?: string }> {
@@ -59,10 +63,13 @@ export async function createLopHoc(formData: FormData): Promise<{ error?: string
     p_la_lop_cong_dong: parsed.data.la_lop_cong_dong,
     p_ngay_khai_giang: parsed.data.ngay_khai_giang,
     p_ngay_ket_thuc: parsed.data.ngay_ket_thuc,
-    p_so_hoc_vien_du_kien: parsed.data.so_hoc_vien_du_kien ?? null,
     p_so_giang_vien_can: parsed.data.so_giang_vien_can,
     p_so_tro_giang_can: parsed.data.so_tro_giang_can,
-    p_nguoi_phu_trach_id: parsed.data.nguoi_phu_trach_id,
+    p_mo_dang_ky: parsed.data.mo_dang_ky,
+    p_nhom_giang_vien_phu_hop: parsed.data.nhom_giang_vien_phu_hop,
+    p_nhom_tro_giang_phu_hop: parsed.data.nhom_tro_giang_phu_hop,
+    p_giang_vien_chi_dinh_id: parsed.data.giang_vien_chi_dinh_id,
+    p_tro_giang_chi_dinh_id: parsed.data.tro_giang_chi_dinh_id,
     p_chuong_trinh_id: parsed.data.chuong_trinh_id,
   });
   if (error) return { error: error.message };
@@ -87,22 +94,18 @@ export async function updateLopHoc(id: string, formData: FormData): Promise<{ er
   return {};
 }
 
-// Huy/mo lai lop — khong xoa cung, dung tinh than "khoa/mo" da ap dung cho
-// nhan su (CLAUDE.md/tientrinh.md). Mo lai dua ve 'cho_khai_giang', lan
-// load trang tiep theo se tu tinh lai trang_thai dung theo thuc te (xem
-// src/lib/lop-hoc/trang-thai.ts).
-export async function setHuyLop(id: string, huy: boolean): Promise<{ error?: string }> {
+// Xoa cung 1 lop hoc — thay the hoan toan khai niem "huy lop" truoc day
+// (nguoi dung xac nhan: hoan lop = sua lai ngay, huy lop = xoa han). RPC
+// xoa_lop_hoc tu kiem tra du lieu lien quan (dang ky/lich giang/khao sat)
+// truoc khi xoa, bao loi ro rang neu con.
+export async function deleteLopHoc(id: string): Promise<{ error?: string }> {
   const denied = await requireQuanLy();
   if (denied) return denied;
 
   const supabase = await createClient();
-  const { error } = await supabase
-    .from("lop_hoc")
-    .update({ trang_thai: huy ? "huy" : "cho_khai_giang" })
-    .eq("id", id);
+  const { error } = await supabase.rpc("xoa_lop_hoc", { p_id: id });
   if (error) return { error: error.message };
 
   revalidatePath("/lop-hoc");
-  revalidatePath(`/lop-hoc/${id}`);
   return {};
 }

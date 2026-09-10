@@ -1,34 +1,21 @@
-export const TRANG_THAI_LOP_VALUES = [
-  "cho_khai_giang",
-  "dang_dien_ra",
-  "hoan_thanh",
-  "thieu_nhan_su",
-  "huy",
-] as const;
+// Chi con 3 trang thai, tinh thuan tuy theo ngay_khai_giang/ngay_ket_thuc
+// (xem src/lib/lop-hoc/trang-thai.ts) — bo "thieu_nhan_su" va "huy" theo
+// yeu cau nguoi dung 2026-09-10: hoan lop la sua lai ngay, huy lop la xoa
+// cung (RPC xoa_lop_hoc), khong con la 1 trang thai luu tru.
+export const TRANG_THAI_LOP_VALUES = ["chua_mo", "dang_dien_ra", "hoan_thanh"] as const;
 
 export type TrangThaiLop = (typeof TRANG_THAI_LOP_VALUES)[number];
 
 export const TRANG_THAI_LOP_LABEL: Record<TrangThaiLop, string> = {
-  cho_khai_giang: "Chờ khai giảng",
+  chua_mo: "Chưa mở",
   dang_dien_ra: "Đang diễn ra",
   hoan_thanh: "Hoàn thành",
-  thieu_nhan_su: "Thiếu nhân sự",
-  huy: "Đã huỷ",
 };
 
-// Mau badge tuong ung. thieu_nhan_su KHONG dung variant "destructive" (do
-// chung chung cua he thong) ma dung dung mau cam "Canh bao / thieu nhan su"
-// da chot trong CLAUDE.md muc 3 (--color-data-canh-bao), qua className rieng.
 export const TRANG_THAI_LOP_BADGE: Record<TrangThaiLop, "default" | "secondary" | "outline"> = {
-  cho_khai_giang: "outline",
+  chua_mo: "outline",
   dang_dien_ra: "default",
   hoan_thanh: "secondary",
-  thieu_nhan_su: "outline",
-  huy: "secondary",
-};
-
-export const TRANG_THAI_LOP_CLASSNAME: Partial<Record<TrangThaiLop, string>> = {
-  thieu_nhan_su: "border-data-canh-bao/40 bg-data-canh-bao/10 text-data-canh-bao",
 };
 
 export const DOI_TUONG_HOC_VIEN_VALUES = ["nhan_vien_y_te", "cong_dong"] as const;

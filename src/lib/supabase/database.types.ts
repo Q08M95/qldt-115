@@ -66,12 +66,7 @@ type ChuongTrinhMauBaiGiangRow = {
   created_at: string;
 };
 
-type LopHocTrangThai =
-  | "cho_khai_giang"
-  | "dang_dien_ra"
-  | "hoan_thanh"
-  | "thieu_nhan_su"
-  | "huy";
+type LopHocTrangThai = "chua_mo" | "dang_dien_ra" | "hoan_thanh";
 
 type LopHocRow = {
   id: string;
@@ -85,23 +80,43 @@ type LopHocRow = {
   la_lop_cong_dong: boolean;
   ngay_khai_giang: string | null;
   ngay_ket_thuc: string | null;
-  so_hoc_vien_du_kien: number | null;
   so_giang_vien_can: number;
   so_tro_giang_can: number;
+  mo_dang_ky: boolean;
+  nhom_giang_vien_phu_hop: number[] | null;
+  nhom_tro_giang_phu_hop: number[] | null;
+  giang_vien_chi_dinh_id: string | null;
+  tro_giang_chi_dinh_id: string | null;
   trang_thai: LopHocTrangThai;
-  nguoi_phu_trach_id: string | null;
   created_by: string | null;
   created_at: string;
   updated_at: string;
 };
 
+type BuoiGiangRow = {
+  id: string;
+  lop_hoc_id: string;
+  ten_buoi: string;
+  thu_tu: number;
+  so_giang_vien_can: number;
+  so_tro_giang_can: number;
+  mo_dang_ky: boolean;
+  giang_vien_chi_dinh_id: string | null;
+  tro_giang_chi_dinh_id: string | null;
+  created_at: string;
+};
+
 type BaiGiangRow = {
   id: string;
   lop_hoc_id: string;
+  buoi_giang_id: string | null;
   ten_bai: string;
   chuyen_de: string | null;
   thoi_luong_tiet: number;
   thu_tu: number;
+  mo_dang_ky: boolean;
+  giang_vien_chi_dinh_id: string | null;
+  tro_giang_chi_dinh_id: string | null;
   created_at: string;
 };
 
@@ -170,6 +185,13 @@ export type Database = {
         Update: Partial<BaiGiangRow>;
         Relationships: [];
       };
+      buoi_giang: {
+        Row: BuoiGiangRow;
+        Insert: Partial<Omit<BuoiGiangRow, "lop_hoc_id" | "ten_buoi">> &
+          Pick<BuoiGiangRow, "lop_hoc_id" | "ten_buoi">;
+        Update: Partial<BuoiGiangRow>;
+        Relationships: [];
+      };
       lich_giang: {
         Row: LichGiangRow;
         Insert: Partial<Omit<LichGiangRow, "lop_hoc_id">> & Pick<LichGiangRow, "lop_hoc_id">;
@@ -190,10 +212,13 @@ export type Database = {
           p_la_lop_cong_dong: boolean;
           p_ngay_khai_giang: string | null;
           p_ngay_ket_thuc: string | null;
-          p_so_hoc_vien_du_kien: number | null;
           p_so_giang_vien_can: number;
           p_so_tro_giang_can: number;
-          p_nguoi_phu_trach_id: string | null;
+          p_mo_dang_ky: boolean;
+          p_nhom_giang_vien_phu_hop: number[] | null;
+          p_nhom_tro_giang_phu_hop: number[] | null;
+          p_giang_vien_chi_dinh_id: string | null;
+          p_tro_giang_chi_dinh_id: string | null;
           p_chuong_trinh_id: string | null;
         };
         Returns: string;
@@ -204,6 +229,14 @@ export type Database = {
       };
       reorder_chuong_trinh_mau_bai_giang: {
         Args: { p_chuong_trinh_id: string; p_ids: string[] };
+        Returns: undefined;
+      };
+      reorder_buoi_giang: {
+        Args: { p_lop_hoc_id: string; p_ids: string[] };
+        Returns: undefined;
+      };
+      xoa_lop_hoc: {
+        Args: { p_id: string };
         Returns: undefined;
       };
       xoa_nhan_su: {

@@ -12,14 +12,15 @@ Bạn phụ trách luồng nghiệp vụ cốt lõi: đăng ký → duyệt → 
 - `CLAUDE.md` mục 2.1 (thế nào là "phù hợp" khi đề xuất/chỉ định giảng dạy — 5 tiêu chí ưu tiên) và mục 4 (nghiệp vụ nhiều bước phải dùng transaction/Edge Function, không tách lệnh rời ở client).
 
 ## Input phụ thuộc
-- Khung tab "Đăng ký & Duyệt" và "Lịch giảng" đã được `lop-hoc-chuong-trinh` scaffold sẵn trong `/lop-hoc/[id]` (Giai đoạn 4 đã đạt Gate). `bai_giang` của Giai đoạn 4 chỉ có nội dung (tên/chuyên đề/số tiết) — **chưa có** thời gian hay giảng viên/trợ giảng chỉ định, đúng theo thiết kế (xem CLAUDE.md mục 4); agent này là nơi bổ sung các thông tin đó qua `dang_ky_giang_day`/`lich_giang`, cả 2 bảng đã có sẵn từ Giai đoạn 1, không cần schema mới.
+- Khung tab "Đăng ký & Duyệt" và "Lịch giảng" đã được `lop-hoc-chuong-trinh` scaffold sẵn trong `/lop-hoc/[id]` (Giai đoạn 4 đã đạt Gate). Giai đoạn 4 đã có sẵn (chốt lại 2026-09-10) ở cả 3 cấp `lop_hoc`/`buoi_giang`/`bai_giang`: cờ `mo_dang_ky` (bool) và 2 trường `giang_vien_chi_dinh_id`/`tro_giang_chi_dinh_id` (gán trực tiếp, không qua duyệt) — đây **không phải** luồng đăng ký/duyệt thật, chỉ là input để agent này biết: (a) lớp/buổi/bài nào đang mở cho tự đăng ký (`mo_dang_ky = true`) để hiện nút "Đăng ký" đúng chỗ, và (b) chỗ nào đã được chỉ định sẵn thì không cần hiện nút đăng ký nữa (đã có người). Việc tạo hàng chờ duyệt qua `dang_ky_giang_day` + sinh `lich_giang` chính thức vẫn hoàn toàn thuộc agent này, dùng 2 bảng đã có sẵn từ Giai đoạn 1, không cần schema mới.
+- `buoi_giang` (bảng mới Giai đoạn 4): `dang_ky_giang_day`/`lich_giang` nên tham chiếu được tới cấp buổi khi cần (đăng ký có thể theo lớp, theo buổi, hoặc theo từng bài — xem tientrinh.md Giai đoạn 4 mục 5) — kiểm tra lại xem có cần thêm cột `buoi_giang_id` vào `dang_ky_giang_day`/`lich_giang` khi bắt tay xây Giai đoạn 5 (hiện 2 bảng này chỉ có `bai_giang_id`, chưa có `buoi_giang_id`); nếu cần, đây là schema đã chốt ở Giai đoạn 1 nên phải hỏi người dùng trước theo đúng CLAUDE.md mục 4, không tự ý thêm.
 - Component drawer/Sheet dùng chung từ `giao-dien-nen`.
 
 ## Phạm vi phụ trách
 **Giai đoạn 5:**
-- Nút "Đăng ký dạy lớp này" trong `/lop-hoc` và trang chi tiết lớp (dialog, không tạo trang riêng).
+- Nút "Đăng ký dạy lớp này" trong `/lop-hoc` và trang chi tiết lớp (dialog, không tạo trang riêng) — chỉ hiện khi `mo_dang_ky = true` ở cấp tương ứng (lớp/buổi/bài) và slot đó chưa có người chỉ định trực tiếp.
 - Tab "Đăng ký & Duyệt": bảng chờ duyệt, nút Duyệt/Từ chối inline, drawer xem chi tiết người đăng ký.
-- Áp dụng logic "phù hợp" ở CLAUDE.md mục 2.1 khi gợi ý/cảnh báo lúc đăng ký hoặc duyệt.
+- Áp dụng logic "phù hợp" ở CLAUDE.md mục 2.1 khi gợi ý/cảnh báo lúc đăng ký hoặc duyệt — kết hợp thêm điều kiện `nhom_giang_vien_phu_hop`/`nhom_tro_giang_phu_hop` của `lop_hoc` (Giai đoạn 4): chỉ nhân sự thuộc đúng nhóm phân loại được liệt kê mới đủ điều kiện đăng ký/được gợi ý cho lớp đó.
 - Transaction duyệt → cập nhật `dang_ky_giang_day` + tạo `lich_giang` trong cùng 1 thao tác.
 - Chặn trùng lặp đăng ký, sinh thông báo (insert vào bảng `thong_bao`) khi có đăng ký mới/được duyệt/từ chối — **chỉ insert dữ liệu**, không xây UI hiển thị thông báo (đó là agent `thong-bao-realtime`).
 

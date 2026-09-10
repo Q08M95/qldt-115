@@ -21,18 +21,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { ClassFormFields } from "./class-form-fields";
+import { ClassFormFields, type ClassFormProfile } from "./class-form-fields";
 import { createLopHoc } from "@/app/(app)/lop-hoc/actions";
 
 type Program = { id: string; ten_chuong_trinh: string };
-type Profile = { id: string; full_name: string };
 
 export function AddClassDialog({
   programs,
   profiles,
 }: {
   programs: Program[];
-  profiles: Profile[];
+  profiles: ClassFormProfile[];
 }) {
   const router = useRouter();
   const [open, setOpen] = useState(false);

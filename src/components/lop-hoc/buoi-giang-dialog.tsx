@@ -21,17 +21,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { createBaiGiang, updateBaiGiang } from "@/app/(app)/lop-hoc/[id]/bai-giang-actions";
+import {
+  createBuoiGiang,
+  updateBuoiGiang,
+} from "@/app/(app)/lop-hoc/[id]/buoi-giang-actions";
 import type { ClassFormProfile } from "./class-form-fields";
-import type { BuoiGiang } from "./buoi-giang-dialog";
 
-export type BaiGiang = {
+export type BuoiGiang = {
   id: string;
-  ten_bai: string;
-  chuyen_de: string | null;
-  thoi_luong_tiet: number;
+  ten_buoi: string;
   thu_tu: number;
-  buoi_giang_id: string | null;
+  so_giang_vien_can: number;
+  so_tro_giang_can: number;
   mo_dang_ky: boolean;
   giang_vien_chi_dinh_id: string | null;
   tro_giang_chi_dinh_id: string | null;
@@ -74,18 +75,16 @@ function NguoiSelect({
   );
 }
 
-export function BaiGiangDialog({
+export function BuoiGiangDialog({
   lopHocId,
-  baiGiang,
-  buoiList,
+  buoiGiang,
   profiles,
 }: {
   lopHocId: string;
-  baiGiang?: BaiGiang;
-  buoiList: BuoiGiang[];
+  buoiGiang?: BuoiGiang;
   profiles: ClassFormProfile[];
 }) {
-  const mode = baiGiang ? "edit" : "create";
+  const mode = buoiGiang ? "edit" : "create";
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -97,13 +96,13 @@ export function BaiGiangDialog({
     startTransition(async () => {
       const result =
         mode === "create"
-          ? await createBaiGiang(lopHocId, formData)
-          : await updateBaiGiang(baiGiang!.id, lopHocId, formData);
+          ? await createBuoiGiang(lopHocId, formData)
+          : await updateBuoiGiang(buoiGiang!.id, lopHocId, formData);
       if (result?.error) {
         setError(result.error);
       } else {
         setOpen(false);
-        toast.success(mode === "create" ? "Đã thêm bài giảng" : "Đã lưu thay đổi");
+        toast.success(mode === "create" ? "Đã thêm buổi giảng" : "Đã lưu thay đổi");
       }
     });
   }
@@ -121,7 +120,7 @@ export function BaiGiangDialog({
         {mode === "create" ? (
           <>
             <Plus className="h-4 w-4" />
-            Thêm bài giảng
+            Thêm buổi giảng
           </>
         ) : (
           <Pencil className="h-4 w-4" />
@@ -129,80 +128,60 @@ export function BaiGiangDialog({
       </DialogTrigger>
       <DialogContent className="max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{mode === "create" ? "Thêm bài giảng" : "Sửa bài giảng"}</DialogTitle>
+          <DialogTitle>{mode === "create" ? "Thêm buổi giảng" : "Sửa buổi giảng"}</DialogTitle>
         </DialogHeader>
         <form action={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
-            <Label htmlFor="ten_bai">Tên bài giảng</Label>
-            <Input id="ten_bai" name="ten_bai" defaultValue={baiGiang?.ten_bai} required />
+            <Label htmlFor="ten_buoi">Tên buổi</Label>
+            <Input id="ten_buoi" name="ten_buoi" defaultValue={buoiGiang?.ten_buoi} required />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
-              <Label htmlFor="chuyen_de">Chuyên đề</Label>
-              <Input id="chuyen_de" name="chuyen_de" defaultValue={baiGiang?.chuyen_de ?? ""} />
+              <Label htmlFor="so_giang_vien_can">Số GV cần</Label>
+              <Input
+                id="so_giang_vien_can"
+                name="so_giang_vien_can"
+                type="number"
+                min={0}
+                defaultValue={buoiGiang?.so_giang_vien_can ?? 1}
+                required
+              />
             </div>
             <div className="flex flex-col gap-2">
-              <Label htmlFor="thoi_luong_tiet">Số tiết</Label>
+              <Label htmlFor="so_tro_giang_can">Số TG cần</Label>
               <Input
-                id="thoi_luong_tiet"
-                name="thoi_luong_tiet"
+                id="so_tro_giang_can"
+                name="so_tro_giang_can"
                 type="number"
-                min={0.5}
-                step={0.5}
-                defaultValue={baiGiang?.thoi_luong_tiet ?? 1}
+                min={0}
+                defaultValue={buoiGiang?.so_tro_giang_can ?? 1}
                 required
               />
             </div>
           </div>
-
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="buoi_giang_id">Buổi giảng</Label>
-            <Select name="buoi_giang_id" defaultValue={baiGiang?.buoi_giang_id ?? "none"}>
-              <SelectTrigger id="buoi_giang_id">
-                <SelectValue>
-                  {(value: string) =>
-                    value === "none"
-                      ? "Chưa gom buổi"
-                      : (buoiList.find((b) => b.id === value)?.ten_buoi ?? "Chưa gom buổi")
-                  }
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Chưa gom buổi</SelectItem>
-                {buoiList.map((b) => (
-                  <SelectItem key={b.id} value={b.id}>
-                    {b.ten_buoi}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-
           <label className="flex items-center gap-2 text-sm font-normal">
             <input
               type="checkbox"
               name="mo_dang_ky"
-              defaultChecked={baiGiang?.mo_dang_ky ?? false}
+              defaultChecked={buoiGiang?.mo_dang_ky ?? false}
               className="h-4 w-4"
             />
-            Mở đăng ký riêng cho bài này
+            Mở đăng ký cho buổi này
           </label>
-
           <div className="grid grid-cols-2 gap-4">
             <NguoiSelect
               name="giang_vien_chi_dinh_id"
               label="Chỉ định giảng viên"
-              defaultValue={baiGiang?.giang_vien_chi_dinh_id}
+              defaultValue={buoiGiang?.giang_vien_chi_dinh_id}
               options={giangVienOptions}
             />
             <NguoiSelect
               name="tro_giang_chi_dinh_id"
               label="Chỉ định trợ giảng"
-              defaultValue={baiGiang?.tro_giang_chi_dinh_id}
+              defaultValue={buoiGiang?.tro_giang_chi_dinh_id}
               options={troGiangOptions}
             />
           </div>
-
           {error ? (
             <p className="text-sm text-destructive" role="alert">
               {error}
