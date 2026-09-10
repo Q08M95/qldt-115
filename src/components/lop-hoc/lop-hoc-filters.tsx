@@ -2,16 +2,19 @@
 
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
-import { Loader2 } from "lucide-react";
+import { Filter, ListFilter, Loader2, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+  DropdownMenu,
+  DropdownMenuCheckboxItem,
+  DropdownMenuContent,
+  DropdownMenuLabel,
+  DropdownMenuRadioGroup,
+  DropdownMenuRadioItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { DOI_TUONG_HOC_VIEN_LABEL, LOAI_LOP_VALUES } from "@/lib/constants/lop-hoc";
 
 const DOI_TUONG_FILTER_LABEL: Record<string, string> = {
@@ -19,10 +22,12 @@ const DOI_TUONG_FILTER_LABEL: Record<string, string> = {
   ...DOI_TUONG_HOC_VIEN_LABEL,
 };
 
-// Bo filter "Trang thai" — danh sach lop hoc gio da nhom san theo 3 cot
-// trang thai (xem lop-hoc/page.tsx), filter rieng se trung lap. "Loai lop"
-// dung dang toggle (chon duoc nhieu) thay vi Select 1 gia tri, vi cac loai
-// lop khong loai tru nhau khi xem tong quan.
+// Bo filter "Trang thai" — danh sach lop hoc gio da nhom san theo 3 nhom
+// trang thai (tab tren mobile / cot tren desktop, xem lop-hoc/page.tsx),
+// filter rieng se trung lap. "Loai lop" gom vao 1 dropdown checkbox (thay vi
+// hang chip de rot dong tren man hinh hep) va "Doi tuong" gom vao nut loc
+// nang cao (icon pheu) — theo yeu cau nguoi dung 2026-09-10 ve gon gang hoa
+// thanh loc.
 export function LopHocFilters({
   q,
   loai,
@@ -66,70 +71,81 @@ export function LopHocFilters({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm]);
 
+  const soLuongFilterNangCao = doiTuong !== "all" ? 1 : 0;
+
   return (
-    <div className="flex flex-col gap-3">
-      <div
-        className="flex flex-wrap items-end gap-2 transition-opacity"
-        style={{ opacity: isPending ? 0.6 : 1 }}
-        aria-busy={isPending}
-      >
-        <div className="flex flex-col gap-1">
-          <label className="text-xs text-muted-foreground" htmlFor="q">
-            Tìm theo tên
-          </label>
-          <Input
-            id="q"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Nhập tên lớp..."
-            className="w-56"
-          />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-xs text-muted-foreground" htmlFor="doi_tuong">
-            Đối tượng
-          </label>
-          <Select value={doiTuong} onValueChange={(value) => updateParam("doi_tuong", value)}>
-            <SelectTrigger id="doi_tuong" className="w-44">
-              <SelectValue>{(value: string) => DOI_TUONG_FILTER_LABEL[value] ?? value}</SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {Object.entries(DOI_TUONG_FILTER_LABEL).map(([value, label]) => (
-                <SelectItem key={value} value={value}>
-                  {label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        {isPending ? <Loader2 className="mb-2 h-4 w-4 animate-spin text-muted-foreground" /> : null}
+    <div
+      className="flex items-center gap-2 transition-opacity"
+      style={{ opacity: isPending ? 0.6 : 1 }}
+      aria-busy={isPending}
+    >
+      <div className="relative flex-1 min-w-0 max-w-xs">
+        <Search className="pointer-events-none absolute top-1/2 left-2.5 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+        <Input
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Tìm theo tên lớp..."
+          className="pl-8"
+          aria-label="Tìm theo tên lớp"
+        />
       </div>
 
-      <div className="flex flex-wrap items-center gap-1.5">
-        <span className="text-xs text-muted-foreground">Loại lớp:</span>
-        {LOAI_LOP_VALUES.map((v) => {
-          const active = loai.includes(v);
-          return (
-            <Badge
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={<Button variant="outline" size="default" />}
+        >
+          <ListFilter className="h-4 w-4" />
+          Loại lớp
+          {loai.length > 0 ? (
+            <span className="ml-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[0.65rem] text-primary-foreground">
+              {loai.length}
+            </span>
+          ) : null}
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start">
+          <DropdownMenuLabel>Lọc theo loại lớp</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          {LOAI_LOP_VALUES.map((v) => (
+            <DropdownMenuCheckboxItem
               key={v}
-              variant={active ? "default" : "outline"}
-              className="cursor-pointer select-none"
-              role="button"
-              tabIndex={0}
-              aria-pressed={active}
-              onClick={() => toggleLoai(v)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  toggleLoai(v);
-                }
-              }}
+              checked={loai.includes(v)}
+              onCheckedChange={() => toggleLoai(v)}
+              closeOnClick={false}
             >
               {v}
-            </Badge>
-          );
-        })}
-      </div>
+            </DropdownMenuCheckboxItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <DropdownMenu>
+        <DropdownMenuTrigger
+          render={<Button variant="outline" size="icon" aria-label="Lọc nâng cao" className="relative" />}
+        >
+          <Filter className="h-4 w-4" />
+          {soLuongFilterNangCao > 0 ? (
+            <span className="absolute -top-1 -right-1 flex h-3.5 w-3.5 items-center justify-center rounded-full bg-primary text-[0.6rem] text-primary-foreground">
+              {soLuongFilterNangCao}
+            </span>
+          ) : null}
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="end" className="min-w-48">
+          <DropdownMenuLabel>Đối tượng học viên</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuRadioGroup
+            value={doiTuong}
+            onValueChange={(value) => updateParam("doi_tuong", value as string)}
+          >
+            {Object.entries(DOI_TUONG_FILTER_LABEL).map(([value, label]) => (
+              <DropdownMenuRadioItem key={value} value={value}>
+                {label}
+              </DropdownMenuRadioItem>
+            ))}
+          </DropdownMenuRadioGroup>
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      {isPending ? <Loader2 className="h-4 w-4 shrink-0 animate-spin text-muted-foreground" /> : null}
     </div>
   );
 }

@@ -1,19 +1,18 @@
-import Link from "next/link";
-import { CalendarDays, UserCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/layout/page-header";
 import { LopHocFilters } from "@/components/lop-hoc/lop-hoc-filters";
 import { AddClassDialog } from "@/components/lop-hoc/add-class-dialog";
+import { ClassCard } from "@/components/lop-hoc/class-card";
 import { getCurrentProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import {
   TRANG_THAI_LOP_LABEL,
   TRANG_THAI_LOP_BADGE,
-  TRANG_THAI_LOP_VALUES,
+  TRANG_THAI_LOP_DISPLAY_ORDER,
   LOAI_LOP_VALUES,
-  DOI_TUONG_HOC_VIEN_LABEL,
   DOI_TUONG_HOC_VIEN_VALUES,
   type TrangThaiLop,
 } from "@/lib/constants/lop-hoc";
@@ -34,7 +33,7 @@ export default async function LopHocPage({
   let query = supabase
     .from("lop_hoc")
     .select(
-      "id, ten_lop, loai_lop, doi_tuong_hoc_vien, trang_thai, ngay_khai_giang, ngay_ket_thuc, co_kinh_phi, la_lop_gap, la_lop_cong_dong, mo_dang_ky, giang_vien_chi_dinh_id, tro_giang_chi_dinh_id",
+      "id, ten_lop, loai_lop, doi_tuong_hoc_vien, trang_thai, ngay_khai_giang, ngay_ket_thuc, co_kinh_phi, la_lop_gap, la_lop_cong_dong, mo_dang_ky, so_giang_vien_can, so_tro_giang_can, giang_vien_chi_dinh_id, tro_giang_chi_dinh_id",
     )
     .order("ngay_khai_giang", { ascending: true, nullsFirst: false });
 
@@ -77,10 +76,12 @@ export default async function LopHocPage({
 
   const nguoiMap = new Map((profiles ?? []).map((p) => [p.id, p.full_name]));
 
-  const groups: { key: TrangThaiLop; items: typeof rows }[] = TRANG_THAI_LOP_VALUES.map((key) => ({
-    key,
-    items: rows.filter((r) => r.trang_thai === key),
-  }));
+  const groups: { key: TrangThaiLop; items: typeof rows }[] = TRANG_THAI_LOP_DISPLAY_ORDER.map(
+    (key) => ({
+      key,
+      items: rows.filter((r) => r.trang_thai === key),
+    }),
+  );
 
   return (
     <>
@@ -98,74 +99,59 @@ export default async function LopHocPage({
         {rows.length === 0 ? (
           <EmptyState title="Chưa có lớp học phù hợp bộ lọc" />
         ) : (
-          <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-3">
-            {groups.map((group) => (
-              <section key={group.key} className="flex flex-col gap-3">
-                <div className="flex items-center gap-2">
-                  <Badge variant={TRANG_THAI_LOP_BADGE[group.key]}>
+          <>
+            {/* Mobile: tab ngang theo trang thai, chi hien 1 nhom tai 1 thoi
+                diem — tranh cuon doc qua dai khi liet ke ca 3 nhom noi tiep
+                nhau (yeu cau nguoi dung 2026-09-10). */}
+            <Tabs defaultValue="dang_dien_ra" className="md:hidden">
+              <TabsList className="w-full">
+                {groups.map((group) => (
+                  <TabsTrigger key={group.key} value={group.key} className="flex-1">
                     {TRANG_THAI_LOP_LABEL[group.key]}
-                  </Badge>
-                  <span className="text-sm text-muted-foreground">{group.items.length} lớp</span>
-                </div>
-                <div className="flex flex-col gap-3">
+                    <span className="text-xs text-muted-foreground">({group.items.length})</span>
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+              {groups.map((group) => (
+                <TabsContent key={group.key} value={group.key} className="flex flex-col gap-3 pt-3">
                   {group.items.length === 0 ? (
                     <p className="text-sm text-muted-foreground">Không có lớp nào</p>
                   ) : (
                     group.items.map((lop) => (
-                      <Link key={lop.id} href={`/lop-hoc/${lop.id}`}>
-                        <Card className="transition-shadow hover:shadow-md">
-                          <CardHeader>
-                            <CardTitle className="flex items-start justify-between gap-2">
-                              <span>{lop.ten_lop}</span>
-                              {lop.mo_dang_ky ? (
-                                <Badge className="shrink-0 border-data-dang-ky/40 bg-data-dang-ky/10 text-data-dang-ky">
-                                  Mở đăng ký
-                                </Badge>
-                              ) : null}
-                            </CardTitle>
-                          </CardHeader>
-                          <CardContent className="flex flex-col gap-2 text-sm">
-                            <div className="flex flex-wrap gap-1.5">
-                              {lop.loai_lop ? <Badge variant="outline">{lop.loai_lop}</Badge> : null}
-                              {lop.doi_tuong_hoc_vien ? (
-                                <Badge variant="outline">
-                                  {DOI_TUONG_HOC_VIEN_LABEL[lop.doi_tuong_hoc_vien]}
-                                </Badge>
-                              ) : null}
-                              {!lop.co_kinh_phi ? <Badge variant="outline">Không kinh phí</Badge> : null}
-                              {lop.la_lop_gap ? <Badge variant="outline">Đột xuất</Badge> : null}
-                              {lop.la_lop_cong_dong ? <Badge variant="outline">Cộng đồng</Badge> : null}
-                            </div>
-                            <div className="flex items-center gap-2 text-muted-foreground">
-                              <CalendarDays className="h-4 w-4 shrink-0" />
-                              <span>
-                                {lop.ngay_khai_giang ?? "Chưa xếp ngày"}
-                                {lop.ngay_ket_thuc ? ` — ${lop.ngay_ket_thuc}` : ""}
-                              </span>
-                            </div>
-                            {lop.giang_vien_chi_dinh_id || lop.tro_giang_chi_dinh_id ? (
-                              <div className="flex items-start gap-2 text-muted-foreground">
-                                <UserCheck className="h-4 w-4 shrink-0" />
-                                <span>
-                                  {lop.giang_vien_chi_dinh_id
-                                    ? `GV: ${nguoiMap.get(lop.giang_vien_chi_dinh_id) ?? "—"}`
-                                    : null}
-                                  {lop.giang_vien_chi_dinh_id && lop.tro_giang_chi_dinh_id ? " · " : ""}
-                                  {lop.tro_giang_chi_dinh_id
-                                    ? `TG: ${nguoiMap.get(lop.tro_giang_chi_dinh_id) ?? "—"}`
-                                    : null}
-                                </span>
-                              </div>
-                            ) : null}
-                          </CardContent>
-                        </Card>
-                      </Link>
+                      <ClassCard key={lop.id} lop={lop} nguoiMap={nguoiMap} />
                     ))
                   )}
-                </div>
-              </section>
-            ))}
-          </div>
+                </TabsContent>
+              ))}
+            </Tabs>
+
+            {/* Desktop: 3 cot canh nhau theo thu tu Dang dien ra - Chua mo -
+                Hoan thanh, moi cot cuon rieng (max-height) de trang khong bi
+                keo dai qua muc khi 1 nhom (vd Hoan thanh) tich luy nhieu lop. */}
+            <div className="hidden items-start gap-4 md:grid md:grid-cols-3">
+              {groups.map((group) => (
+                <section key={group.key} className="flex flex-col gap-3">
+                  <div className="flex items-center gap-2">
+                    <Badge variant={TRANG_THAI_LOP_BADGE[group.key]}>
+                      {TRANG_THAI_LOP_LABEL[group.key]}
+                    </Badge>
+                    <span className="text-sm text-muted-foreground">{group.items.length} lớp</span>
+                  </div>
+                  {group.items.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">Không có lớp nào</p>
+                  ) : (
+                    <ScrollArea className="max-h-[75vh] pr-3">
+                      <div className="flex flex-col gap-3">
+                        {group.items.map((lop) => (
+                          <ClassCard key={lop.id} lop={lop} nguoiMap={nguoiMap} />
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  )}
+                </section>
+              ))}
+            </div>
+          </>
         )}
       </div>
     </>
