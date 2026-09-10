@@ -12,6 +12,7 @@ import {
   TRANG_THAI_LOP_LABEL,
   TRANG_THAI_LOP_BADGE,
   TRANG_THAI_LOP_VALUES,
+  LOAI_LOP_VALUES,
   DOI_TUONG_HOC_VIEN_LABEL,
   DOI_TUONG_HOC_VIEN_VALUES,
   type TrangThaiLop,
@@ -21,9 +22,10 @@ import { computeTrangThaiLop } from "@/lib/lop-hoc/trang-thai";
 export default async function LopHocPage({
   searchParams,
 }: {
-  searchParams: Promise<{ doi_tuong?: string }>;
+  searchParams: Promise<{ q?: string; loai?: string; doi_tuong?: string }>;
 }) {
-  const { doi_tuong } = await searchParams;
+  const { q, loai, doi_tuong } = await searchParams;
+  const loaiSelected = loai ? loai.split(",").filter((v) => (LOAI_LOP_VALUES as readonly string[]).includes(v)) : [];
   const current = await getCurrentProfile();
   const canManage = current?.role === "admin" || current?.role === "quan_ly_dao_tao";
 
@@ -36,6 +38,8 @@ export default async function LopHocPage({
     )
     .order("ngay_khai_giang", { ascending: true, nullsFirst: false });
 
+  if (q) query = query.ilike("ten_lop", `%${q}%`);
+  if (loaiSelected.length > 0) query = query.in("loai_lop", loaiSelected);
   if (doi_tuong && (DOI_TUONG_HOC_VIEN_VALUES as readonly string[]).includes(doi_tuong)) {
     query = query.eq("doi_tuong_hoc_vien", doi_tuong as (typeof DOI_TUONG_HOC_VIEN_VALUES)[number]);
   }
@@ -89,27 +93,27 @@ export default async function LopHocPage({
         }
       />
       <div className="flex flex-col gap-4 p-4 md:p-6">
-        <LopHocFilters doiTuong={doi_tuong ?? "all"} />
+        <LopHocFilters q={q ?? ""} loai={loaiSelected} doiTuong={doi_tuong ?? "all"} />
 
         {rows.length === 0 ? (
           <EmptyState title="Chưa có lớp học phù hợp bộ lọc" />
         ) : (
-          <div className="flex flex-col gap-6">
-            {groups.map((group) =>
-              group.items.length === 0 ? null : (
-                <section key={group.key} className="flex flex-col gap-3">
-                  <div className="flex items-center gap-2">
-                    <Badge variant={TRANG_THAI_LOP_BADGE[group.key]}>
-                      {TRANG_THAI_LOP_LABEL[group.key]}
-                    </Badge>
-                    <span className="text-sm text-muted-foreground">
-                      {group.items.length} lớp
-                    </span>
-                  </div>
-                  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                    {group.items.map((lop) => (
+          <div className="grid grid-cols-1 items-start gap-4 md:grid-cols-3">
+            {groups.map((group) => (
+              <section key={group.key} className="flex flex-col gap-3">
+                <div className="flex items-center gap-2">
+                  <Badge variant={TRANG_THAI_LOP_BADGE[group.key]}>
+                    {TRANG_THAI_LOP_LABEL[group.key]}
+                  </Badge>
+                  <span className="text-sm text-muted-foreground">{group.items.length} lớp</span>
+                </div>
+                <div className="flex flex-col gap-3">
+                  {group.items.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">Không có lớp nào</p>
+                  ) : (
+                    group.items.map((lop) => (
                       <Link key={lop.id} href={`/lop-hoc/${lop.id}`}>
-                        <Card className="h-full transition-shadow hover:shadow-md">
+                        <Card className="transition-shadow hover:shadow-md">
                           <CardHeader>
                             <CardTitle className="flex items-start justify-between gap-2">
                               <span>{lop.ten_lop}</span>
@@ -156,11 +160,11 @@ export default async function LopHocPage({
                           </CardContent>
                         </Card>
                       </Link>
-                    ))}
-                  </div>
-                </section>
-              ),
-            )}
+                    ))
+                  )}
+                </div>
+              </section>
+            ))}
           </div>
         )}
       </div>

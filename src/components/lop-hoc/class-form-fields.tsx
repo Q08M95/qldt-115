@@ -10,6 +10,7 @@ import {
 import {
   DOI_TUONG_HOC_VIEN_LABEL,
   DOI_TUONG_HOC_VIEN_VALUES,
+  LOAI_LOP_VALUES,
   type DoiTuongHocVien,
 } from "@/lib/constants/lop-hoc";
 import { NHOM_PHAN_LOAI_VALUES, NHOM_PHAN_LOAI_LABEL } from "@/lib/constants/nhan-su";
@@ -134,12 +135,19 @@ export function ClassFormFields({
       <div className="grid grid-cols-2 gap-4">
         <div className="flex flex-col gap-2">
           <Label htmlFor="loai_lop">Loại lớp</Label>
-          <Input
-            id="loai_lop"
-            name="loai_lop"
-            placeholder="vd: ACLS, BLS, ABCDE"
-            defaultValue={defaults?.loai_lop ?? ""}
-          />
+          <Select name="loai_lop" defaultValue={defaults?.loai_lop ?? "none"}>
+            <SelectTrigger id="loai_lop">
+              <SelectValue>{(value: string) => (value === "none" ? "Chưa chọn" : value)}</SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">Chưa chọn</SelectItem>
+              {LOAI_LOP_VALUES.map((v) => (
+                <SelectItem key={v} value={v}>
+                  {v}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
         <div className="flex flex-col gap-2">
           <Label htmlFor="doi_tuong_hoc_vien">Đối tượng học viên</Label>

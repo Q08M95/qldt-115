@@ -42,7 +42,7 @@ const nhomArray = z
 export const createLopHocSchema = z.object({
   ten_lop: z.string().trim().min(1, "Vui lòng nhập tên lớp"),
   mo_ta: optionalText,
-  loai_lop: optionalText,
+  loai_lop: optionalId,
   doi_tuong_hoc_vien: optionalDoiTuong,
   co_kinh_phi: flag,
   la_lop_gap: flag,

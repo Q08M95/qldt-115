@@ -15,12 +15,13 @@ async function requireQuanLy() {
 
 function readLopHocFields(formData: FormData) {
   const doiTuong = formData.get("doi_tuong_hoc_vien");
+  const loaiLop = formData.get("loai_lop");
   const giangVienChiDinh = formData.get("giang_vien_chi_dinh_id");
   const troGiangChiDinh = formData.get("tro_giang_chi_dinh_id");
   return {
     ten_lop: formData.get("ten_lop"),
     mo_ta: formData.get("mo_ta"),
-    loai_lop: formData.get("loai_lop"),
+    loai_lop: loaiLop === "none" ? null : loaiLop,
     doi_tuong_hoc_vien: doiTuong === "none" ? null : doiTuong,
     co_kinh_phi: formData.get("co_kinh_phi"),
     la_lop_gap: formData.get("la_lop_gap"),

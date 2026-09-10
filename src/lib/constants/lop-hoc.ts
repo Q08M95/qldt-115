@@ -18,6 +18,10 @@ export const TRANG_THAI_LOP_BADGE: Record<TrangThaiLop, "default" | "secondary" 
   hoan_thanh: "secondary",
 };
 
+// Danh sach co dinh loai lop (khop 6 chuong trinh dao tao that cua trung
+// tam) — dung cho ca Select trong form lan toggle filter o /lop-hoc.
+export const LOAI_LOP_VALUES = ["ABCDE", "ACLS", "BLS", "SCC-CĐ", "BTXH", "SCC-LX"] as const;
+
 export const DOI_TUONG_HOC_VIEN_VALUES = ["nhan_vien_y_te", "cong_dong"] as const;
 
 export type DoiTuongHocVien = (typeof DOI_TUONG_HOC_VIEN_VALUES)[number];
