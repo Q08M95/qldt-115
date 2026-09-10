@@ -1,48 +1,13 @@
 import Link from "next/link";
-import {
-  Activity,
-  Car,
-  CalendarDays,
-  HeartPulse,
-  ListChecks,
-  ShieldCheck,
-  Users,
-  UserCheck,
-  type LucideIcon,
-} from "lucide-react";
+import { CalendarDays, Users, UserCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   TRANG_THAI_LOP_LABEL,
   TRANG_THAI_LOP_BADGE,
   DOI_TUONG_HOC_VIEN_LABEL,
-  type LoaiLop,
   type TrangThaiLop,
 } from "@/lib/constants/lop-hoc";
-
-const LOAI_LOP_ICON: Record<LoaiLop, LucideIcon> = {
-  ABCDE: ListChecks,
-  ACLS: HeartPulse,
-  BLS: Activity,
-  "SCC-CĐ": Users,
-  BTXH: ShieldCheck,
-  "SCC-LX": Car,
-};
-
-// Moi loai lop 1 tong mau — tai su dung dung 6 tong "data-*" da kiem chung
-// OKLCH/CVD o CLAUDE.md muc 3 (thay vi bia mau moi chua kiem chung). 6 tong
-// nay von gan cho vai tro nguoi (giang vien, tro giang...) nhung trang nay
-// khong hien mau theo vai tro nguoi nen dung lai cho 1 chieu du lieu khac
-// (loai lop) khong xung dot. Class ghi day du (khong ghep chuoi dong) vi may
-// quet Tailwind can thay ten class nguyen van trong source moi sinh CSS.
-const LOAI_LOP_BAND_CLASS: Record<LoaiLop, string> = {
-  ABCDE: "bg-data-lop-hoc",
-  ACLS: "bg-data-canh-bao",
-  BLS: "bg-data-kpi",
-  "SCC-CĐ": "bg-data-dang-ky",
-  BTXH: "bg-data-tro-giang",
-  "SCC-LX": "bg-data-giang-vien",
-};
 
 export type ClassCardData = {
   id: string;
@@ -62,6 +27,9 @@ export type ClassCardData = {
   tro_giang_chi_dinh_id: string | null;
 };
 
+// Da bo thiet ke dai mau thumbnail theo loai lop (yeu cau nguoi dung
+// 2026-09-10 — se thay bang giao dien tham khao rieng sau). The gio don
+// gian: khong anh bia, badge trang thai/mo dang ky dat canh tieu de.
 export function ClassCard({
   lop,
   nguoiMap,
@@ -69,36 +37,29 @@ export function ClassCard({
   lop: ClassCardData;
   nguoiMap: Map<string, string>;
 }) {
-  const loai = lop.loai_lop as LoaiLop | null;
-  const bandClass = loai ? LOAI_LOP_BAND_CLASS[loai] : "bg-data-lop-hoc";
-  const Icon = loai ? LOAI_LOP_ICON[loai] : ListChecks;
   const coChiDinh = lop.giang_vien_chi_dinh_id || lop.tro_giang_chi_dinh_id;
 
   return (
     <div className="flex flex-col overflow-hidden rounded-xl bg-card text-sm text-card-foreground ring-1 ring-foreground/10 transition-shadow hover:shadow-md">
       <Link href={`/lop-hoc/${lop.id}`} className="flex flex-col">
-        <div className={`relative flex h-16 items-center justify-center ${bandClass}`}>
-          <Icon className="h-7 w-7 text-white/90" />
-          <Badge
-            variant={TRANG_THAI_LOP_BADGE[lop.trang_thai]}
-            className="absolute top-2 left-2 shadow-sm"
-          >
-            {TRANG_THAI_LOP_LABEL[lop.trang_thai]}
-          </Badge>
-          {lop.mo_dang_ky ? (
-            <Badge className="absolute top-2 right-2 border-data-dang-ky/40 bg-data-dang-ky/90 text-white shadow-sm">
-              Mở đăng ký
-            </Badge>
-          ) : null}
-          <span className="absolute bottom-2 left-2 text-xs font-semibold tracking-wide text-white/90">
-            {loai ?? "Khác"}
-          </span>
-        </div>
         <div className="flex flex-col gap-2 p-4 pb-2">
-          <h3 className="line-clamp-2 font-heading text-base leading-snug font-medium">
-            {lop.ten_lop}
-          </h3>
+          <div className="flex items-start justify-between gap-2">
+            <h3 className="line-clamp-2 font-heading text-base leading-snug font-medium">
+              {lop.ten_lop}
+            </h3>
+            <div className="flex shrink-0 flex-col items-end gap-1">
+              <Badge variant={TRANG_THAI_LOP_BADGE[lop.trang_thai]}>
+                {TRANG_THAI_LOP_LABEL[lop.trang_thai]}
+              </Badge>
+              {lop.mo_dang_ky ? (
+                <Badge className="border-data-dang-ky/40 bg-data-dang-ky/10 text-data-dang-ky">
+                  Mở đăng ký
+                </Badge>
+              ) : null}
+            </div>
+          </div>
           <div className="flex flex-wrap gap-1.5">
+            {lop.loai_lop ? <Badge variant="outline">{lop.loai_lop}</Badge> : null}
             {lop.doi_tuong_hoc_vien ? (
               <Badge variant="outline">{DOI_TUONG_HOC_VIEN_LABEL[lop.doi_tuong_hoc_vien]}</Badge>
             ) : null}
@@ -136,11 +97,7 @@ export function ClassCard({
         </div>
       </Link>
       <div className="px-4 pb-4">
-        <Button
-          size="sm"
-          className="w-full"
-          render={<Link href={`/lop-hoc/${lop.id}`} />}
-        >
+        <Button size="sm" className="w-full" render={<Link href={`/lop-hoc/${lop.id}`} />}>
           {lop.mo_dang_ky ? "Đăng ký ngay" : "Xem chi tiết"}
         </Button>
       </div>
