@@ -59,9 +59,9 @@ export async function uploadCertificate(
 
   const file = formData.get("file") as File | null;
   const tenChungChi = String(formData.get("ten_chung_chi") ?? "");
+  const soChungChi = String(formData.get("so_chung_chi") ?? "") || null;
   const noiCap = String(formData.get("noi_cap") ?? "") || null;
   const ngayCap = String(formData.get("ngay_cap") ?? "") || null;
-  const ngayHetHan = String(formData.get("ngay_het_han") ?? "") || null;
   const batBuoc = formData.get("bat_buoc") === "on";
 
   if (!tenChungChi.trim()) {
@@ -86,9 +86,9 @@ export async function uploadCertificate(
   const { error: insertError } = await supabase.from("chung_chi").insert({
     profile_id: profileId,
     ten_chung_chi: tenChungChi,
+    so_chung_chi: soChungChi,
     noi_cap: noiCap,
     ngay_cap: ngayCap,
-    ngay_het_han: ngayHetHan,
     bat_buoc: batBuoc,
     file_url: path,
   });

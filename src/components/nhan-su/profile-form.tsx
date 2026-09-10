@@ -23,6 +23,7 @@ export type EditableProfile = {
   chuyen_mon: string | null;
   khoa_phong_cong_tac: string | null;
   nhom_phan_loai?: number | null;
+  email?: string | null;
 };
 
 /**
@@ -60,6 +61,16 @@ export function ProfileForm({
         <Label htmlFor="full_name">Họ và tên</Label>
         <Input id="full_name" name="full_name" defaultValue={profile.full_name} required />
       </div>
+
+      {showRole ? (
+        <div className="flex flex-col gap-2">
+          <Label htmlFor="email">Email đăng nhập</Label>
+          <Input id="email" name="email" type="email" defaultValue={profile.email ?? ""} required />
+          <p className="text-xs text-muted-foreground">
+            Đổi email thật sẽ tự gửi email đặt mật khẩu lần đầu tới địa chỉ mới.
+          </p>
+        </div>
+      ) : null}
 
       {showRole ? (
         <div className="flex flex-col gap-2">

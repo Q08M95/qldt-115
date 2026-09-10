@@ -18,6 +18,7 @@ import { deleteCertificate, getCertificateSignedUrl } from "@/app/(app)/nhan-su/
 export type CertificateRow = {
   id: string;
   ten_chung_chi: string;
+  so_chung_chi: string | null;
   noi_cap: string | null;
   ngay_cap: string | null;
   ngay_het_han: string | null;
@@ -73,8 +74,9 @@ export function CertificateList({
         <TableHeader>
           <TableRow>
             <TableHead>Tên chứng chỉ</TableHead>
+            <TableHead>Số chứng chỉ</TableHead>
             <TableHead>Nơi cấp</TableHead>
-            <TableHead>Ngày hết hạn</TableHead>
+            <TableHead>Ngày cấp</TableHead>
             <TableHead>Trạng thái</TableHead>
             <TableHead className="text-right">Hành động</TableHead>
           </TableRow>
@@ -90,8 +92,9 @@ export function CertificateList({
                   </Badge>
                 ) : null}
               </TableCell>
+              <TableCell>{c.so_chung_chi ?? "—"}</TableCell>
               <TableCell>{c.noi_cap ?? "—"}</TableCell>
-              <TableCell>{c.ngay_het_han ?? "—"}</TableCell>
+              <TableCell>{c.ngay_cap ?? "—"}</TableCell>
               <TableCell>
                 {isExpired(c.ngay_het_han) ? (
                   <Badge variant="destructive">Đã hết hạn</Badge>

@@ -7,7 +7,6 @@ import { UploadCertificateDialog } from "@/components/nhan-su/upload-certificate
 import { ToggleActiveButton } from "@/components/nhan-su/toggle-active-button";
 import { ResendInviteButton } from "@/components/nhan-su/resend-invite-button";
 import { DeleteProfileButton } from "@/components/nhan-su/delete-profile-button";
-import { EditEmailDialog } from "@/components/nhan-su/edit-email-dialog";
 import { PersonAvatar } from "@/components/nhan-su/person-avatar";
 import { ProfileForm } from "@/components/nhan-su/profile-form";
 import { getCurrentProfile } from "@/lib/auth";
@@ -29,7 +28,7 @@ export default async function NhanSuDetailPage({
     supabase.from("profiles").select("*").eq("id", id).single(),
     supabase
       .from("chung_chi")
-      .select("id, ten_chung_chi, noi_cap, ngay_cap, ngay_het_han, bat_buoc, file_url")
+      .select("id, ten_chung_chi, so_chung_chi, noi_cap, ngay_cap, ngay_het_han, bat_buoc, file_url")
       .eq("profile_id", id)
       .order("ngay_cap", { ascending: false }),
   ]);
@@ -50,7 +49,6 @@ export default async function NhanSuDetailPage({
         actions={
           isAdmin || isQuanLy ? (
             <div className="flex items-center gap-2">
-              {isAdmin ? <EditEmailDialog profileId={profile.id} currentEmail={profile.email} /> : null}
               {isAdmin ? <ResendInviteButton profileId={profile.id} /> : null}
               <ToggleActiveButton id={profile.id} active={profile.trang_thai_hoat_dong} />
               {isAdmin ? <DeleteProfileButton id={profile.id} redirectAfter="/nhan-su" /> : null}

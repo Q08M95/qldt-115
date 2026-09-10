@@ -29,6 +29,7 @@ type ChungChiRow = {
   id: string;
   profile_id: string;
   ten_chung_chi: string;
+  so_chung_chi: string | null;
   noi_cap: string | null;
   ngay_cap: string | null;
   ngay_het_han: string | null;

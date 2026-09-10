@@ -19,16 +19,22 @@ import { PersonAvatar } from "@/components/nhan-su/person-avatar";
 import { getCurrentProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { ROLE_LABEL, ROLE_VALUES } from "@/lib/constants/roles";
-import { NHOM_PHAN_LOAI_LABEL } from "@/lib/constants/nhan-su";
+import { NHOM_PHAN_LOAI_LABEL, NHOM_PHAN_LOAI_VALUES } from "@/lib/constants/nhan-su";
 
 const PAGE_SIZE = 20;
 
 export default async function NhanSuPage({
   searchParams,
 }: {
-  searchParams: Promise<{ role?: string; trang_thai?: string; q?: string; page?: string }>;
+  searchParams: Promise<{
+    role?: string;
+    trang_thai?: string;
+    nhom?: string;
+    q?: string;
+    page?: string;
+  }>;
 }) {
-  const { role, trang_thai, q, page: pageParam } = await searchParams;
+  const { role, trang_thai, nhom, q, page: pageParam } = await searchParams;
   const page = Math.max(1, Number(pageParam) || 1);
   const current = await getCurrentProfile();
   const isAdmin = current?.role === "admin";
@@ -45,6 +51,10 @@ export default async function NhanSuPage({
       "id, full_name, role, email, hoc_vi, chuyen_mon, nhom_phan_loai, trang_thai_hoat_dong",
       { count: "exact" },
     )
+    // Sap xep theo nhom truoc (Ban giam doc -> GV bac si -> ... -> chua
+    // phan nhom xep cuoi), roi moi den ten — ap dung cho moi nguoi xem, vi
+    // thu tu ho tro nhin nhan theo cum du khong thay duoc so nhom cu the.
+    .order("nhom_phan_loai", { ascending: true, nullsFirst: false })
     .order("full_name");
 
   if (role && (ROLE_VALUES as readonly string[]).includes(role)) {
@@ -52,6 +62,9 @@ export default async function NhanSuPage({
   }
   if (trang_thai && trang_thai !== "all") {
     query = query.eq("trang_thai_hoat_dong", trang_thai === "hoat_dong");
+  }
+  if (canManage && nhom && (NHOM_PHAN_LOAI_VALUES as readonly number[]).includes(Number(nhom))) {
+    query = query.eq("nhom_phan_loai", Number(nhom));
   }
   if (q) query = query.ilike("full_name", `%${q}%`);
 
@@ -64,6 +77,7 @@ export default async function NhanSuPage({
     const params = new URLSearchParams();
     if (role && role !== "all") params.set("role", role);
     if (trang_thai && trang_thai !== "all") params.set("trang_thai", trang_thai);
+    if (canManage && nhom && nhom !== "all") params.set("nhom", nhom);
     if (q) params.set("q", q);
     if (nextPage > 1) params.set("page", String(nextPage));
     const qs = params.toString();
@@ -77,7 +91,13 @@ export default async function NhanSuPage({
         actions={current?.role === "admin" ? <AddProfileDialog /> : null}
       />
       <div className="flex flex-col gap-4 p-4 md:p-6">
-        <NhanSuFilters role={role ?? "all"} trangThai={trang_thai ?? "all"} q={q ?? ""} />
+        <NhanSuFilters
+          role={role ?? "all"}
+          trangThai={trang_thai ?? "all"}
+          nhom={nhom ?? "all"}
+          canFilterNhom={canManage}
+          q={q ?? ""}
+        />
 
         {!profiles || profiles.length === 0 ? (
           <EmptyState title="Chưa có nhân sự phù hợp bộ lọc" />
@@ -98,7 +118,7 @@ export default async function NhanSuPage({
                       <TableHead className="hidden lg:table-cell">Nhóm phân loại</TableHead>
                     ) : null}
                     <TableHead>Trạng thái</TableHead>
-                    <TableHead className="text-right">Hành động</TableHead>
+                    {canManage ? <TableHead className="text-right">Hành động</TableHead> : null}
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -128,14 +148,14 @@ export default async function NhanSuPage({
                           {p.trang_thai_hoat_dong ? "Đang hoạt động" : "Đã khoá"}
                         </Badge>
                       </TableCell>
-                      <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
-                          {canManage ? (
+                      {canManage ? (
+                        <TableCell className="text-right">
+                          <div className="flex items-center justify-end gap-2">
                             <ToggleActiveButton id={p.id} active={p.trang_thai_hoat_dong} />
-                          ) : null}
-                          {isAdmin ? <DeleteProfileButton id={p.id} /> : null}
-                        </div>
-                      </TableCell>
+                            {isAdmin ? <DeleteProfileButton id={p.id} /> : null}
+                          </div>
+                        </TableCell>
+                      ) : null}
                     </TableRow>
                   ))}
                 </TableBody>

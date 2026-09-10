@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { ROLE_LABEL } from "@/lib/constants/roles";
+import { NHOM_PHAN_LOAI_VALUES, NHOM_PHAN_LOAI_LABEL } from "@/lib/constants/nhan-su";
 
 const ROLE_FILTER_LABEL: Record<string, string> = {
   all: "Tất cả vai trò",
@@ -24,6 +25,11 @@ const TRANG_THAI_LABEL: Record<string, string> = {
   khoa: "Đã khoá",
 };
 
+const NHOM_FILTER_LABEL: Record<string, string> = {
+  all: "Tất cả nhóm",
+  ...Object.fromEntries(NHOM_PHAN_LOAI_VALUES.map((v) => [String(v), NHOM_PHAN_LOAI_LABEL[v]])),
+};
+
 // Loc tu dong khi doi Select/go chu — khong can bam nut "Loc" rieng, tao
 // cam giac phan hoi nhanh hon. Search box debounce 400ms de tranh push URL
 // lien tuc theo tung phim go. isPending duoc dung that (khac ban truoc bo
@@ -31,10 +37,14 @@ const TRANG_THAI_LABEL: Record<string, string> = {
 export function NhanSuFilters({
   role,
   trangThai,
+  nhom,
+  canFilterNhom,
   q,
 }: {
   role: string;
   trangThai: string;
+  nhom: string;
+  canFilterNhom: boolean;
   q: string;
 }) {
   const router = useRouter();
@@ -115,6 +125,25 @@ export function NhanSuFilters({
           </SelectContent>
         </Select>
       </div>
+      {canFilterNhom ? (
+        <div className="flex flex-col gap-1">
+          <label className="text-xs text-muted-foreground" htmlFor="nhom">
+            Nhóm phân loại
+          </label>
+          <Select value={nhom} onValueChange={(value) => updateParam("nhom", value)}>
+            <SelectTrigger id="nhom" className="w-52">
+              <SelectValue>{(value: string) => NHOM_FILTER_LABEL[value] ?? value}</SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              {Object.entries(NHOM_FILTER_LABEL).map(([value, label]) => (
+                <SelectItem key={value} value={value}>
+                  {label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      ) : null}
       {isPending ? <Loader2 className="mb-2 h-4 w-4 animate-spin text-muted-foreground" /> : null}
     </div>
   );

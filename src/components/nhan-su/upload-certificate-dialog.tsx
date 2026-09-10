@@ -54,19 +54,19 @@ export function UploadCertificateDialog({ profileId }: { profileId: string }) {
             <Label htmlFor="ten_chung_chi">Tên chứng chỉ</Label>
             <Input id="ten_chung_chi" name="ten_chung_chi" required />
           </div>
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="noi_cap">Nơi cấp</Label>
-            <Input id="noi_cap" name="noi_cap" />
-          </div>
           <div className="grid grid-cols-2 gap-4">
+            <div className="flex flex-col gap-2">
+              <Label htmlFor="so_chung_chi">Số chứng chỉ</Label>
+              <Input id="so_chung_chi" name="so_chung_chi" />
+            </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor="ngay_cap">Ngày cấp</Label>
               <Input id="ngay_cap" name="ngay_cap" type="date" />
             </div>
-            <div className="flex flex-col gap-2">
-              <Label htmlFor="ngay_het_han">Ngày hết hạn</Label>
-              <Input id="ngay_het_han" name="ngay_het_han" type="date" />
-            </div>
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="noi_cap">Nơi cấp</Label>
+            <Input id="noi_cap" name="noi_cap" />
           </div>
           <div className="flex flex-col gap-2">
             <Label htmlFor="file">File chứng chỉ (PDF/ảnh)</Label>

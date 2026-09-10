@@ -118,9 +118,10 @@ create table chung_chi (
   id uuid primary key default gen_random_uuid(),
   profile_id uuid references profiles(id) on delete cascade not null,
   ten_chung_chi text not null,
+  so_chung_chi text,      -- them 2026-09-10, khop cot "SỐ" trong Excel goc
   noi_cap text,
   ngay_cap date,
-  ngay_het_han date,
+  ngay_het_han date,      -- van giu cho KPI Nhom C ve sau, hien khong co UI dat gia tri nay (xem ghi chu duoi)
   file_url text,          -- lưu trong Supabase Storage
   bat_buoc boolean default true,    -- có tính vào KPI Nhóm C (năng lực chuyên môn) hay không
   created_at timestamptz default now()
@@ -379,6 +380,10 @@ create table audit_log (
 > - Bỏ `so_dien_thoai`, `ngay_vao_lam` — không quan trọng với nghiệp vụ hiện tại; đã kiểm tra cả 58 hồ sơ đang có đều trống 2 cột này nên không mất dữ liệu.
 > - Đổi tên `don_vi_cong_tac` → `khoa_phong_cong_tac` cho khớp đúng tên cột "KHOA/PHÒNG CÔNG TÁC" trong `data quan ly dao tao.xlsx` (nhãn hiển thị cũng đổi thành "Khoa/Phòng công tác").
 > - Nới quyền xem `chung_chi` (bảng + Storage bucket `chung-chi`): trước đây `chung_chi_select` chỉ cho `admin`/`quan_ly_dao_tao` hoặc chính chủ xem — nay mọi `authenticated` đều xem được chứng chỉ của bất kỳ ai (giống triết lý `profiles_select` "đọc tất cả để biết đồng nghiệp"). Quyền **sửa/xoá không đổi** — vẫn chỉ `admin` hoặc chính chủ (`chung_chi_insert/update/delete` giữ nguyên).
+> - Thêm `chung_chi.so_chung_chi` — khớp cột "SỐ" trong sheet "QUẢN LÝ CHỨNG CHỈ" của Excel gốc, trước đây bỏ qua vì không có trường phù hợp.
+> - Form "Thêm chứng chỉ" (dùng chung cho admin lẫn tự thêm của giảng viên/trợ giảng): bỏ ô nhập "Ngày hết hạn" (Excel gốc không theo dõi trường này cho các chứng chỉ đang có), thay hiển thị trong danh sách bằng "Ngày cấp". Cột `ngay_het_han` vẫn giữ trong schema cho KPI Nhóm C (CLAUDE.md mục 2.2) — chỉ chưa có đường nhập liệu, sẽ bổ sung khi Giai đoạn 7 cần đến chứng chỉ có ngày hết hạn thật.
+> - Trang `/nhan-su`: sắp xếp danh sách theo `nhom_phan_loai` trước (rồi mới đến tên), thêm bộ lọc "Nhóm phân loại" (chỉ admin/quản lý đào tạo thấy được, khớp quy tắc hiển thị `nhom_phan_loai`), bỏ hẳn cột "Hành động" khi xem bằng vai trò `giang_vien`/`tro_giang` (không có thao tác nào dành cho họ ở đây).
+> - Sửa email đăng nhập của nhân sự: gộp vào trực tiếp form "Hồ sơ" (trường `email` cạnh các trường khác, admin sửa xong bấm Lưu là xong) thay vì mở dialog riêng — logic đổi cả `auth.users.email` và tự gửi email đặt mật khẩu khi email thay đổi vẫn giữ nguyên, chỉ đổi chỗ đặt UI.
 
 ### 1.3. Trigger & function nền tảng
 1. Trigger tự tạo `profiles` khi có `auth.users` mới đăng ký (role mặc định thấp nhất, admin nâng quyền thủ công sau).

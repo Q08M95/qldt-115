@@ -33,14 +33,11 @@ export const createProfileSchema = z.object({
 
 export const updateProfileByAdminSchema = z.object({
   full_name: z.string().trim().min(1, "Vui lòng nhập họ tên"),
+  email: z.email("Email không hợp lệ"),
   role: z.enum(ROLE_VALUES, { message: "Vai trò không hợp lệ" }),
   hoc_vi: optionalText,
   chuc_danh: optionalText,
   chuyen_mon: optionalText,
   khoa_phong_cong_tac: optionalText,
   nhom_phan_loai: optionalNhom,
-});
-
-export const updateProfileEmailSchema = z.object({
-  email: z.email("Email không hợp lệ"),
 });

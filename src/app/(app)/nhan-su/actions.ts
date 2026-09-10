@@ -5,12 +5,7 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getCurrentProfile } from "@/lib/auth";
-import {
-  createProfileSchema,
-  updateProfileByAdminSchema,
-  updateProfileEmailSchema,
-  firstIssueMessage,
-} from "./schema";
+import { createProfileSchema, updateProfileByAdminSchema, firstIssueMessage } from "./schema";
 
 // Loi mong doi tra ve qua gia tri (khong throw) — Next.js che message cua
 // loi throw trong production (chi con "digest" chung chung).
@@ -91,6 +86,10 @@ export async function toggleActive(
   return {};
 }
 
+// Form Ho so gop chung email dang nhap voi cac truong thong tin khac (thay
+// vi 1 dialog rieng "ben ngoai" nhu truoc) — neu email doi so voi ban ghi
+// cu, phai goi Admin API doi ca auth.users.email (khong chi cot profiles)
+// roi tu dong gui email dat mat khau lan dau toi dia chi moi.
 export async function updateProfileByAdmin(
   id: string,
   formData: FormData,
@@ -103,6 +102,7 @@ export async function updateProfileByAdmin(
   const nhomRaw = formData.get("nhom_phan_loai");
   const parsed = updateProfileByAdminSchema.safeParse({
     full_name: formData.get("full_name"),
+    email: formData.get("email"),
     role: formData.get("role"),
     hoc_vi: formData.get("hoc_vi"),
     chuc_danh: formData.get("chuc_danh"),
@@ -114,6 +114,24 @@ export async function updateProfileByAdmin(
     return { error: firstIssueMessage(parsed) };
   }
 
+  const admin = createAdminClient();
+  const { data: existing } = await admin
+    .from("profiles")
+    .select("email")
+    .eq("id", id)
+    .single();
+  const emailChanged = existing?.email !== parsed.data.email;
+
+  if (emailChanged) {
+    const { error: authError } = await admin.auth.admin.updateUserById(id, {
+      email: parsed.data.email,
+      email_confirm: true,
+    });
+    if (authError) {
+      return { error: authError.message };
+    }
+  }
+
   const supabase = await createClient();
   const { error } = await supabase.from("profiles").update(parsed.data).eq("id", id);
 
@@ -121,6 +139,14 @@ export async function updateProfileByAdmin(
     return { error: error.message };
   }
 
+  if (emailChanged) {
+    const origin = (await headers()).get("origin");
+    await supabase.auth.resetPasswordForEmail(parsed.data.email, {
+      redirectTo: `${origin}/auth/confirm?next=/dat-lai-mat-khau`,
+    });
+  }
+
+  revalidatePath("/nhan-su");
   revalidatePath(`/nhan-su/${id}`);
   return {};
 }
@@ -150,53 +176,6 @@ export async function resendInvite(profileId: string): Promise<{ error?: string 
     return { error: resetError.message };
   }
 
-  return {};
-}
-
-// Sua email dang nhap that cho 1 nhan su (vd ho so tao tu du lieu Excel
-// dung email noi bo tam, nay co email that cua nguoi do) — phai doi qua
-// admin API vi day la truong dinh danh dang nhap cua auth.users, khong
-// chi la cot du lieu thuong trong profiles. Tu dong gui luon email dat
-// mat khau ngay sau khi doi de giam thao tac cho admin.
-export async function updateProfileEmail(
-  id: string,
-  formData: FormData,
-): Promise<{ error?: string }> {
-  const current = await getCurrentProfile();
-  if (current?.role !== "admin") {
-    return { error: "Chỉ admin được sửa email đăng nhập" };
-  }
-
-  const parsed = updateProfileEmailSchema.safeParse({ email: formData.get("email") });
-  if (!parsed.success) {
-    return { error: firstIssueMessage(parsed) };
-  }
-
-  const admin = createAdminClient();
-  const { error: updateError } = await admin.auth.admin.updateUserById(id, {
-    email: parsed.data.email,
-    email_confirm: true,
-  });
-  if (updateError) {
-    return { error: updateError.message };
-  }
-
-  const { error: profileError } = await admin
-    .from("profiles")
-    .update({ email: parsed.data.email })
-    .eq("id", id);
-  if (profileError) {
-    return { error: profileError.message };
-  }
-
-  const origin = (await headers()).get("origin");
-  const supabase = await createClient();
-  await supabase.auth.resetPasswordForEmail(parsed.data.email, {
-    redirectTo: `${origin}/auth/confirm?next=/dat-lai-mat-khau`,
-  });
-
-  revalidatePath("/nhan-su");
-  revalidatePath(`/nhan-su/${id}`);
   return {};
 }
 
