@@ -13,11 +13,16 @@ async function requireQuanLy() {
   return null;
 }
 
+// Loc bo sentinel "none" (o chua chon) va gia tri trung lap (2 khung chi
+// dinh lo chon cung 1 nguoi) tu N select dong theo so luong can.
+function readChiDinhIds(formData: FormData, name: string) {
+  const raw = formData.getAll(name).map(String);
+  return Array.from(new Set(raw.filter((v) => v && v !== "none")));
+}
+
 function readLopHocFields(formData: FormData) {
   const doiTuong = formData.get("doi_tuong_hoc_vien");
   const loaiLop = formData.get("loai_lop");
-  const giangVienChiDinh = formData.get("giang_vien_chi_dinh_id");
-  const troGiangChiDinh = formData.get("tro_giang_chi_dinh_id");
   return {
     ten_lop: formData.get("ten_lop"),
     mo_ta: formData.get("mo_ta"),
@@ -33,8 +38,8 @@ function readLopHocFields(formData: FormData) {
     mo_dang_ky: formData.get("mo_dang_ky"),
     nhom_giang_vien_phu_hop: formData.getAll("nhom_giang_vien_phu_hop"),
     nhom_tro_giang_phu_hop: formData.getAll("nhom_tro_giang_phu_hop"),
-    giang_vien_chi_dinh_id: giangVienChiDinh === "none" ? null : giangVienChiDinh,
-    tro_giang_chi_dinh_id: troGiangChiDinh === "none" ? null : troGiangChiDinh,
+    giang_vien_chi_dinh_ids: readChiDinhIds(formData, "giang_vien_chi_dinh_ids"),
+    tro_giang_chi_dinh_ids: readChiDinhIds(formData, "tro_giang_chi_dinh_ids"),
   };
 }
 
@@ -69,8 +74,8 @@ export async function createLopHoc(formData: FormData): Promise<{ error?: string
     p_mo_dang_ky: parsed.data.mo_dang_ky,
     p_nhom_giang_vien_phu_hop: parsed.data.nhom_giang_vien_phu_hop,
     p_nhom_tro_giang_phu_hop: parsed.data.nhom_tro_giang_phu_hop,
-    p_giang_vien_chi_dinh_id: parsed.data.giang_vien_chi_dinh_id,
-    p_tro_giang_chi_dinh_id: parsed.data.tro_giang_chi_dinh_id,
+    p_giang_vien_chi_dinh_ids: parsed.data.giang_vien_chi_dinh_ids,
+    p_tro_giang_chi_dinh_ids: parsed.data.tro_giang_chi_dinh_ids,
     p_chuong_trinh_id: parsed.data.chuong_trinh_id,
   });
   if (error) return { error: error.message };

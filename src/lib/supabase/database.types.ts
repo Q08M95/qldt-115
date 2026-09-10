@@ -85,8 +85,8 @@ type LopHocRow = {
   mo_dang_ky: boolean;
   nhom_giang_vien_phu_hop: number[] | null;
   nhom_tro_giang_phu_hop: number[] | null;
-  giang_vien_chi_dinh_id: string | null;
-  tro_giang_chi_dinh_id: string | null;
+  giang_vien_chi_dinh_ids: string[] | null;
+  tro_giang_chi_dinh_ids: string[] | null;
   trang_thai: LopHocTrangThai;
   created_by: string | null;
   created_at: string;
@@ -217,8 +217,8 @@ export type Database = {
           p_mo_dang_ky: boolean;
           p_nhom_giang_vien_phu_hop: number[] | null;
           p_nhom_tro_giang_phu_hop: number[] | null;
-          p_giang_vien_chi_dinh_id: string | null;
-          p_tro_giang_chi_dinh_id: string | null;
+          p_giang_vien_chi_dinh_ids: string[] | null;
+          p_tro_giang_chi_dinh_ids: string[] | null;
           p_chuong_trinh_id: string | null;
         };
         Returns: string;

@@ -39,6 +39,14 @@ const nhomArray = z
   .optional()
   .transform((v) => (v && v.length > 0 ? v : null));
 
+// Mang uuid chon qua N select dong theo so_giang_vien_can/so_tro_giang_can
+// (xem class-form-fields.tsx) — actions.ts da loc bo cac gia tri "none"/rong
+// va trung lap truoc khi toi day, o day chi con validate dinh dang.
+const idArray = z
+  .array(z.string().trim().min(1))
+  .optional()
+  .transform((v) => (v && v.length > 0 ? v : null));
+
 export const createLopHocSchema = z.object({
   ten_lop: z.string().trim().min(1, "Vui lòng nhập tên lớp"),
   mo_ta: optionalText,
@@ -54,8 +62,8 @@ export const createLopHocSchema = z.object({
   mo_dang_ky: flag,
   nhom_giang_vien_phu_hop: nhomArray,
   nhom_tro_giang_phu_hop: nhomArray,
-  giang_vien_chi_dinh_id: optionalId,
-  tro_giang_chi_dinh_id: optionalId,
+  giang_vien_chi_dinh_ids: idArray,
+  tro_giang_chi_dinh_ids: idArray,
   chuong_trinh_id: optionalId,
 });
 

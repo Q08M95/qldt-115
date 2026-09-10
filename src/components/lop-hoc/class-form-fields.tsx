@@ -1,3 +1,6 @@
+"use client";
+
+import { useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -15,7 +18,17 @@ import {
 } from "@/lib/constants/lop-hoc";
 import { NHOM_PHAN_LOAI_VALUES, NHOM_PHAN_LOAI_LABEL } from "@/lib/constants/nhan-su";
 
-export type ClassFormProfile = { id: string; full_name: string; role: string };
+// nhom_phan_loai la optional: chi cac noi thuc su can loc theo nhom phu hop
+// (form lop hoc) moi truyen gia tri that; danh sach dung o cac dialog/list
+// buoi giang, bai giang chi can id/full_name/role nen truyen mang da rut gon
+// (khong co nhom_phan_loai) de tranh lo du lieu noi bo nay ra viewer khong
+// phai admin/quan_ly (xem [id]/page.tsx).
+export type ClassFormProfile = {
+  id: string;
+  full_name: string;
+  role: string;
+  nhom_phan_loai?: number | null;
+};
 
 export type ClassFormDefaults = {
   ten_lop?: string;
@@ -32,43 +45,84 @@ export type ClassFormDefaults = {
   mo_dang_ky?: boolean;
   nhom_giang_vien_phu_hop?: number[] | null;
   nhom_tro_giang_phu_hop?: number[] | null;
-  giang_vien_chi_dinh_id?: string | null;
-  tro_giang_chi_dinh_id?: string | null;
+  giang_vien_chi_dinh_ids?: string[] | null;
+  tro_giang_chi_dinh_ids?: string[] | null;
 };
 
-function ChiDinhSelect({
-  name,
+// So khung chi dinh = dung so luong can (so_giang_vien_can/so_tro_giang_can)
+// — nguoi dung 2026-09-10 yeu cau can 1 hien 1 khung, can 2 hien 2 khung...
+// Danh sach chon o moi khung da loc theo nhom phu hop (neu co chon nhom),
+// va loai nguoi da chon o khung khac de tranh chon trung 1 nguoi 2 lan.
+function ChiDinhSlots({
+  namePrefix,
   label,
-  defaultValue,
+  count,
+  values,
+  onChange,
   options,
 }: {
-  name: string;
+  namePrefix: string;
   label: string;
-  defaultValue?: string | null;
+  count: number;
+  values: string[];
+  onChange: (next: string[]) => void;
   options: ClassFormProfile[];
 }) {
+  if (count <= 0) {
+    return (
+      <div className="flex flex-col gap-2">
+        <Label>{label}</Label>
+        <p className="text-xs text-muted-foreground">
+          Chưa cần — đặt số lượng cần lớn hơn 0 để chỉ định.
+        </p>
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col gap-2">
-      <Label htmlFor={name}>{label}</Label>
-      <Select name={name} defaultValue={defaultValue ?? "none"}>
-        <SelectTrigger id={name}>
-          <SelectValue>
-            {(value: string) =>
-              value === "none"
-                ? "Chưa chỉ định"
-                : (options.find((p) => p.id === value)?.full_name ?? "Chưa chỉ định")
-            }
-          </SelectValue>
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="none">Chưa chỉ định</SelectItem>
-          {options.map((p) => (
-            <SelectItem key={p.id} value={p.id}>
-              {p.full_name}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
+      <Label>{label}</Label>
+      <div className="flex flex-col gap-2">
+        {Array.from({ length: count }, (_, i) => {
+          const current = values[i] ?? "none";
+          const daChonNoiKhac = new Set(
+            values.filter((v, j) => j !== i && v && v !== "none"),
+          );
+          const availableOptions = options.filter(
+            (p) => p.id === current || !daChonNoiKhac.has(p.id),
+          );
+          return (
+            <Select
+              key={i}
+              name={namePrefix}
+              value={current}
+              onValueChange={(value) => {
+                const next = [...values];
+                next[i] = value as string;
+                onChange(next);
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue>
+                  {(value: string) =>
+                    value === "none"
+                      ? `Chưa chỉ định (${i + 1}/${count})`
+                      : (options.find((p) => p.id === value)?.full_name ?? "Chưa chỉ định")
+                  }
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Chưa chỉ định</SelectItem>
+                {availableOptions.map((p) => (
+                  <SelectItem key={p.id} value={p.id}>
+                    {p.full_name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          );
+        })}
+      </div>
     </div>
   );
 }
@@ -76,13 +130,14 @@ function ChiDinhSelect({
 function NhomCheckboxGroup({
   name,
   label,
-  defaultValues,
+  selected,
+  onChange,
 }: {
   name: string;
   label: string;
-  defaultValues?: number[] | null;
+  selected: Set<number>;
+  onChange: (next: Set<number>) => void;
 }) {
-  const selected = new Set(defaultValues ?? []);
   return (
     <div className="flex flex-col gap-2">
       <Label>{label}</Label>
@@ -93,7 +148,13 @@ function NhomCheckboxGroup({
               type="checkbox"
               name={name}
               value={v}
-              defaultChecked={selected.has(v)}
+              checked={selected.has(v)}
+              onChange={(e) => {
+                const next = new Set(selected);
+                if (e.target.checked) next.add(v);
+                else next.delete(v);
+                onChange(next);
+              }}
               className="h-4 w-4"
             />
             {NHOM_PHAN_LOAI_LABEL[v]}
@@ -119,6 +180,42 @@ export function ClassFormFields({
 }) {
   const giangVienOptions = profiles.filter((p) => p.role === "giang_vien");
   const troGiangOptions = profiles.filter((p) => p.role === "tro_giang");
+
+  const [soGiangVien, setSoGiangVien] = useState(defaults?.so_giang_vien_can ?? 1);
+  const [soTroGiang, setSoTroGiang] = useState(defaults?.so_tro_giang_can ?? 1);
+  const [nhomGV, setNhomGV] = useState<Set<number>>(
+    new Set(defaults?.nhom_giang_vien_phu_hop ?? []),
+  );
+  const [nhomTG, setNhomTG] = useState<Set<number>>(
+    new Set(defaults?.nhom_tro_giang_phu_hop ?? []),
+  );
+  const [chiDinhGV, setChiDinhGV] = useState<string[]>(defaults?.giang_vien_chi_dinh_ids ?? []);
+  const [chiDinhTG, setChiDinhTG] = useState<string[]>(defaults?.tro_giang_chi_dinh_ids ?? []);
+
+  // Ung vien chi dinh = dung nhom phu hop da chon (neu co); luon giu lai
+  // nguoi da duoc chon san du khong con thuoc nhom, de khong lam mat lua
+  // chon hien co khi doi nhom sau do.
+  const giangVienCandidates = useMemo(() => {
+    const base =
+      nhomGV.size > 0
+        ? giangVienOptions.filter((p) => p.nhom_phan_loai != null && nhomGV.has(p.nhom_phan_loai))
+        : giangVienOptions;
+    const missing = giangVienOptions.filter(
+      (p) => chiDinhGV.includes(p.id) && !base.some((b) => b.id === p.id),
+    );
+    return [...base, ...missing];
+  }, [giangVienOptions, nhomGV, chiDinhGV]);
+
+  const troGiangCandidates = useMemo(() => {
+    const base =
+      nhomTG.size > 0
+        ? troGiangOptions.filter((p) => p.nhom_phan_loai != null && nhomTG.has(p.nhom_phan_loai))
+        : troGiangOptions;
+    const missing = troGiangOptions.filter(
+      (p) => chiDinhTG.includes(p.id) && !base.some((b) => b.id === p.id),
+    );
+    return [...base, ...missing];
+  }, [troGiangOptions, nhomTG, chiDinhTG]);
 
   return (
     <>
@@ -206,6 +303,7 @@ export function ClassFormFields({
             type="number"
             min={0}
             defaultValue={defaults?.so_giang_vien_can ?? 1}
+            onChange={(e) => setSoGiangVien(Math.max(0, Number(e.target.value) || 0))}
             required
           />
         </div>
@@ -217,6 +315,7 @@ export function ClassFormFields({
             type="number"
             min={0}
             defaultValue={defaults?.so_tro_giang_can ?? 1}
+            onChange={(e) => setSoTroGiang(Math.max(0, Number(e.target.value) || 0))}
             required
           />
         </div>
@@ -236,27 +335,33 @@ export function ClassFormFields({
         <NhomCheckboxGroup
           name="nhom_giang_vien_phu_hop"
           label="Nhóm giảng viên phù hợp"
-          defaultValues={defaults?.nhom_giang_vien_phu_hop}
+          selected={nhomGV}
+          onChange={setNhomGV}
         />
         <NhomCheckboxGroup
           name="nhom_tro_giang_phu_hop"
           label="Nhóm trợ giảng phù hợp"
-          defaultValues={defaults?.nhom_tro_giang_phu_hop}
+          selected={nhomTG}
+          onChange={setNhomTG}
         />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
-        <ChiDinhSelect
-          name="giang_vien_chi_dinh_id"
+        <ChiDinhSlots
+          namePrefix="giang_vien_chi_dinh_ids"
           label="Chỉ định giảng viên"
-          defaultValue={defaults?.giang_vien_chi_dinh_id}
-          options={giangVienOptions}
+          count={soGiangVien}
+          values={chiDinhGV}
+          onChange={setChiDinhGV}
+          options={giangVienCandidates}
         />
-        <ChiDinhSelect
-          name="tro_giang_chi_dinh_id"
+        <ChiDinhSlots
+          namePrefix="tro_giang_chi_dinh_ids"
           label="Chỉ định trợ giảng"
-          defaultValue={defaults?.tro_giang_chi_dinh_id}
-          options={troGiangOptions}
+          count={soTroGiang}
+          values={chiDinhTG}
+          onChange={setChiDinhTG}
+          options={troGiangCandidates}
         />
       </div>
 

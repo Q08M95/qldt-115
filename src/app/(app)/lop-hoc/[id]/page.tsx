@@ -25,7 +25,7 @@ export default async function LopHocDetailPage({
   const canManage = current?.role === "admin" || current?.role === "quan_ly_dao_tao";
 
   const supabase = await createClient();
-  const [{ data: lop }, { data: baiGiang }, { data: buoiGiang }, { data: profiles }] =
+  const [{ data: lop }, { data: baiGiang }, { data: buoiGiang }, { data: profilesRaw }] =
     await Promise.all([
       supabase.from("lop_hoc").select("*").eq("id", id).single(),
       supabase
@@ -42,9 +42,13 @@ export default async function LopHocDetailPage({
         )
         .eq("lop_hoc_id", id)
         .order("thu_tu"),
+      // nhom_phan_loai chi danh cho admin/quan_ly (xem khoi tao profiles ben
+      // duoi) — luon fetch chung 1 lan cho gon, nhung KHONG dua thang bien co
+      // truong nay vao props cua component khong duoc gate boi canManage, de
+      // tranh lo du lieu noi bo ra client cua giang vien/tro giang.
       supabase
         .from("profiles")
-        .select("id, full_name, role")
+        .select("id, full_name, role, nhom_phan_loai")
         .eq("trang_thai_hoat_dong", true)
         .order("full_name"),
     ]);
@@ -52,7 +56,9 @@ export default async function LopHocDetailPage({
   if (!lop) notFound();
 
   const trangThaiThucTe = await dongBoTrangThaiLop(lop, canManage);
-  const nguoiMap = new Map((profiles ?? []).map((p) => [p.id, p.full_name]));
+  const profiles = (profilesRaw ?? []).map(({ id, full_name, role }) => ({ id, full_name, role }));
+  const profilesForAssign = profilesRaw ?? [];
+  const nguoiMap = new Map(profiles.map((p) => [p.id, p.full_name]));
 
   return (
     <>
@@ -78,10 +84,10 @@ export default async function LopHocDetailPage({
                   mo_dang_ky: lop.mo_dang_ky,
                   nhom_giang_vien_phu_hop: lop.nhom_giang_vien_phu_hop,
                   nhom_tro_giang_phu_hop: lop.nhom_tro_giang_phu_hop,
-                  giang_vien_chi_dinh_id: lop.giang_vien_chi_dinh_id,
-                  tro_giang_chi_dinh_id: lop.tro_giang_chi_dinh_id,
+                  giang_vien_chi_dinh_ids: lop.giang_vien_chi_dinh_ids,
+                  tro_giang_chi_dinh_ids: lop.tro_giang_chi_dinh_ids,
                 }}
-                profiles={profiles ?? []}
+                profiles={profilesForAssign}
               />
               <DeleteClassButton id={lop.id} />
             </div>
@@ -95,6 +101,7 @@ export default async function LopHocDetailPage({
           {lop.doi_tuong_hoc_vien ? (
             <Badge variant="outline">{DOI_TUONG_HOC_VIEN_LABEL[lop.doi_tuong_hoc_vien]}</Badge>
           ) : null}
+          <Badge variant="outline">{lop.co_kinh_phi ? "Có kinh phí" : "Không kinh phí"}</Badge>
           <Badge variant={TRANG_THAI_LOP_BADGE[trangThaiThucTe]}>
             {TRANG_THAI_LOP_LABEL[trangThaiThucTe]}
           </Badge>
@@ -116,11 +123,15 @@ export default async function LopHocDetailPage({
           </dd>
           <dt className="text-muted-foreground">Chỉ định giảng viên</dt>
           <dd className="col-span-1 sm:col-span-2">
-            {lop.giang_vien_chi_dinh_id ? (nguoiMap.get(lop.giang_vien_chi_dinh_id) ?? "—") : "—"}
+            {lop.giang_vien_chi_dinh_ids && lop.giang_vien_chi_dinh_ids.length > 0
+              ? lop.giang_vien_chi_dinh_ids.map((gvId) => nguoiMap.get(gvId) ?? "—").join(", ")
+              : "—"}
           </dd>
           <dt className="text-muted-foreground">Chỉ định trợ giảng</dt>
           <dd className="col-span-1 sm:col-span-2">
-            {lop.tro_giang_chi_dinh_id ? (nguoiMap.get(lop.tro_giang_chi_dinh_id) ?? "—") : "—"}
+            {lop.tro_giang_chi_dinh_ids && lop.tro_giang_chi_dinh_ids.length > 0
+              ? lop.tro_giang_chi_dinh_ids.map((tgId) => nguoiMap.get(tgId) ?? "—").join(", ")
+              : "—"}
           </dd>
           {lop.nhom_giang_vien_phu_hop && lop.nhom_giang_vien_phu_hop.length > 0 ? (
             <>
@@ -164,13 +175,13 @@ export default async function LopHocDetailPage({
                   {buoiGiang?.length ?? 0} buổi giảng
                 </h2>
                 {canManage ? (
-                  <BuoiGiangDialog lopHocId={lop.id} profiles={profiles ?? []} />
+                  <BuoiGiangDialog lopHocId={lop.id} profiles={profiles} />
                 ) : null}
               </div>
               <BuoiGiangList
                 lopHocId={lop.id}
                 items={buoiGiang ?? []}
-                profiles={profiles ?? []}
+                profiles={profiles}
                 canEdit={canManage}
               />
             </div>
@@ -181,14 +192,14 @@ export default async function LopHocDetailPage({
                   {baiGiang?.length ?? 0} bài giảng
                 </h2>
                 {canManage ? (
-                  <BaiGiangDialog lopHocId={lop.id} profiles={profiles ?? []} />
+                  <BaiGiangDialog lopHocId={lop.id} profiles={profiles} />
                 ) : null}
               </div>
               <BaiGiangList
                 lopHocId={lop.id}
                 items={baiGiang ?? []}
                 buoiList={buoiGiang ?? []}
-                profiles={profiles ?? []}
+                profiles={profiles}
                 canEdit={canManage}
               />
             </div>

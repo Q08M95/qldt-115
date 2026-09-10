@@ -24,7 +24,7 @@ export default async function LopHocPage({
   searchParams: Promise<{ q?: string; loai?: string; doi_tuong?: string }>;
 }) {
   const { q, loai, doi_tuong } = await searchParams;
-  const loaiSelected = loai ? loai.split(",").filter((v) => (LOAI_LOP_VALUES as readonly string[]).includes(v)) : [];
+  const loaiSelected = loai && (LOAI_LOP_VALUES as readonly string[]).includes(loai) ? loai : "all";
   const current = await getCurrentProfile();
   const canManage = current?.role === "admin" || current?.role === "quan_ly_dao_tao";
 
@@ -33,21 +33,23 @@ export default async function LopHocPage({
   let query = supabase
     .from("lop_hoc")
     .select(
-      "id, ten_lop, loai_lop, doi_tuong_hoc_vien, trang_thai, ngay_khai_giang, ngay_ket_thuc, co_kinh_phi, la_lop_gap, la_lop_cong_dong, mo_dang_ky, so_giang_vien_can, so_tro_giang_can, giang_vien_chi_dinh_id, tro_giang_chi_dinh_id",
+      "id, ten_lop, loai_lop, doi_tuong_hoc_vien, trang_thai, ngay_khai_giang, ngay_ket_thuc, co_kinh_phi, la_lop_gap, la_lop_cong_dong, mo_dang_ky, so_giang_vien_can, so_tro_giang_can, giang_vien_chi_dinh_ids, tro_giang_chi_dinh_ids",
     )
     .order("ngay_khai_giang", { ascending: true, nullsFirst: false });
 
   if (q) query = query.ilike("ten_lop", `%${q}%`);
-  if (loaiSelected.length > 0) query = query.in("loai_lop", loaiSelected);
+  if (loaiSelected !== "all") query = query.eq("loai_lop", loaiSelected);
   if (doi_tuong && (DOI_TUONG_HOC_VIEN_VALUES as readonly string[]).includes(doi_tuong)) {
     query = query.eq("doi_tuong_hoc_vien", doi_tuong as (typeof DOI_TUONG_HOC_VIEN_VALUES)[number]);
   }
 
   const { data: lopHocList } = await query;
 
+  // nhom_phan_loai chi dung cho AddClassDialog (canManage-gated) — an toan
+  // vi day la noi tieu thu duy nhat cua `profiles` tren trang nay.
   const { data: profiles } = await supabase
     .from("profiles")
-    .select("id, full_name, role")
+    .select("id, full_name, role, nhom_phan_loai")
     .eq("trang_thai_hoat_dong", true)
     .order("full_name");
 

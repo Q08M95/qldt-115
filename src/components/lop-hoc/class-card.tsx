@@ -23,8 +23,8 @@ export type ClassCardData = {
   mo_dang_ky: boolean;
   so_giang_vien_can: number;
   so_tro_giang_can: number;
-  giang_vien_chi_dinh_id: string | null;
-  tro_giang_chi_dinh_id: string | null;
+  giang_vien_chi_dinh_ids: string[] | null;
+  tro_giang_chi_dinh_ids: string[] | null;
 };
 
 // Da bo thiet ke dai mau thumbnail theo loai lop (yeu cau nguoi dung
@@ -37,7 +37,9 @@ export function ClassCard({
   lop: ClassCardData;
   nguoiMap: Map<string, string>;
 }) {
-  const coChiDinh = lop.giang_vien_chi_dinh_id || lop.tro_giang_chi_dinh_id;
+  const gvNames = (lop.giang_vien_chi_dinh_ids ?? []).map((id) => nguoiMap.get(id) ?? "—");
+  const tgNames = (lop.tro_giang_chi_dinh_ids ?? []).map((id) => nguoiMap.get(id) ?? "—");
+  const coChiDinh = gvNames.length > 0 || tgNames.length > 0;
 
   return (
     <div className="flex flex-col overflow-hidden rounded-xl bg-card text-sm text-card-foreground ring-1 ring-foreground/10 transition-shadow hover:shadow-md">
@@ -84,13 +86,9 @@ export function ClassCard({
             <div className="flex items-start gap-2 text-muted-foreground">
               <UserCheck className="h-4 w-4 shrink-0" />
               <span>
-                {lop.giang_vien_chi_dinh_id
-                  ? `GV: ${nguoiMap.get(lop.giang_vien_chi_dinh_id) ?? "—"}`
-                  : null}
-                {lop.giang_vien_chi_dinh_id && lop.tro_giang_chi_dinh_id ? " · " : ""}
-                {lop.tro_giang_chi_dinh_id
-                  ? `TG: ${nguoiMap.get(lop.tro_giang_chi_dinh_id) ?? "—"}`
-                  : null}
+                {gvNames.length > 0 ? `GV: ${gvNames.join(", ")}` : null}
+                {gvNames.length > 0 && tgNames.length > 0 ? " · " : ""}
+                {tgNames.length > 0 ? `TG: ${tgNames.join(", ")}` : null}
               </span>
             </div>
           ) : null}

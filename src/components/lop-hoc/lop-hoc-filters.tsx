@@ -4,7 +4,6 @@ import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import { Loader2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import {
   Select,
   SelectContent,
@@ -19,19 +18,23 @@ const DOI_TUONG_FILTER_LABEL: Record<string, string> = {
   ...DOI_TUONG_HOC_VIEN_LABEL,
 };
 
+const LOAI_LOP_FILTER_LABEL: Record<string, string> = {
+  all: "Tất cả loại lớp",
+  ...Object.fromEntries(LOAI_LOP_VALUES.map((v) => [v, v])),
+};
+
 // Bo filter "Trang thai" — danh sach lop hoc gio da nhom san theo 3 cot
 // trang thai (xem lop-hoc/page.tsx), filter rieng se trung lap. "Loai lop"
-// dung dang toggle (chon duoc nhieu) thay vi Select 1 gia tri, vi cac loai
-// lop khong loai tru nhau khi xem tong quan. Da thu gon thanh dropdown 1
-// lan (2026-09-10) nhung nguoi dung thay khong on nen quay lai dang chip
-// don gian nay — cho doi giao dien tham khao rieng truoc khi chinh lai.
+// dung Select 1 gia tri, cung kieu voi "Doi tuong" (theo yeu cau nguoi dung
+// 2026-09-10 — truoc do thu qua toggle chip roi dropdown checkbox, ca 2 deu
+// bi phan hoi khong on, quay ve dang Select don gian nhu "Doi tuong").
 export function LopHocFilters({
   q,
   loai,
   doiTuong,
 }: {
   q: string;
-  loai: string[];
+  loai: string;
   doiTuong: string;
 }) {
   const router = useRouter();
@@ -53,14 +56,6 @@ export function LopHocFilters({
     pushParams(params);
   }
 
-  function toggleLoai(value: string) {
-    const params = new URLSearchParams(searchParams.toString());
-    const next = loai.includes(value) ? loai.filter((v) => v !== value) : [...loai, value];
-    if (next.length > 0) params.set("loai", next.join(","));
-    else params.delete("loai");
-    pushParams(params);
-  }
-
   useEffect(() => {
     if (searchTerm === q) return;
     const timeout = setTimeout(() => updateParam("q", searchTerm), 400);
@@ -69,69 +64,58 @@ export function LopHocFilters({
   }, [searchTerm]);
 
   return (
-    <div className="flex flex-col gap-3">
-      <div
-        className="flex flex-wrap items-end gap-2 transition-opacity"
-        style={{ opacity: isPending ? 0.6 : 1 }}
-        aria-busy={isPending}
-      >
-        <div className="flex flex-col gap-1">
-          <label className="text-xs text-muted-foreground" htmlFor="q">
-            Tìm theo tên
-          </label>
-          <Input
-            id="q"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            placeholder="Nhập tên lớp..."
-            className="w-56"
-          />
-        </div>
-        <div className="flex flex-col gap-1">
-          <label className="text-xs text-muted-foreground" htmlFor="doi_tuong">
-            Đối tượng
-          </label>
-          <Select value={doiTuong} onValueChange={(value) => updateParam("doi_tuong", value)}>
-            <SelectTrigger id="doi_tuong" className="w-44">
-              <SelectValue>{(value: string) => DOI_TUONG_FILTER_LABEL[value] ?? value}</SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {Object.entries(DOI_TUONG_FILTER_LABEL).map(([value, label]) => (
-                <SelectItem key={value} value={value}>
-                  {label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-        {isPending ? <Loader2 className="mb-2 h-4 w-4 animate-spin text-muted-foreground" /> : null}
+    <div
+      className="flex flex-wrap items-end gap-2 transition-opacity"
+      style={{ opacity: isPending ? 0.6 : 1 }}
+      aria-busy={isPending}
+    >
+      <div className="flex flex-col gap-1">
+        <label className="text-xs text-muted-foreground" htmlFor="q">
+          Tìm theo tên
+        </label>
+        <Input
+          id="q"
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          placeholder="Nhập tên lớp..."
+          className="w-56"
+        />
       </div>
-
-      <div className="flex flex-wrap items-center gap-1.5">
-        <span className="text-xs text-muted-foreground">Loại lớp:</span>
-        {LOAI_LOP_VALUES.map((v) => {
-          const active = loai.includes(v);
-          return (
-            <Badge
-              key={v}
-              variant={active ? "default" : "outline"}
-              className="cursor-pointer select-none"
-              role="button"
-              tabIndex={0}
-              aria-pressed={active}
-              onClick={() => toggleLoai(v)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  toggleLoai(v);
-                }
-              }}
-            >
-              {v}
-            </Badge>
-          );
-        })}
+      <div className="flex flex-col gap-1">
+        <label className="text-xs text-muted-foreground" htmlFor="loai_lop">
+          Loại lớp
+        </label>
+        <Select value={loai} onValueChange={(value) => updateParam("loai", value)}>
+          <SelectTrigger id="loai_lop" className="w-44">
+            <SelectValue>{(value: string) => LOAI_LOP_FILTER_LABEL[value] ?? value}</SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            {Object.entries(LOAI_LOP_FILTER_LABEL).map(([value, label]) => (
+              <SelectItem key={value} value={value}>
+                {label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
       </div>
+      <div className="flex flex-col gap-1">
+        <label className="text-xs text-muted-foreground" htmlFor="doi_tuong">
+          Đối tượng
+        </label>
+        <Select value={doiTuong} onValueChange={(value) => updateParam("doi_tuong", value)}>
+          <SelectTrigger id="doi_tuong" className="w-44">
+            <SelectValue>{(value: string) => DOI_TUONG_FILTER_LABEL[value] ?? value}</SelectValue>
+          </SelectTrigger>
+          <SelectContent>
+            {Object.entries(DOI_TUONG_FILTER_LABEL).map(([value, label]) => (
+              <SelectItem key={value} value={value}>
+                {label}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      {isPending ? <Loader2 className="mb-2 h-4 w-4 animate-spin text-muted-foreground" /> : null}
     </div>
   );
 }
