@@ -21,21 +21,21 @@
 -- =====================================================================
 
 -- ---------------------------------------------------------------------
--- 1. Trạng thái lớp: remap dữ liệu cũ trước khi đổi constraint.
+-- 1. Trạng thái lớp: phải BỎ constraint cũ truoc, roi moi duoc phep ghi
+-- gia tri 'chua_mo' (constraint cu chua cho phep gia tri nay).
 -- ---------------------------------------------------------------------
+alter table public.lop_hoc drop constraint if exists lop_hoc_trang_thai_check;
+
 update public.lop_hoc set trang_thai = case
   when ngay_ket_thuc is not null and ngay_ket_thuc < current_date then 'hoan_thanh'
   when ngay_khai_giang is not null and ngay_khai_giang <= current_date then 'dang_dien_ra'
-  else 'cho_khai_giang'
+  else 'chua_mo'
 end
-where trang_thai in ('thieu_nhan_su', 'huy');
+where trang_thai in ('thieu_nhan_su', 'huy', 'cho_khai_giang');
 
 alter table public.lop_hoc alter column trang_thai drop default;
 alter table public.lop_hoc alter column trang_thai set default 'chua_mo';
 
-update public.lop_hoc set trang_thai = 'chua_mo' where trang_thai = 'cho_khai_giang';
-
-alter table public.lop_hoc drop constraint if exists lop_hoc_trang_thai_check;
 alter table public.lop_hoc
   add constraint lop_hoc_trang_thai_check
   check (trang_thai in ('chua_mo', 'dang_dien_ra', 'hoan_thanh'));
