@@ -11,6 +11,9 @@ const optionalId = z
   .nullish()
   .transform((v) => (v && v !== "none" ? v : null));
 
+// buoi_giang_id KHONG nam trong schema/form nay — gan buoi lam qua action
+// rieng setBuoiGiang (inline select tren dong bang), de tranh viec sua cac
+// truong khac trong dialog vo tinh ghi de/xoa mat buoi da gan.
 const baiGiangSchema = z.object({
   ten_bai: z.string().trim().min(1, "Vui lòng nhập tên bài giảng"),
   chuyen_de: z
@@ -20,7 +23,6 @@ const baiGiangSchema = z.object({
     .transform((v) => v || null),
   // So tiet cho phep < 1 (vd 0.5) — theo yeu cau nguoi dung 2026-09-10.
   thoi_luong_tiet: z.coerce.number().positive("Số tiết phải lớn hơn 0"),
-  buoi_giang_id: optionalId,
   mo_dang_ky: z.preprocess((v) => v === "on" || v === true, z.boolean()),
   giang_vien_chi_dinh_id: optionalId,
   tro_giang_chi_dinh_id: optionalId,
@@ -31,7 +33,6 @@ function readFields(formData: FormData) {
     ten_bai: formData.get("ten_bai"),
     chuyen_de: formData.get("chuyen_de"),
     thoi_luong_tiet: formData.get("thoi_luong_tiet"),
-    buoi_giang_id: formData.get("buoi_giang_id"),
     mo_dang_ky: formData.get("mo_dang_ky"),
     giang_vien_chi_dinh_id: formData.get("giang_vien_chi_dinh_id"),
     tro_giang_chi_dinh_id: formData.get("tro_giang_chi_dinh_id"),
@@ -101,6 +102,28 @@ export async function deleteBaiGiang(
 
   const supabase = await createClient();
   const { error } = await supabase.from("bai_giang").delete().eq("id", id);
+  if (error) return { error: error.message };
+
+  revalidatePath(`/lop-hoc/${lopHocId}`);
+  return {};
+}
+
+// Gan/bo gan 1 bai giang vao 1 buoi giang — sua ngay tren dong bang (inline
+// select trong BaiGiangList), khong can mo dialog vi day thuan tuy la thao
+// tac phan loai/sap xep, khong lien quan cac truong khac cua bai giang.
+export async function setBuoiGiang(
+  id: string,
+  lopHocId: string,
+  buoiGiangId: string | null,
+): Promise<{ error?: string }> {
+  const denied = await requireQuanLy();
+  if (denied) return denied;
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("bai_giang")
+    .update({ buoi_giang_id: buoiGiangId })
+    .eq("id", id);
   if (error) return { error: error.message };
 
   revalidatePath(`/lop-hoc/${lopHocId}`);

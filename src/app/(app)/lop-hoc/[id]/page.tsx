@@ -181,7 +181,7 @@ export default async function LopHocDetailPage({
                   {baiGiang?.length ?? 0} bài giảng
                 </h2>
                 {canManage ? (
-                  <BaiGiangDialog lopHocId={lop.id} buoiList={buoiGiang ?? []} profiles={profiles ?? []} />
+                  <BaiGiangDialog lopHocId={lop.id} profiles={profiles ?? []} />
                 ) : null}
               </div>
               <BaiGiangList

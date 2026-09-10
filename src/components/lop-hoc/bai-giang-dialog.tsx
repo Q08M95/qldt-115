@@ -23,7 +23,6 @@ import {
 } from "@/components/ui/select";
 import { createBaiGiang, updateBaiGiang } from "@/app/(app)/lop-hoc/[id]/bai-giang-actions";
 import type { ClassFormProfile } from "./class-form-fields";
-import type { BuoiGiang } from "./buoi-giang-dialog";
 
 export type BaiGiang = {
   id: string;
@@ -77,12 +76,10 @@ function NguoiSelect({
 export function BaiGiangDialog({
   lopHocId,
   baiGiang,
-  buoiList,
   profiles,
 }: {
   lopHocId: string;
   baiGiang?: BaiGiang;
-  buoiList: BuoiGiang[];
   profiles: ClassFormProfile[];
 }) {
   const mode = baiGiang ? "edit" : "create";
@@ -153,29 +150,6 @@ export function BaiGiangDialog({
                 required
               />
             </div>
-          </div>
-
-          <div className="flex flex-col gap-2">
-            <Label htmlFor="buoi_giang_id">Buổi giảng</Label>
-            <Select name="buoi_giang_id" defaultValue={baiGiang?.buoi_giang_id ?? "none"}>
-              <SelectTrigger id="buoi_giang_id">
-                <SelectValue>
-                  {(value: string) =>
-                    value === "none"
-                      ? "Chưa gom buổi"
-                      : (buoiList.find((b) => b.id === value)?.ten_buoi ?? "Chưa gom buổi")
-                  }
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Chưa gom buổi</SelectItem>
-                {buoiList.map((b) => (
-                  <SelectItem key={b.id} value={b.id}>
-                    {b.ten_buoi}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
           </div>
 
           <label className="flex items-center gap-2 text-sm font-normal">

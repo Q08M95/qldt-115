@@ -21,11 +21,22 @@ import {
 import { CSS } from "@dnd-kit/utilities";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { EmptyState } from "@/components/ui/empty-state";
 import { BaiGiangDialog, type BaiGiang } from "./bai-giang-dialog";
 import type { BuoiGiang } from "./buoi-giang-dialog";
 import type { ClassFormProfile } from "./class-form-fields";
-import { deleteBaiGiang, reorderBaiGiang } from "@/app/(app)/lop-hoc/[id]/bai-giang-actions";
+import {
+  deleteBaiGiang,
+  reorderBaiGiang,
+  setBuoiGiang,
+} from "@/app/(app)/lop-hoc/[id]/bai-giang-actions";
 
 export function BaiGiangList({
   lopHocId,
@@ -63,6 +74,20 @@ export function BaiGiangList({
         toast.error(result.error);
       } else {
         toast.success("Đã xoá bài giảng");
+      }
+    });
+  }
+
+  // Gan buoi ngay tren dong bang (khong can mo dialog) — cap nhat lac quan
+  // roi doi server xac nhan, revert neu loi.
+  function handleSetBuoi(id: string, buoiGiangId: string | null) {
+    const truoc = ordered;
+    setOrdered((cur) => cur.map((b) => (b.id === id ? { ...b, buoi_giang_id: buoiGiangId } : b)));
+    startTransition(async () => {
+      const result = await setBuoiGiang(id, lopHocId, buoiGiangId);
+      if (result?.error) {
+        toast.error(result.error);
+        setOrdered(truoc);
       }
     });
   }
@@ -132,10 +157,10 @@ export function BaiGiangList({
                     lopHocId={lopHocId}
                     buoiList={buoiList}
                     profiles={profiles}
-                    buoiTen={buoiList.find((buoi) => buoi.id === b.buoi_giang_id)?.ten_buoi}
                     canEdit={canEdit}
                     isPending={isPending}
                     onDelete={handleDelete}
+                    onSetBuoi={handleSetBuoi}
                   />
                 ))}
               </TableBody>
@@ -155,23 +180,24 @@ function SortableBaiGiangRow({
   lopHocId,
   buoiList,
   profiles,
-  buoiTen,
   canEdit,
   isPending,
   onDelete,
+  onSetBuoi,
 }: {
   baiGiang: BaiGiang;
   lopHocId: string;
   buoiList: BuoiGiang[];
   profiles: ClassFormProfile[];
-  buoiTen?: string;
   canEdit: boolean;
   isPending: boolean;
   onDelete: (id: string) => void;
+  onSetBuoi: (id: string, buoiGiangId: string | null) => void;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: baiGiang.id,
   });
+  const buoiTen = buoiList.find((buoi) => buoi.id === baiGiang.buoi_giang_id)?.ten_buoi;
 
   return (
     <TableRow
@@ -186,11 +212,38 @@ function SortableBaiGiangRow({
       ) : null}
       <TableCell className="font-medium">{baiGiang.ten_bai}</TableCell>
       <TableCell className="hidden md:table-cell">{baiGiang.chuyen_de ?? "—"}</TableCell>
-      <TableCell className="hidden md:table-cell">{buoiTen ?? "—"}</TableCell>
+      <TableCell className="hidden md:table-cell">
+        {canEdit ? (
+          <Select
+            value={baiGiang.buoi_giang_id ?? "none"}
+            onValueChange={(value) => onSetBuoi(baiGiang.id, value === "none" ? null : value)}
+          >
+            <SelectTrigger className="h-8 w-40">
+              <SelectValue>
+                {(value: string) =>
+                  value === "none"
+                    ? "Chưa gom buổi"
+                    : (buoiList.find((b) => b.id === value)?.ten_buoi ?? "Chưa gom buổi")
+                }
+              </SelectValue>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">Chưa gom buổi</SelectItem>
+              {buoiList.map((b) => (
+                <SelectItem key={b.id} value={b.id}>
+                  {b.ten_buoi}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        ) : (
+          (buoiTen ?? "—")
+        )}
+      </TableCell>
       <TableCell>{baiGiang.thoi_luong_tiet}</TableCell>
       {canEdit ? (
         <TableCell className="flex justify-end gap-2">
-          <BaiGiangDialog lopHocId={lopHocId} baiGiang={baiGiang} buoiList={buoiList} profiles={profiles} />
+          <BaiGiangDialog lopHocId={lopHocId} baiGiang={baiGiang} profiles={profiles} />
           <Button size="sm" variant="ghost" disabled={isPending} onClick={() => onDelete(baiGiang.id)}>
             Xoá
           </Button>
