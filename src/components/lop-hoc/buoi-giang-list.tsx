@@ -32,11 +32,15 @@ export function BuoiGiangList({
   items,
   profiles,
   canEdit,
+  baiCountByBuoi,
 }: {
   lopHocId: string;
   items: BuoiGiang[];
   profiles: ClassFormProfile[];
   canEdit: boolean;
+  // So bai giang thuoc tung buoi — dung de chan "Mo dang ky" cap buoi khi
+  // buoi chua co bai nao (xem buoi-giang-dialog.tsx).
+  baiCountByBuoi: Map<string, number>;
 }) {
   const [ordered, setOrdered] = useState(items);
   const [prevItems, setPrevItems] = useState(items);
@@ -123,6 +127,7 @@ export function BuoiGiangList({
                   canEdit={canEdit}
                   isPending={isPending}
                   onDelete={handleDelete}
+                  soBaiGiang={baiCountByBuoi.get(b.id) ?? 0}
                 />
               ))}
             </TableBody>
@@ -141,6 +146,7 @@ function SortableBuoiGiangRow({
   canEdit,
   isPending,
   onDelete,
+  soBaiGiang,
 }: {
   buoiGiang: BuoiGiang;
   lopHocId: string;
@@ -149,6 +155,7 @@ function SortableBuoiGiangRow({
   canEdit: boolean;
   isPending: boolean;
   onDelete: (id: string) => void;
+  soBaiGiang: number;
 }) {
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
     id: buoiGiang.id,
@@ -184,7 +191,12 @@ function SortableBuoiGiangRow({
       </TableCell>
       {canEdit ? (
         <TableCell className="flex justify-end gap-2">
-          <BuoiGiangDialog lopHocId={lopHocId} buoiGiang={buoiGiang} profiles={profiles} />
+          <BuoiGiangDialog
+            lopHocId={lopHocId}
+            buoiGiang={buoiGiang}
+            profiles={profiles}
+            soBaiGiang={soBaiGiang}
+          />
           <Button size="sm" variant="ghost" disabled={isPending} onClick={() => onDelete(buoiGiang.id)}>
             Xoá
           </Button>

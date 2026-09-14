@@ -181,6 +181,7 @@ export function ClassFormFields({
   defaults,
   profiles,
   onDirty,
+  soBaiGiang = 0,
 }: {
   defaults?: ClassFormDefaults;
   profiles: ClassFormProfile[];
@@ -188,6 +189,12 @@ export function ClassFormFields({
   // Select/checkbox) — dung cho canvas tu luu o trang chi tiet lop, khong
   // dung khi component nay chi dung trong dialog tao lop (khong truyen prop).
   onDirty?: () => void;
+  // So bai giang hien co cua lop — dung de chan "Mo dang ky" khi chua co noi
+  // dung (yeu cau nguoi dung 2026-09-14: "co noi dung thi moi mo dang ky").
+  // Mac dinh 0 vi QuickCreateClassDialog khong dung component nay nen khong
+  // can truyen (lop moi tao luon chua co bai giang, checkbox mo dang ky
+  // cung khong hien o dialog do).
+  soBaiGiang?: number;
 }) {
   const giangVienOptions = profiles.filter((p) => p.role === "giang_vien");
   const troGiangOptions = profiles.filter((p) => p.role === "tro_giang");
@@ -202,6 +209,7 @@ export function ClassFormFields({
   );
   const [chiDinhGV, setChiDinhGV] = useState<string[]>(defaults?.giang_vien_chi_dinh_ids ?? []);
   const [chiDinhTG, setChiDinhTG] = useState<string[]>(defaults?.tro_giang_chi_dinh_ids ?? []);
+  const [moDangKy, setMoDangKy] = useState(defaults?.mo_dang_ky ?? false);
 
   // Ung vien chi dinh = dung nhom phu hop da chon (neu co); luon giu lai
   // nguoi da duoc chon san du khong con thuoc nhom, de khong lam mat lua
@@ -356,12 +364,26 @@ export function ClassFormFields({
         <input
           type="checkbox"
           name="mo_dang_ky"
-          defaultChecked={defaults?.mo_dang_ky ?? false}
-          onChange={() => onDirty?.()}
+          checked={moDangKy}
+          disabled={!moDangKy && soBaiGiang === 0}
+          onChange={(e) => {
+            setMoDangKy(e.target.checked);
+            onDirty?.();
+          }}
           className="h-4 w-4"
         />
         Mở đăng ký — cho phép nhân sự tự đăng ký dạy lớp này
       </label>
+      {!moDangKy && soBaiGiang === 0 ? (
+        <p className="text-xs text-muted-foreground">
+          Cần thêm ít nhất 1 bài giảng trước khi mở đăng ký.
+        </p>
+      ) : null}
+      {moDangKy && soBaiGiang === 0 ? (
+        <p className="text-xs text-data-canh-bao" role="alert">
+          Lớp đang mở đăng ký nhưng không còn bài giảng nào — nên tắt hoặc thêm lại nội dung.
+        </p>
+      ) : null}
 
       <div className="grid grid-cols-2 gap-4">
         <NhomCheckboxGroup

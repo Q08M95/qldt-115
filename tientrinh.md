@@ -445,6 +445,10 @@ create table audit_log (
 > - **Đăng ký & Duyệt / Lịch giảng**: nội dung y hệt trước, chỉ đổi từ `TabsContent` sang `<section>` luôn hiện; thêm badge đếm số "chờ duyệt" ngay cạnh tiêu đề mục (chỉ hiện với admin/quản lý) để không cần cuộn xuống mới biết có việc cần làm.
 > - Đã `npm run build` + `npm run lint` sạch sau khi đổi.
 
+> **Quy tắc "có nội dung thì mới mở đăng ký" 2026-09-14 (không đổi schema), theo yêu cầu người dùng**: người dùng xác nhận trình tự bắt buộc — thiết lập buổi/bài xong mới được bật `mo_dang_ký`, không cho bật khi chưa có nội dung. Áp dụng ở cả cấp **lớp** (cần ≥1 `bai_giang` bất kỳ) và cấp **buổi** (cần ≥1 `bai_giang` gán vào đúng buổi đó) — cấp bài không áp dụng (bài giảng tự nó đã là nội dung). 2 lớp bảo vệ:
+> - UI: checkbox "Mở đăng ký" (`class-form-fields.tsx`, `buoi-giang-dialog.tsx`) chuyển sang **controlled**, `disabled` khi đang tắt và chưa có bài — chặn bật từ đầu thay vì chờ lưu rồi báo lỗi. Riêng chiều tắt luôn cho phép (kể cả khi lớp/buổi lỡ đang mở mà bị xoá hết bài sau đó — trường hợp này hiện cảnh báo màu cam thay vì tự động tắt hộ, để quản lý tự quyết).
+> - Server: `updateLopHoc`/`updateBuoiGiang` kiểm tra lại số `bai_giang` trước khi cho `mo_dang_ky = true`, trả lỗi rõ ràng nếu bằng 0 — lớp bảo vệ thứ 2 phòng khi request không qua UI chuẩn. Không dùng trigger/CHECK constraint ở DB vì đây là quy tắc nghiệp vụ (giống các validate khác trong Server Action, vd `thoi_luong_tiet > 0`), không phải ranh giới phân quyền giữa các vai trò — không cần RLS.
+
 ### 1.3. Trigger & function nền tảng
 1. Trigger tự tạo `profiles` khi có `auth.users` mới đăng ký (role mặc định thấp nhất, admin nâng quyền thủ công sau).
 2. Trigger `updated_at` tự cập nhật cho các bảng có cột này.

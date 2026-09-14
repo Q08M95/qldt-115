@@ -96,6 +96,15 @@ export default async function LopHocDetailPage({
   const coTheDangKy = coTheTuDangKy(lop, current);
   const soChoDuyet = (dangKyList ?? []).filter((d) => d.trang_thai === "cho_duyet").length;
 
+  // Dung de chan "Mo dang ky" khi chua co noi dung (yeu cau nguoi dung
+  // 2026-09-14: "co noi dung thi moi mo dang ky") — xem class-form-fields.tsx
+  // (cap lop) va buoi-giang-dialog.tsx (cap buoi).
+  const baiCountByBuoi = new Map<string, number>();
+  for (const b of baiGiang ?? []) {
+    if (!b.buoi_giang_id) continue;
+    baiCountByBuoi.set(b.buoi_giang_id, (baiCountByBuoi.get(b.buoi_giang_id) ?? 0) + 1);
+  }
+
   return (
     <>
       <PageHeader
@@ -132,6 +141,7 @@ export default async function LopHocDetailPage({
               tro_giang_chi_dinh_ids: lop.tro_giang_chi_dinh_ids,
             }}
             profiles={profilesForAssign}
+            soBaiGiang={baiGiang?.length ?? 0}
           />
         ) : (
           <dl className="grid max-w-2xl grid-cols-2 gap-x-4 gap-y-2 text-sm sm:grid-cols-3">
@@ -205,6 +215,7 @@ export default async function LopHocDetailPage({
               items={buoiGiang ?? []}
               profiles={profiles}
               canEdit={canManage}
+              baiCountByBuoi={baiCountByBuoi}
             />
           </div>
 

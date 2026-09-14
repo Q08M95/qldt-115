@@ -79,6 +79,19 @@ export async function updateBuoiGiang(
   if (!parsed.success) return { error: parsed.error.issues[0]?.message ?? "Dữ liệu không hợp lệ" };
 
   const supabase = await createClient();
+
+  // "Co noi dung thi moi mo dang ky" (yeu cau nguoi dung 2026-09-14) — kiem
+  // tra lai o server (UI da disable checkbox, day la lop bao ve thu 2).
+  if (parsed.data.mo_dang_ky) {
+    const { count } = await supabase
+      .from("bai_giang")
+      .select("id", { count: "exact", head: true })
+      .eq("buoi_giang_id", id);
+    if (!count) {
+      return { error: "Buổi chưa có bài giảng nào — thêm nội dung trước khi mở đăng ký" };
+    }
+  }
+
   const { error } = await supabase.from("buoi_giang").update(parsed.data).eq("id", id);
   if (error) return { error: error.message };
 

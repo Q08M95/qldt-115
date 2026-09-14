@@ -78,14 +78,19 @@ export function BuoiGiangDialog({
   lopHocId,
   buoiGiang,
   profiles,
+  soBaiGiang,
 }: {
   lopHocId: string;
   buoiGiang: BuoiGiang;
   profiles: ClassFormProfile[];
+  // So bai giang thuoc buoi nay — chan "Mo dang ky" khi bang 0 (yeu cau
+  // nguoi dung 2026-09-14: "co noi dung thi moi mo dang ky").
+  soBaiGiang: number;
 }) {
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
+  const [moDangKy, setMoDangKy] = useState(buoiGiang.mo_dang_ky);
   const giangVienOptions = profiles.filter((p) => p.role === "giang_vien");
   const troGiangOptions = profiles.filter((p) => p.role === "tro_giang");
 
@@ -104,7 +109,10 @@ export function BuoiGiangDialog({
 
   function handleOpenChange(next: boolean) {
     setOpen(next);
-    if (next) setError(null);
+    if (next) {
+      setError(null);
+      setMoDangKy(buoiGiang.mo_dang_ky);
+    }
   }
 
   return (
@@ -149,11 +157,23 @@ export function BuoiGiangDialog({
             <input
               type="checkbox"
               name="mo_dang_ky"
-              defaultChecked={buoiGiang.mo_dang_ky}
+              checked={moDangKy}
+              disabled={!moDangKy && soBaiGiang === 0}
+              onChange={(e) => setMoDangKy(e.target.checked)}
               className="h-4 w-4"
             />
             Mở đăng ký cho buổi này
           </label>
+          {!moDangKy && soBaiGiang === 0 ? (
+            <p className="text-xs text-muted-foreground">
+              Cần thêm ít nhất 1 bài giảng vào buổi này trước khi mở đăng ký.
+            </p>
+          ) : null}
+          {moDangKy && soBaiGiang === 0 ? (
+            <p className="text-xs text-data-canh-bao" role="alert">
+              Buổi đang mở đăng ký nhưng không còn bài giảng nào — nên tắt hoặc gán lại bài.
+            </p>
+          ) : null}
           <div className="grid grid-cols-2 gap-4">
             <NguoiSelect
               name="giang_vien_chi_dinh_id"

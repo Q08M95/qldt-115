@@ -33,10 +33,12 @@ export function LopInfoAutosaveForm({
   lopHocId,
   defaults,
   profiles,
+  soBaiGiang,
 }: {
   lopHocId: string;
   defaults: ClassFormDefaults;
   profiles: ClassFormProfile[];
+  soBaiGiang: number;
 }) {
   const formRef = useRef<HTMLFormElement>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -76,7 +78,12 @@ export function LopInfoAutosaveForm({
         onSubmit={(e) => e.preventDefault()}
         className="flex flex-col gap-4"
       >
-        <ClassFormFields defaults={defaults} profiles={profiles} onDirty={scheduleSave} />
+        <ClassFormFields
+          defaults={defaults}
+          profiles={profiles}
+          onDirty={scheduleSave}
+          soBaiGiang={soBaiGiang}
+        />
       </form>
     </div>
   );
