@@ -9,11 +9,14 @@ import { BaiGiangList } from "@/components/lop-hoc/bai-giang-list";
 import { BaiGiangDialog } from "@/components/lop-hoc/bai-giang-dialog";
 import { BuoiGiangList } from "@/components/lop-hoc/buoi-giang-list";
 import { BuoiGiangDialog } from "@/components/lop-hoc/buoi-giang-dialog";
+import { DangKyDialog } from "@/components/lop-hoc/dang-ky-dialog";
+import { DangKyList } from "@/components/lop-hoc/dang-ky-list";
 import { getCurrentProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { TRANG_THAI_LOP_LABEL, TRANG_THAI_LOP_BADGE, DOI_TUONG_HOC_VIEN_LABEL } from "@/lib/constants/lop-hoc";
 import { NHOM_PHAN_LOAI_LABEL } from "@/lib/constants/nhan-su";
 import { dongBoTrangThaiLop } from "@/lib/lop-hoc/trang-thai";
+import { coTheTuDangKy } from "@/lib/lop-hoc/dang-ky";
 
 export default async function LopHocDetailPage({
   params,
@@ -25,7 +28,7 @@ export default async function LopHocDetailPage({
   const canManage = current?.role === "admin" || current?.role === "quan_ly_dao_tao";
 
   const supabase = await createClient();
-  const [{ data: lop }, { data: baiGiang }, { data: buoiGiang }, { data: profilesRaw }] =
+  const [{ data: lop }, { data: baiGiang }, { data: buoiGiang }, { data: profilesRaw }, { data: dangKyList }] =
     await Promise.all([
       supabase.from("lop_hoc").select("*").eq("id", id).single(),
       supabase
@@ -45,20 +48,47 @@ export default async function LopHocDetailPage({
       // nhom_phan_loai chi danh cho admin/quan_ly (xem khoi tao profiles ben
       // duoi) — luon fetch chung 1 lan cho gon, nhung KHONG dua thang bien co
       // truong nay vao props cua component khong duoc gate boi canManage, de
-      // tranh lo du lieu noi bo ra client cua giang vien/tro giang.
+      // tranh lo du lieu noi bo ra client cua giang vien/tro giang. hoc_vi/
+      // chuc_danh/chuyen_mon khong nhay cam (da hien cong khai o /nhan-su).
       supabase
         .from("profiles")
-        .select("id, full_name, role, nhom_phan_loai")
+        .select("id, full_name, role, nhom_phan_loai, hoc_vi, chuc_danh, chuyen_mon")
         .eq("trang_thai_hoat_dong", true)
         .order("full_name"),
+      // RLS tu loc: canManage thay tat ca, giang vien/tro giang chi thay dang
+      // ky cua chinh minh (xem dang_ky_giang_day_select trong migration RLS).
+      supabase
+        .from("dang_ky_giang_day")
+        .select("id, profile_id, vai_tro, trang_thai, buoi_giang_id, bai_giang_id, ghi_chu")
+        .eq("lop_hoc_id", id)
+        .order("created_at", { ascending: false }),
     ]);
 
   if (!lop) notFound();
 
   const trangThaiThucTe = await dongBoTrangThaiLop(lop, canManage);
-  const profiles = (profilesRaw ?? []).map(({ id, full_name, role }) => ({ id, full_name, role }));
+  const profiles = (profilesRaw ?? []).map(
+    ({ id, full_name, role, hoc_vi, chuc_danh, chuyen_mon }) => ({
+      id,
+      full_name,
+      role,
+      hoc_vi,
+      chuc_danh,
+      chuyen_mon,
+    }),
+  );
   const profilesForAssign = profilesRaw ?? [];
   const nguoiMap = new Map(profiles.map((p) => [p.id, p.full_name]));
+  const profilesMapForDangKy = new Map(profiles.map((p) => [p.id, p]));
+  const buoiTenMap = new Map((buoiGiang ?? []).map((b) => [b.id, b.ten_buoi]));
+  const baiTenMap = new Map((baiGiang ?? []).map((b) => [b.id, b.ten_bai]));
+  const buoiOptionsChoDangKy = (buoiGiang ?? [])
+    .filter((b) => b.mo_dang_ky)
+    .map((b) => ({ id: b.id, label: b.ten_buoi }));
+  const baiOptionsChoDangKy = (baiGiang ?? [])
+    .filter((b) => b.mo_dang_ky)
+    .map((b) => ({ id: b.id, label: b.ten_bai }));
+  const coTheDangKy = coTheTuDangKy(lop, current);
 
   return (
     <>
@@ -205,10 +235,24 @@ export default async function LopHocDetailPage({
             </div>
           </TabsContent>
 
-          <TabsContent value="dang-ky" className="pt-4">
-            <EmptyState
-              title="Chưa có nội dung"
-              description="Đăng ký & Duyệt sẽ hoạt động ở Giai đoạn 5."
+          <TabsContent value="dang-ky" className="flex flex-col gap-3 pt-4">
+            {coTheDangKy ? (
+              <div className="flex justify-end">
+                <DangKyDialog
+                  lopHocId={lop.id}
+                  lopMoDangKy={lop.mo_dang_ky}
+                  buoiOptions={buoiOptionsChoDangKy}
+                  baiOptions={baiOptionsChoDangKy}
+                />
+              </div>
+            ) : null}
+            <DangKyList
+              lopHocId={lop.id}
+              items={dangKyList ?? []}
+              profiles={profilesMapForDangKy}
+              buoiMap={buoiTenMap}
+              baiMap={baiTenMap}
+              canManage={canManage}
             />
           </TabsContent>
 

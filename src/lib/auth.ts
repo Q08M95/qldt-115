@@ -10,6 +10,7 @@ export type CurrentProfile = {
   chuc_danh: string | null;
   chuyen_mon: string | null;
   khoa_phong_cong_tac: string | null;
+  nhom_phan_loai: number | null;
 };
 
 /**
@@ -31,7 +32,7 @@ export const getCurrentProfile = cache(async (): Promise<CurrentProfile | null> 
 
   const { data: profile } = await supabase
     .from("profiles")
-    .select("id, full_name, role, hoc_vi, chuc_danh, chuyen_mon, khoa_phong_cong_tac")
+    .select("id, full_name, role, hoc_vi, chuc_danh, chuyen_mon, khoa_phong_cong_tac, nhom_phan_loai")
     .eq("id", user.id)
     .single();
 
@@ -46,5 +47,6 @@ export const getCurrentProfile = cache(async (): Promise<CurrentProfile | null> 
     chuc_danh: profile.chuc_danh,
     chuyen_mon: profile.chuyen_mon,
     khoa_phong_cong_tac: profile.khoa_phong_cong_tac,
+    nhom_phan_loai: profile.nhom_phan_loai,
   };
 });

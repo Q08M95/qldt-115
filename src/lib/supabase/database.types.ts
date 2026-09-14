@@ -124,6 +124,7 @@ type LichGiangRow = {
   id: string;
   lop_hoc_id: string;
   bai_giang_id: string | null;
+  buoi_giang_id: string | null;
   giang_vien_id: string | null;
   tro_giang_id: string | null;
   ngay_gio: string | null;
@@ -133,6 +134,21 @@ type LichGiangRow = {
   ly_do_huy: string | null;
   thoi_diem_huy: string | null;
   created_at: string;
+};
+
+type DangKyGiangDayRow = {
+  id: string;
+  profile_id: string;
+  lop_hoc_id: string;
+  buoi_giang_id: string | null;
+  bai_giang_id: string | null;
+  vai_tro: "giang_vien" | "tro_giang";
+  loai_dang_ky: "tu_de_xuat" | "duoc_moi";
+  trang_thai: "cho_duyet" | "da_duyet" | "tu_choi";
+  nguoi_duyet_id: string | null;
+  ghi_chu: string | null;
+  created_at: string;
+  updated_at: string;
 };
 
 export type Database = {
@@ -198,6 +214,13 @@ export type Database = {
         Update: Partial<LichGiangRow>;
         Relationships: [];
       };
+      dang_ky_giang_day: {
+        Row: DangKyGiangDayRow;
+        Insert: Partial<Omit<DangKyGiangDayRow, "profile_id" | "lop_hoc_id" | "vai_tro">> &
+          Pick<DangKyGiangDayRow, "profile_id" | "lop_hoc_id" | "vai_tro">;
+        Update: Partial<DangKyGiangDayRow>;
+        Relationships: [];
+      };
     };
     Views: Record<string, never>;
     Functions: {
@@ -241,6 +264,18 @@ export type Database = {
       };
       xoa_nhan_su: {
         Args: { p_id: string };
+        Returns: undefined;
+      };
+      dang_ky_phu_hop_nhom: {
+        Args: { p_lop_hoc_id: string; p_vai_tro: string; p_profile_id: string };
+        Returns: boolean;
+      };
+      duyet_dang_ky: {
+        Args: { p_id: string };
+        Returns: undefined;
+      };
+      tu_choi_dang_ky: {
+        Args: { p_id: string; p_ghi_chu: string | null };
         Returns: undefined;
       };
     };

@@ -2,6 +2,8 @@ import Link from "next/link";
 import { CalendarDays, Users, UserCheck } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { DangKyDialog } from "@/components/lop-hoc/dang-ky-dialog";
+import { coTheTuDangKy } from "@/lib/lop-hoc/dang-ky";
 import {
   TRANG_THAI_LOP_LABEL,
   TRANG_THAI_LOP_BADGE,
@@ -23,6 +25,8 @@ export type ClassCardData = {
   mo_dang_ky: boolean;
   so_giang_vien_can: number;
   so_tro_giang_can: number;
+  nhom_giang_vien_phu_hop: number[] | null;
+  nhom_tro_giang_phu_hop: number[] | null;
   giang_vien_chi_dinh_ids: string[] | null;
   tro_giang_chi_dinh_ids: string[] | null;
 };
@@ -33,13 +37,16 @@ export type ClassCardData = {
 export function ClassCard({
   lop,
   nguoiMap,
+  current,
 }: {
   lop: ClassCardData;
   nguoiMap: Map<string, string>;
+  current: { role: string; nhom_phan_loai: number | null } | null;
 }) {
   const gvNames = (lop.giang_vien_chi_dinh_ids ?? []).map((id) => nguoiMap.get(id) ?? "—");
   const tgNames = (lop.tro_giang_chi_dinh_ids ?? []).map((id) => nguoiMap.get(id) ?? "—");
   const coChiDinh = gvNames.length > 0 || tgNames.length > 0;
+  const coTheDangKy = coTheTuDangKy(lop, current);
 
   return (
     <div className="flex flex-col overflow-hidden rounded-xl bg-card text-sm text-card-foreground ring-1 ring-foreground/10 transition-shadow hover:shadow-md">
@@ -95,9 +102,19 @@ export function ClassCard({
         </div>
       </Link>
       <div className="px-4 pb-4">
-        <Button size="sm" className="w-full" render={<Link href={`/lop-hoc/${lop.id}`} />}>
-          {lop.mo_dang_ky ? "Đăng ký ngay" : "Xem chi tiết"}
-        </Button>
+        {coTheDangKy ? (
+          <DangKyDialog
+            lopHocId={lop.id}
+            lopMoDangKy={lop.mo_dang_ky}
+            label="Đăng ký ngay"
+            size="sm"
+            className="w-full"
+          />
+        ) : (
+          <Button size="sm" className="w-full" render={<Link href={`/lop-hoc/${lop.id}`} />}>
+            {lop.mo_dang_ky ? "Đăng ký ngay" : "Xem chi tiết"}
+          </Button>
+        )}
       </div>
     </div>
   );

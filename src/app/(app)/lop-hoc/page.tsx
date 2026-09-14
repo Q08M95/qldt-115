@@ -33,7 +33,7 @@ export default async function LopHocPage({
   let query = supabase
     .from("lop_hoc")
     .select(
-      "id, ten_lop, loai_lop, doi_tuong_hoc_vien, trang_thai, ngay_khai_giang, ngay_ket_thuc, co_kinh_phi, la_lop_gap, la_lop_cong_dong, mo_dang_ky, so_giang_vien_can, so_tro_giang_can, giang_vien_chi_dinh_ids, tro_giang_chi_dinh_ids",
+      "id, ten_lop, loai_lop, doi_tuong_hoc_vien, trang_thai, ngay_khai_giang, ngay_ket_thuc, co_kinh_phi, la_lop_gap, la_lop_cong_dong, mo_dang_ky, so_giang_vien_can, so_tro_giang_can, nhom_giang_vien_phu_hop, nhom_tro_giang_phu_hop, giang_vien_chi_dinh_ids, tro_giang_chi_dinh_ids",
     )
     .order("ngay_khai_giang", { ascending: true, nullsFirst: false });
 
@@ -126,7 +126,7 @@ export default async function LopHocPage({
                     <p className="text-sm text-muted-foreground">Không có lớp nào</p>
                   ) : (
                     group.items.map((lop) => (
-                      <ClassCard key={lop.id} lop={lop} nguoiMap={nguoiMap} />
+                      <ClassCard key={lop.id} lop={lop} nguoiMap={nguoiMap} current={current} />
                     ))
                   )}
                 </TabsContent>
@@ -151,7 +151,7 @@ export default async function LopHocPage({
                     <ScrollArea className="max-h-[75vh] pr-3">
                       <div className="flex flex-col gap-3">
                         {group.items.map((lop) => (
-                          <ClassCard key={lop.id} lop={lop} nguoiMap={nguoiMap} />
+                          <ClassCard key={lop.id} lop={lop} nguoiMap={nguoiMap} current={current} />
                         ))}
                       </div>
                     </ScrollArea>

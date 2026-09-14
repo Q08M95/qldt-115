@@ -211,6 +211,7 @@ create table dang_ky_giang_day (
   id uuid primary key default gen_random_uuid(),
   profile_id uuid references profiles(id) not null,
   lop_hoc_id uuid references lop_hoc(id) not null,
+  buoi_giang_id uuid references buoi_giang(id),  -- them 2026-09-14: dang ky ca 1 buoi = 1 dong, khong tach theo tung bai
   bai_giang_id uuid references bai_giang(id),
   vai_tro text not null check (vai_tro in ('giang_vien','tro_giang')),
   loai_dang_ky text default 'tu_de_xuat' check (loai_dang_ky in ('tu_de_xuat','duoc_moi')),
@@ -226,6 +227,7 @@ create table lich_giang (
   id uuid primary key default gen_random_uuid(),
   lop_hoc_id uuid references lop_hoc(id) not null,
   bai_giang_id uuid references bai_giang(id),
+  buoi_giang_id uuid references buoi_giang(id),  -- them 2026-09-14, dong bo voi dang_ky_giang_day
   giang_vien_id uuid references profiles(id),
   tro_giang_id uuid references profiles(id),
   ngay_gio timestamptz,
@@ -424,6 +426,12 @@ create table audit_log (
 > - Trang chi tiết lớp: thêm hiển thị **kinh phí** (badge "Có/Không kinh phí") cạnh loại lớp/đối tượng — trước đó chỉ hiện ở thẻ danh sách, thiếu ở trang chi tiết.
 > - Bộ lọc `/lop-hoc`: "Loại lớp" đổi từ dải chip → dropdown checkbox → **Select 1 giá trị giống hệt "Đối tượng"** (2 lần thử trước bị phản hồi không ổn). Thiết kế thẻ lớp (dải màu thumbnail theo loại lớp) đã thử và bỏ cùng đợt — chờ giao diện tham khảo riêng của người dùng trước khi chỉnh lại UI/UX phần thẻ.
 
+> **Sửa đổi 2026-09-14 vào `dang_ky_giang_day`/`lich_giang` (Giai đoạn 5, theo yêu cầu người dùng trả lời câu hỏi mở đã ghi ở agent `dang-ky-lich-giang.md`, ngoại lệ CLAUDE.md mục 4):**
+> - Thêm `buoi_giang_id` (uuid, tham chiếu `buoi_giang`) vào cả 2 bảng — đăng ký/lên lịch theo cả 1 buổi (nhiều bài giảng bên trong) lưu thành **1 dòng duy nhất**, không tách N dòng theo từng bài (khớp đúng mục đích ban đầu của `buoi_giang`: "1 buổi 1 giảng viên đủ cho nhiều bài, không cần đăng ký/lên lịch lặp lại từng bài").
+> - Unique index `dang_ky_giang_day_unique_active` chặn 1 người đăng ký trùng cùng 1 slot (lớp/buổi/bài) + vai trò khi đăng ký đang ở trạng thái `cho_duyet`/`da_duyet` — bỏ qua các đăng ký đã `tu_choi` (cho phép đăng ký lại sau khi bị từ chối).
+> - RLS insert của `dang_ky_giang_day` cập nhật lại: thêm điều kiện gọi hàm `dang_ky_phu_hop_nhom(lop_hoc_id, vai_tro, profile_id)` — chỉ nhân sự thuộc đúng `nhom_giang_vien_phu_hop`/`nhom_tro_giang_phu_hop` của lớp (nếu lớp có đặt) mới tự đăng ký được, hiện thực hoá CLAUDE.md mục 2.1 + agent `dang-ky-lich-giang.md`.
+> - RPC mới `duyet_dang_ky(p_id)`/`tu_choi_dang_ky(p_id, p_ghi_chu)` — gộp cập nhật trạng thái + tạo `lich_giang` (khi duyệt, `security invoker` mặc định vì người gọi đã tự vượt `is_quan_ly()`) + insert `thong_bao` vào 1 transaction. Trigger `notify_dang_ky_moi` (security definer, vì RLS `thong_bao_insert` chỉ cho `is_quan_ly()` trong khi người tạo đăng ký là giảng viên/trợ giảng) báo mọi admin/quản lý khi có đăng ký mới.
+
 ### 1.3. Trigger & function nền tảng
 1. Trigger tự tạo `profiles` khi có `auth.users` mới đăng ký (role mặc định thấp nhất, admin nâng quyền thủ công sau).
 2. Trigger `updated_at` tự cập nhật cho các bảng có cột này.
@@ -516,10 +524,12 @@ create table audit_log (
 8. **Ranh giới với Giai đoạn 5-6 (chốt lại 2026-09-10, đảo ngược 1 phần quyết định cùng ngày trước đó)**: `lop_hoc`/`buoi_giang`/`bai_giang` được phép chứa cờ `mo_dang_ky` và 2 trường chỉ định trực tiếp (`giang_vien_chi_dinh_id`/`tro_giang_chi_dinh_id`) — đây là "gán trực tiếp không qua duyệt", **khác** với luồng tự nguyện đăng ký → chờ duyệt qua `dang_ky_giang_day` và lịch giảng chính thức qua `lich_giang`, vẫn thuộc đúng Giai đoạn 5-6 như cũ. Đợt này (Giai đoạn 4) chỉ dựng khung dữ liệu + UI cho admin/quản lý thao tác trực tiếp (bật cờ, chọn người, kéo-thả buổi/bài) — **nút "Đăng ký" thật cho giảng viên/trợ giảng tự bấm, hàng chờ duyệt, và thông báo vẫn để Giai đoạn 5 xây**.
 
 **Điều kiện hoàn thành (Gate → Giai đoạn 5):**
-- [ ] Toàn bộ vòng đời trạng thái lớp học (3 trạng thái thuần theo ngày) hoạt động đúng như thiết kế; xoá lớp có kiểm tra ràng buộc dữ liệu.
-- [ ] Tạo được lớp từ chương trình mẫu (copy đúng danh sách bài giảng) **và** tạo được lớp không dùng chương trình mẫu, cả 2 đều sửa bài giảng riêng được sau đó.
-- [ ] Gom được bài giảng vào buổi giảng, sắp xếp buổi bằng kéo-thả, bật/tắt mở đăng ký và chỉ định người ở cả 3 cấp (lớp/buổi/bài).
-- [ ] Có tối thiểu 5-6 lớp học mẫu với nhiều trạng thái khác nhau, số buổi/bài giảng không giống nhau giữa các lớp — dùng làm nền cho Giai đoạn 5. (Đã seed bằng dữ liệu thật của trung tâm khi có sẵn — xem `data quan ly dao tao.xlsx` ở gốc repo — ưu tiên hơn dữ liệu bịa nếu người dùng cung cấp được.)
+- [x] Toàn bộ vòng đời trạng thái lớp học (3 trạng thái thuần theo ngày) hoạt động đúng như thiết kế; xoá lớp có kiểm tra ràng buộc dữ liệu.
+- [x] Tạo được lớp từ chương trình mẫu (copy đúng danh sách bài giảng) **và** tạo được lớp không dùng chương trình mẫu, cả 2 đều sửa bài giảng riêng được sau đó.
+- [x] Gom được bài giảng vào buổi giảng, sắp xếp buổi bằng kéo-thả, bật/tắt mở đăng ký và chỉ định người ở cả 3 cấp (lớp/buổi/bài).
+- [x] Có tối thiểu 5-6 lớp học mẫu với nhiều trạng thái khác nhau, số buổi/bài giảng không giống nhau giữa các lớp — dùng làm nền cho Giai đoạn 5. (Đã seed bằng dữ liệu thật của trung tâm khi có sẵn — xem `data quan ly dao tao.xlsx` ở gốc repo — ưu tiên hơn dữ liệu bịa nếu người dùng cung cấp được.)
+
+Người dùng xác nhận đã kiểm tra và đạt (2026-09-14).
 
 ---
 
@@ -528,11 +538,12 @@ create table audit_log (
 **Mục tiêu:** Luồng nghiệp vụ cốt lõi: giảng viên/trợ giảng đề xuất dạy, quản lý duyệt, hệ thống tự sinh lịch giảng chính thức.
 
 **Công việc:**
-1. Nút hành động **"Đăng ký dạy lớp này"** đặt ngay trong danh sách `/lop-hoc` và trang chi tiết lớp (không tạo trang đăng ký riêng): giảng viên/trợ giảng chọn (tuỳ chọn) bài giảng cụ thể → gửi đăng ký ngay tại chỗ qua dialog. Đăng ký của chính mình xem lại được ở tab "Đăng ký & Duyệt" trong trang chi tiết lớp, kèm trạng thái theo thời gian thực.
-2. Tab **"Đăng ký & Duyệt"** trong trang chi tiết `/lop-hoc/[id]` (admin/quản lý thấy đủ quyền duyệt, giảng viên/trợ giảng chỉ thấy đăng ký của mình): danh sách chờ duyệt hiển thị dạng bảng với nút **Duyệt/Từ chối inline ngay trong dòng bảng** kèm ghi chú lý do; khi cần xem thêm hồ sơ/chuyên môn trước khi duyệt thì mở **drawer (component `Sheet`)** hiện chi tiết người đăng ký mà không rời trang.
-3. Khi Duyệt: transaction cập nhật `dang_ky_giang_day.trang_thai = 'da_duyet'` **và** tạo/cập nhật dòng `lich_giang` tương ứng trong cùng 1 thao tác (đảm bảo tính nhất quán dữ liệu — dùng Postgres function hoặc Supabase Edge Function, không tách 2 lệnh riêng ở client).
-4. Chặn trùng lặp: không cho đăng ký 2 lần vào cùng 1 lớp/bài giảng với cùng vai trò (unique constraint hoặc kiểm tra logic).
-5. Sinh thông báo (`thong_bao`) khi: có đăng ký mới (báo quản lý), đăng ký được duyệt/từ chối (báo người đăng ký).
+1. Nút hành động **"Đăng ký dạy lớp này"** — thẻ danh sách `/lop-hoc` (chỉ đăng ký "cả lớp", vì card không tải sẵn danh sách buổi/bài để tránh N+1 query) và trang chi tiết lớp (dialog đầy đủ, chọn "cả lớp"/1 buổi cụ thể/1 bài cụ thể — chỉ liệt kê buổi/bài đang có `mo_dang_ky = true`). Nút chỉ hiện với `giang_vien`/`tro_giang` **và** thuộc đúng `nhom_giang_vien_phu_hop`/`nhom_tro_giang_phu_hop` của lớp (nếu lớp có đặt nhóm phù hợp — hàm `coTheTuDangKy()` dùng chung ở client để quyết định hiện nút, khớp logic RPC `dang_ky_phu_hop_nhom()` ở DB). Đăng ký của chính mình xem lại được ở tab "Đăng ký & Duyệt".
+2. Tab **"Đăng ký & Duyệt"** trong trang chi tiết `/lop-hoc/[id]` (RLS tự lọc: admin/quản lý thấy tất cả, giảng viên/trợ giảng chỉ thấy đăng ký của mình): bảng liệt kê người đăng ký/vai trò/đăng ký cho (cả lớp, buổi nào, hay bài nào)/trạng thái, nút **Duyệt/Từ chối inline ngay trong dòng bảng** (Từ chối mở dialog nhỏ nhập lý do tuỳ chọn); bấm vào tên mở **drawer (`Sheet`)** hiện học vị/chức danh/chuyên môn của người đăng ký trước khi quyết, kèm 2 nút Duyệt/Từ chối lặp lại trong drawer.
+3. Khi Duyệt: RPC `duyet_dang_ky(p_id)` gộp cập nhật `dang_ky_giang_day.trang_thai = 'da_duyet'` + tạo dòng `lich_giang` tương ứng (`trang_thai = 'du_kien'`, **chưa có** `ngay_gio`/`buoi`/`dia_diem` — xếp lịch cụ thể thuộc Giai đoạn 6) + insert `thong_bao` báo người đăng ký, tất cả trong 1 transaction. Khi Từ chối: RPC `tu_choi_dang_ky(p_id, p_ghi_chu)` cập nhật trạng thái + insert `thong_bao` kèm lý do.
+4. Chặn trùng lặp bằng unique index (loại trừ các đăng ký đã `tu_choi` — cho đăng ký lại sau khi bị từ chối) trên `(profile_id, lop_hoc_id, buoi_giang_id, bai_giang_id, vai_tro)`, không chỉ kiểm tra ở client.
+5. Sinh thông báo (`thong_bao`) khi: có đăng ký mới (trigger `notify_dang_ky_moi`, security definer, báo mọi `admin`/`quan_ly_dao_tao` đang hoạt động), đăng ký được duyệt/từ chối (báo người đăng ký, trong 2 RPC ở mục 3).
+6. **Sửa đổi schema (2026-09-14, theo yêu cầu người dùng — xem mục 1.2)**: thêm `buoi_giang_id` vào `dang_ky_giang_day` và `lich_giang` — đăng ký/lên lịch theo cả 1 buổi (nhiều bài) là 1 dòng duy nhất, không tách N dòng theo từng bài.
 
 **Điều kiện hoàn thành (Gate → Giai đoạn 6):**
 - [ ] Luồng đăng ký → duyệt → sinh lịch giảng chạy đúng, nhất quán dữ liệu (test cả trường hợp duyệt và từ chối).
