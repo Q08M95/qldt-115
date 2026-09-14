@@ -99,10 +99,10 @@
      muc 3.1, chot 2026-09-14) — khong dung anh phong canh that, du hue voi
      mau chu dao #2973B2. Chi ap dung o (app)/layout.tsx tu md tro len. */
   --app-gradient:
-    radial-gradient(1100px circle at 12% -8%, oklch(92% 0.05 240 / 70%), transparent 60%),
-    radial-gradient(900px circle at 105% 15%, oklch(90% 0.06 250 / 55%), transparent 55%),
-    radial-gradient(800px circle at 50% 120%, oklch(88% 0.05 230 / 50%), transparent 60%),
-    linear-gradient(180deg, oklch(97% 0.012 240) 0%, oklch(93.5% 0.02 235) 100%);
+    radial-gradient(1100px circle at 12% -8%, oklch(88% 0.085 240 / 90%), transparent 60%),
+    radial-gradient(900px circle at 105% 15%, oklch(85% 0.095 250 / 75%), transparent 55%),
+    radial-gradient(800px circle at 50% 120%, oklch(82% 0.08 230 / 70%), transparent 60%),
+    linear-gradient(180deg, oklch(94% 0.025 240) 0%, oklch(85% 0.04 235) 100%);
 }
 
 .dark {
@@ -145,9 +145,9 @@
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
   --app-gradient:
-    radial-gradient(1100px circle at 12% -8%, oklch(30% 0.05 250 / 55%), transparent 60%),
-    radial-gradient(900px circle at 105% 15%, oklch(28% 0.06 245 / 45%), transparent 55%),
-    linear-gradient(180deg, oklch(18% 0.01 250) 0%, oklch(14% 0.015 245) 100%);
+    radial-gradient(1100px circle at 12% -8%, oklch(34% 0.09 250 / 75%), transparent 60%),
+    radial-gradient(900px circle at 105% 15%, oklch(31% 0.1 245 / 65%), transparent 55%),
+    linear-gradient(180deg, oklch(19% 0.02 250) 0%, oklch(12% 0.025 245) 100%);
 }
 
 @layer base {
