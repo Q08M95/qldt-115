@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Pencil, Plus } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { createBaiGiang, updateBaiGiang } from "@/app/(app)/lop-hoc/[id]/bai-giang-actions";
+import { updateBaiGiang } from "@/app/(app)/lop-hoc/[id]/bai-giang-actions";
 import type { ClassFormProfile } from "./class-form-fields";
 
 export type BaiGiang = {
@@ -73,16 +73,17 @@ function NguoiSelect({
   );
 }
 
+// Chi con che do sua — them moi da chuyen sang BaiGiangQuickAdd (thiet ke
+// lai 2026-09-14, xem tientrinh.md muc 1.2), khong con nhanh "create" o day.
 export function BaiGiangDialog({
   lopHocId,
   baiGiang,
   profiles,
 }: {
   lopHocId: string;
-  baiGiang?: BaiGiang;
+  baiGiang: BaiGiang;
   profiles: ClassFormProfile[];
 }) {
-  const mode = baiGiang ? "edit" : "create";
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -92,15 +93,12 @@ export function BaiGiangDialog({
   function handleSubmit(formData: FormData) {
     setError(null);
     startTransition(async () => {
-      const result =
-        mode === "create"
-          ? await createBaiGiang(lopHocId, formData)
-          : await updateBaiGiang(baiGiang!.id, lopHocId, formData);
+      const result = await updateBaiGiang(baiGiang.id, lopHocId, formData);
       if (result?.error) {
         setError(result.error);
       } else {
         setOpen(false);
-        toast.success(mode === "create" ? "Đã thêm bài giảng" : "Đã lưu thay đổi");
+        toast.success("Đã lưu thay đổi");
       }
     });
   }
@@ -112,31 +110,22 @@ export function BaiGiangDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger
-        render={mode === "create" ? <Button size="sm" /> : <Button size="sm" variant="ghost" />}
-      >
-        {mode === "create" ? (
-          <>
-            <Plus className="h-4 w-4" />
-            Thêm bài giảng
-          </>
-        ) : (
-          <Pencil className="h-4 w-4" />
-        )}
+      <DialogTrigger render={<Button size="sm" variant="ghost" />}>
+        <Pencil className="h-4 w-4" />
       </DialogTrigger>
       <DialogContent className="max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{mode === "create" ? "Thêm bài giảng" : "Sửa bài giảng"}</DialogTitle>
+          <DialogTitle>Sửa bài giảng</DialogTitle>
         </DialogHeader>
         <form action={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
             <Label htmlFor="ten_bai">Tên bài giảng</Label>
-            <Input id="ten_bai" name="ten_bai" defaultValue={baiGiang?.ten_bai} required />
+            <Input id="ten_bai" name="ten_bai" defaultValue={baiGiang.ten_bai} required />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
               <Label htmlFor="chuyen_de">Chuyên đề</Label>
-              <Input id="chuyen_de" name="chuyen_de" defaultValue={baiGiang?.chuyen_de ?? ""} />
+              <Input id="chuyen_de" name="chuyen_de" defaultValue={baiGiang.chuyen_de ?? ""} />
             </div>
             <div className="flex flex-col gap-2">
               <Label htmlFor="thoi_luong_tiet">Số tiết</Label>
@@ -146,7 +135,7 @@ export function BaiGiangDialog({
                 type="number"
                 min={0.5}
                 step={0.5}
-                defaultValue={baiGiang?.thoi_luong_tiet ?? 1}
+                defaultValue={baiGiang.thoi_luong_tiet}
                 required
               />
             </div>
@@ -156,7 +145,7 @@ export function BaiGiangDialog({
             <input
               type="checkbox"
               name="mo_dang_ky"
-              defaultChecked={baiGiang?.mo_dang_ky ?? false}
+              defaultChecked={baiGiang.mo_dang_ky}
               className="h-4 w-4"
             />
             Mở đăng ký riêng cho bài này
@@ -166,13 +155,13 @@ export function BaiGiangDialog({
             <NguoiSelect
               name="giang_vien_chi_dinh_id"
               label="Chỉ định giảng viên"
-              defaultValue={baiGiang?.giang_vien_chi_dinh_id}
+              defaultValue={baiGiang.giang_vien_chi_dinh_id}
               options={giangVienOptions}
             />
             <NguoiSelect
               name="tro_giang_chi_dinh_id"
               label="Chỉ định trợ giảng"
-              defaultValue={baiGiang?.tro_giang_chi_dinh_id}
+              defaultValue={baiGiang.tro_giang_chi_dinh_id}
               options={troGiangOptions}
             />
           </div>

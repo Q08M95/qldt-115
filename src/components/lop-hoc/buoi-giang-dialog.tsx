@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { Pencil, Plus } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -21,10 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  createBuoiGiang,
-  updateBuoiGiang,
-} from "@/app/(app)/lop-hoc/[id]/buoi-giang-actions";
+import { updateBuoiGiang } from "@/app/(app)/lop-hoc/[id]/buoi-giang-actions";
 import type { ClassFormProfile } from "./class-form-fields";
 
 export type BuoiGiang = {
@@ -75,16 +72,17 @@ function NguoiSelect({
   );
 }
 
+// Chi con che do sua — them moi da chuyen sang BuoiGiangQuickAdd (thiet ke
+// lai 2026-09-14, xem tientrinh.md muc 1.2), khong con nhanh "create" o day.
 export function BuoiGiangDialog({
   lopHocId,
   buoiGiang,
   profiles,
 }: {
   lopHocId: string;
-  buoiGiang?: BuoiGiang;
+  buoiGiang: BuoiGiang;
   profiles: ClassFormProfile[];
 }) {
-  const mode = buoiGiang ? "edit" : "create";
   const [open, setOpen] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -94,15 +92,12 @@ export function BuoiGiangDialog({
   function handleSubmit(formData: FormData) {
     setError(null);
     startTransition(async () => {
-      const result =
-        mode === "create"
-          ? await createBuoiGiang(lopHocId, formData)
-          : await updateBuoiGiang(buoiGiang!.id, lopHocId, formData);
+      const result = await updateBuoiGiang(buoiGiang.id, lopHocId, formData);
       if (result?.error) {
         setError(result.error);
       } else {
         setOpen(false);
-        toast.success(mode === "create" ? "Đã thêm buổi giảng" : "Đã lưu thay đổi");
+        toast.success("Đã lưu thay đổi");
       }
     });
   }
@@ -114,26 +109,17 @@ export function BuoiGiangDialog({
 
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
-      <DialogTrigger
-        render={mode === "create" ? <Button size="sm" /> : <Button size="sm" variant="ghost" />}
-      >
-        {mode === "create" ? (
-          <>
-            <Plus className="h-4 w-4" />
-            Thêm buổi giảng
-          </>
-        ) : (
-          <Pencil className="h-4 w-4" />
-        )}
+      <DialogTrigger render={<Button size="sm" variant="ghost" />}>
+        <Pencil className="h-4 w-4" />
       </DialogTrigger>
       <DialogContent className="max-h-[85vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>{mode === "create" ? "Thêm buổi giảng" : "Sửa buổi giảng"}</DialogTitle>
+          <DialogTitle>Sửa buổi giảng</DialogTitle>
         </DialogHeader>
         <form action={handleSubmit} className="flex flex-col gap-4">
           <div className="flex flex-col gap-2">
             <Label htmlFor="ten_buoi">Tên buổi</Label>
-            <Input id="ten_buoi" name="ten_buoi" defaultValue={buoiGiang?.ten_buoi} required />
+            <Input id="ten_buoi" name="ten_buoi" defaultValue={buoiGiang.ten_buoi} required />
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="flex flex-col gap-2">
@@ -143,7 +129,7 @@ export function BuoiGiangDialog({
                 name="so_giang_vien_can"
                 type="number"
                 min={0}
-                defaultValue={buoiGiang?.so_giang_vien_can ?? 1}
+                defaultValue={buoiGiang.so_giang_vien_can}
                 required
               />
             </div>
@@ -154,7 +140,7 @@ export function BuoiGiangDialog({
                 name="so_tro_giang_can"
                 type="number"
                 min={0}
-                defaultValue={buoiGiang?.so_tro_giang_can ?? 1}
+                defaultValue={buoiGiang.so_tro_giang_can}
                 required
               />
             </div>
@@ -163,7 +149,7 @@ export function BuoiGiangDialog({
             <input
               type="checkbox"
               name="mo_dang_ky"
-              defaultChecked={buoiGiang?.mo_dang_ky ?? false}
+              defaultChecked={buoiGiang.mo_dang_ky}
               className="h-4 w-4"
             />
             Mở đăng ký cho buổi này
@@ -172,13 +158,13 @@ export function BuoiGiangDialog({
             <NguoiSelect
               name="giang_vien_chi_dinh_id"
               label="Chỉ định giảng viên"
-              defaultValue={buoiGiang?.giang_vien_chi_dinh_id}
+              defaultValue={buoiGiang.giang_vien_chi_dinh_id}
               options={giangVienOptions}
             />
             <NguoiSelect
               name="tro_giang_chi_dinh_id"
               label="Chỉ định trợ giảng"
-              defaultValue={buoiGiang?.tro_giang_chi_dinh_id}
+              defaultValue={buoiGiang.tro_giang_chi_dinh_id}
               options={troGiangOptions}
             />
           </div>

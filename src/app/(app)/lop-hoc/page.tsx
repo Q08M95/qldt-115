@@ -1,7 +1,4 @@
-import Link from "next/link";
-import { Plus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EmptyState } from "@/components/ui/empty-state";
@@ -9,6 +6,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { LopHocFilters } from "@/components/lop-hoc/lop-hoc-filters";
 import { ClassCard } from "@/components/lop-hoc/class-card";
 import { ChoDuyetPanel, type ChoDuyetItem } from "@/components/lop-hoc/cho-duyet-panel";
+import { QuickCreateClassDialog } from "@/components/lop-hoc/quick-create-class-dialog";
 import { getCurrentProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -56,6 +54,12 @@ export default async function LopHocPage({
     .eq("trang_thai_hoat_dong", true)
     .order("full_name");
 
+  // Chi can cho QuickCreateClassDialog (chon chuong trinh mau luc tao) — chi
+  // truy van khi canManage vi nguoi khac khong tao lop duoc.
+  const programsQuery = canManage
+    ? supabase.from("chuong_trinh_dao_tao").select("id, ten_chuong_trinh").order("ten_chuong_trinh")
+    : Promise.resolve({ data: [] as { id: string; ten_chuong_trinh: string }[] });
+
   // Hop thu cho duyet tong hop (theo phan hoi nguoi dung 2026-09-14) — chi
   // truy van khi canManage, RLS dang_ky_giang_day_select da tu cho phep
   // is_quan_ly() thay toan bo (khong can loc them lop_hoc_id).
@@ -67,11 +71,8 @@ export default async function LopHocPage({
         .order("created_at", { ascending: true })
     : Promise.resolve({ data: [] as ChoDuyetItem[] });
 
-  const [{ data: lopHocList }, { data: profiles }, { data: pendingList }] = await Promise.all([
-    query,
-    profilesQuery,
-    pendingQuery,
-  ]);
+  const [{ data: lopHocList }, { data: profiles }, { data: pendingList }, { data: programs }] =
+    await Promise.all([query, profilesQuery, pendingQuery, programsQuery]);
 
   // Lop nao khong nam trong `rows` (bi loc boi filter tren thanh tim kiem)
   // van phai hien duoc ten trong hop thu cho duyet — truy van rieng cho dung
@@ -117,14 +118,7 @@ export default async function LopHocPage({
     <>
       <PageHeader
         items={[{ label: "Lớp học" }]}
-        actions={
-          canManage ? (
-            <Button size="sm" render={<Link href="/lop-hoc/moi" />}>
-              <Plus className="h-4 w-4" />
-              Thêm lớp học
-            </Button>
-          ) : null
-        }
+        actions={canManage ? <QuickCreateClassDialog programs={programs ?? []} /> : null}
       />
       <div className="flex flex-col gap-4 p-4 md:p-6">
         {canManage ? (

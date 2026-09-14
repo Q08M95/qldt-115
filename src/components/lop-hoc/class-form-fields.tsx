@@ -60,6 +60,7 @@ function ChiDinhSlots({
   values,
   onChange,
   options,
+  onDirty,
 }: {
   namePrefix: string;
   label: string;
@@ -67,6 +68,7 @@ function ChiDinhSlots({
   values: string[];
   onChange: (next: string[]) => void;
   options: ClassFormProfile[];
+  onDirty?: () => void;
 }) {
   if (count <= 0) {
     return (
@@ -100,6 +102,7 @@ function ChiDinhSlots({
                 const next = [...values];
                 next[i] = value as string;
                 onChange(next);
+                onDirty?.();
               }}
             >
               <SelectTrigger>
@@ -132,11 +135,13 @@ function NhomCheckboxGroup({
   label,
   selected,
   onChange,
+  onDirty,
 }: {
   name: string;
   label: string;
   selected: Set<number>;
   onChange: (next: Set<number>) => void;
+  onDirty?: () => void;
 }) {
   return (
     <div className="flex flex-col gap-2">
@@ -154,6 +159,7 @@ function NhomCheckboxGroup({
                 if (e.target.checked) next.add(v);
                 else next.delete(v);
                 onChange(next);
+                onDirty?.();
               }}
               className="h-4 w-4"
             />
@@ -166,17 +172,22 @@ function NhomCheckboxGroup({
 }
 
 /**
- * Cac truong form dung chung cho AddClassDialog va EditClassDialog — chi
- * khac o cho AddClassDialog co them 1 Select chuong trinh mau rieng (chi
- * dat luc tao, khong sua lai duoc sau — CLAUDE.md muc 4: lop doc lap voi
- * chuong trinh mau sau khi tao).
+ * Cac truong day du cua 1 lop hoc — chi con dung boi LopInfoAutosaveForm
+ * (canvas trang chi tiet, tu luu). QuickCreateClassDialog (tao lop) KHONG
+ * dung component nay — chi hoi ten lop + chuong trinh mau, moi truong khac
+ * o day sua sau ngay tai canvas (thiet ke lai 2026-09-14).
  */
 export function ClassFormFields({
   defaults,
   profiles,
+  onDirty,
 }: {
   defaults?: ClassFormDefaults;
   profiles: ClassFormProfile[];
+  // Goi sau moi thay doi "hoan tat" (blur o input text, hoac ngay khi doi o
+  // Select/checkbox) — dung cho canvas tu luu o trang chi tiet lop, khong
+  // dung khi component nay chi dung trong dialog tao lop (khong truyen prop).
+  onDirty?: () => void;
 }) {
   const giangVienOptions = profiles.filter((p) => p.role === "giang_vien");
   const troGiangOptions = profiles.filter((p) => p.role === "tro_giang");
@@ -221,18 +232,33 @@ export function ClassFormFields({
     <>
       <div className="flex flex-col gap-2">
         <Label htmlFor="ten_lop">Tên lớp</Label>
-        <Input id="ten_lop" name="ten_lop" defaultValue={defaults?.ten_lop} required />
+        <Input
+          id="ten_lop"
+          name="ten_lop"
+          defaultValue={defaults?.ten_lop}
+          onBlur={() => onDirty?.()}
+          required
+        />
       </div>
 
       <div className="flex flex-col gap-2">
         <Label htmlFor="mo_ta">Mô tả</Label>
-        <Input id="mo_ta" name="mo_ta" defaultValue={defaults?.mo_ta ?? ""} />
+        <Input
+          id="mo_ta"
+          name="mo_ta"
+          defaultValue={defaults?.mo_ta ?? ""}
+          onBlur={() => onDirty?.()}
+        />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div className="flex flex-col gap-2">
           <Label htmlFor="loai_lop">Loại lớp</Label>
-          <Select name="loai_lop" defaultValue={defaults?.loai_lop ?? "none"}>
+          <Select
+            name="loai_lop"
+            defaultValue={defaults?.loai_lop ?? "none"}
+            onValueChange={() => onDirty?.()}
+          >
             <SelectTrigger id="loai_lop">
               <SelectValue>{(value: string) => (value === "none" ? "Chưa chọn" : value)}</SelectValue>
             </SelectTrigger>
@@ -251,6 +277,7 @@ export function ClassFormFields({
           <Select
             name="doi_tuong_hoc_vien"
             defaultValue={defaults?.doi_tuong_hoc_vien ?? "none"}
+            onValueChange={() => onDirty?.()}
           >
             <SelectTrigger id="doi_tuong_hoc_vien">
               <SelectValue>
@@ -281,6 +308,7 @@ export function ClassFormFields({
             name="ngay_khai_giang"
             type="date"
             defaultValue={defaults?.ngay_khai_giang ?? ""}
+            onBlur={() => onDirty?.()}
           />
         </div>
         <div className="flex flex-col gap-2">
@@ -290,6 +318,7 @@ export function ClassFormFields({
             name="ngay_ket_thuc"
             type="date"
             defaultValue={defaults?.ngay_ket_thuc ?? ""}
+            onBlur={() => onDirty?.()}
           />
         </div>
       </div>
@@ -304,6 +333,7 @@ export function ClassFormFields({
             min={0}
             defaultValue={defaults?.so_giang_vien_can ?? 1}
             onChange={(e) => setSoGiangVien(Math.max(0, Number(e.target.value) || 0))}
+            onBlur={() => onDirty?.()}
             required
           />
         </div>
@@ -316,6 +346,7 @@ export function ClassFormFields({
             min={0}
             defaultValue={defaults?.so_tro_giang_can ?? 1}
             onChange={(e) => setSoTroGiang(Math.max(0, Number(e.target.value) || 0))}
+            onBlur={() => onDirty?.()}
             required
           />
         </div>
@@ -326,6 +357,7 @@ export function ClassFormFields({
           type="checkbox"
           name="mo_dang_ky"
           defaultChecked={defaults?.mo_dang_ky ?? false}
+          onChange={() => onDirty?.()}
           className="h-4 w-4"
         />
         Mở đăng ký — cho phép nhân sự tự đăng ký dạy lớp này
@@ -337,12 +369,14 @@ export function ClassFormFields({
           label="Nhóm giảng viên phù hợp"
           selected={nhomGV}
           onChange={setNhomGV}
+          onDirty={onDirty}
         />
         <NhomCheckboxGroup
           name="nhom_tro_giang_phu_hop"
           label="Nhóm trợ giảng phù hợp"
           selected={nhomTG}
           onChange={setNhomTG}
+          onDirty={onDirty}
         />
       </div>
 
@@ -354,6 +388,7 @@ export function ClassFormFields({
           values={chiDinhGV}
           onChange={setChiDinhGV}
           options={giangVienCandidates}
+          onDirty={onDirty}
         />
         <ChiDinhSlots
           namePrefix="tro_giang_chi_dinh_ids"
@@ -362,6 +397,7 @@ export function ClassFormFields({
           values={chiDinhTG}
           onChange={setChiDinhTG}
           options={troGiangCandidates}
+          onDirty={onDirty}
         />
       </div>
 
@@ -373,6 +409,7 @@ export function ClassFormFields({
               type="checkbox"
               name="co_kinh_phi"
               defaultChecked={defaults?.co_kinh_phi ?? true}
+              onChange={() => onDirty?.()}
               className="h-4 w-4"
             />
             Có kinh phí
@@ -382,6 +419,7 @@ export function ClassFormFields({
               type="checkbox"
               name="la_lop_gap"
               defaultChecked={defaults?.la_lop_gap ?? false}
+              onChange={() => onDirty?.()}
               className="h-4 w-4"
             />
             Lớp đột xuất
@@ -391,6 +429,7 @@ export function ClassFormFields({
               type="checkbox"
               name="la_lop_cong_dong"
               defaultChecked={defaults?.la_lop_cong_dong ?? false}
+              onChange={() => onDirty?.()}
               className="h-4 w-4"
             />
             Lớp cộng đồng

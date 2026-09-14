@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { deleteLopHoc } from "@/app/(app)/lop-hoc/actions";
 
 // Thay the hoan toan khai niem "huy lop" truoc day — nguoi dung xac nhan:
-// hoan lop la sua lai ngay (dung EditClassDialog), huy lop la xoa han lop
+// hoan lop la sua lai ngay (sua truc tiep o LopInfoAutosaveForm), huy lop la xoa han lop
 // do. RPC xoa_lop_hoc tu chan va bao loi ro rang neu lop da co dang
 // ky/lich giang/khao sat lien quan.
 export function DeleteClassButton({ id }: { id: string }) {
