@@ -43,20 +43,26 @@ export default async function LopHocPage({
     query = query.eq("doi_tuong_hoc_vien", doi_tuong as (typeof DOI_TUONG_HOC_VIEN_VALUES)[number]);
   }
 
-  const { data: lopHocList } = await query;
-
-  // nhom_phan_loai chi dung cho AddClassDialog (canManage-gated) — an toan
-  // vi day la noi tieu thu duy nhat cua `profiles` tren trang nay.
-  const { data: profiles } = await supabase
+  // 3 truy van doc lap, chay song song (Promise.all) thay vi tuan tu — moi
+  // vong round-trip toi Supabase (Singapore) tu ham Vercel (mac dinh o My
+  // neu khong ghim region, xem vercel.json) deu ton hang tram ms, chay tuan
+  // tu se cong don rat nhanh.
+  const profilesQuery = supabase
     .from("profiles")
     .select("id, full_name, role, nhom_phan_loai")
     .eq("trang_thai_hoat_dong", true)
     .order("full_name");
 
-  const { data: programs } = await supabase
+  const programsQuery = supabase
     .from("chuong_trinh_dao_tao")
     .select("id, ten_chuong_trinh")
     .order("ten_chuong_trinh");
+
+  const [{ data: lopHocList }, { data: profiles }, { data: programs }] = await Promise.all([
+    query,
+    profilesQuery,
+    programsQuery,
+  ]);
 
   const rows = (lopHocList ?? []).map((lop) => ({
     ...lop,
