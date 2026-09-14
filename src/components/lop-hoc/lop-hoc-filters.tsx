@@ -70,7 +70,7 @@ export function LopHocFilters({
       aria-busy={isPending}
     >
       <div className="flex flex-col gap-1">
-        <label className="text-xs text-muted-foreground" htmlFor="q">
+        <label className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase" htmlFor="q">
           Tìm theo tên
         </label>
         <Input
@@ -82,7 +82,7 @@ export function LopHocFilters({
         />
       </div>
       <div className="flex flex-col gap-1">
-        <label className="text-xs text-muted-foreground" htmlFor="loai_lop">
+        <label className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase" htmlFor="loai_lop">
           Loại lớp
         </label>
         <Select value={loai} onValueChange={(value) => updateParam("loai", value)}>
@@ -99,7 +99,7 @@ export function LopHocFilters({
         </Select>
       </div>
       <div className="flex flex-col gap-1">
-        <label className="text-xs text-muted-foreground" htmlFor="doi_tuong">
+        <label className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase" htmlFor="doi_tuong">
           Đối tượng
         </label>
         <Select value={doiTuong} onValueChange={(value) => updateParam("doi_tuong", value)}>

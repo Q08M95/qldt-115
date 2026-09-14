@@ -35,7 +35,9 @@ export function StatCard({
     <Card>
       <CardContent className="flex flex-col gap-2 p-4">
         <div className="flex items-start justify-between">
-          <span className="text-sm text-muted-foreground">{label}</span>
+          <span className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase">
+            {label}
+          </span>
           <span
             className={cn("flex h-9 w-9 items-center justify-center rounded-full")}
             style={{ backgroundColor: `color-mix(in oklch, ${color} 16%, transparent)`, color }}

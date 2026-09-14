@@ -80,7 +80,7 @@ export function NhanSuFilters({
       aria-busy={isPending}
     >
       <div className="flex flex-col gap-1">
-        <label className="text-xs text-muted-foreground" htmlFor="q">
+        <label className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase" htmlFor="q">
           Tìm theo tên
         </label>
         <Input
@@ -92,7 +92,7 @@ export function NhanSuFilters({
         />
       </div>
       <div className="flex flex-col gap-1">
-        <label className="text-xs text-muted-foreground" htmlFor="role">
+        <label className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase" htmlFor="role">
           Vai trò
         </label>
         <Select value={role} onValueChange={(value) => updateParam("role", value)}>
@@ -109,7 +109,7 @@ export function NhanSuFilters({
         </Select>
       </div>
       <div className="flex flex-col gap-1">
-        <label className="text-xs text-muted-foreground" htmlFor="trang_thai">
+        <label className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase" htmlFor="trang_thai">
           Trạng thái
         </label>
         <Select value={trangThai} onValueChange={(value) => updateParam("trang_thai", value)}>
@@ -127,7 +127,7 @@ export function NhanSuFilters({
       </div>
       {canFilterNhom ? (
         <div className="flex flex-col gap-1">
-          <label className="text-xs text-muted-foreground" htmlFor="nhom">
+          <label className="text-[11px] font-medium tracking-[0.14em] text-muted-foreground uppercase" htmlFor="nhom">
             Nhóm phân loại
           </label>
           <Select value={nhom} onValueChange={(value) => updateParam("nhom", value)}>
