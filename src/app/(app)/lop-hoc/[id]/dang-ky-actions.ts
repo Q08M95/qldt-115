@@ -104,3 +104,24 @@ export async function tuChoiDangKy(
   revalidatePath(`/lop-hoc/${lopHocId}`);
   return {};
 }
+
+// Tu phuc vu: giang vien/tro giang tu huy dang ky cua chinh minh, chi khi
+// con "cho_duyet" (RLS dang_ky_giang_day_delete gioi han dung dieu kien nay
+// — xem migration 20260917000000_huy_dang_ky_tu_phuc_vu.sql). Da "da_duyet"
+// thi khong tu xoa duoc nua vi da co lich_giang tuong ung.
+export async function huyDangKy(id: string, lopHocId: string): Promise<{ error?: string }> {
+  const current = await getCurrentProfile();
+  if (!current) return { error: "Bạn cần đăng nhập" };
+
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("dang_ky_giang_day")
+    .delete()
+    .eq("id", id)
+    .eq("profile_id", current.id)
+    .eq("trang_thai", "cho_duyet");
+  if (error) return { error: error.message };
+
+  revalidatePath(`/lop-hoc/${lopHocId}`);
+  return {};
+}

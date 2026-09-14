@@ -31,7 +31,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { duyetDangKy, tuChoiDangKy } from "@/app/(app)/lop-hoc/[id]/dang-ky-actions";
+import { duyetDangKy, tuChoiDangKy, huyDangKy } from "@/app/(app)/lop-hoc/[id]/dang-ky-actions";
 import { ROLE_LABEL, type Role } from "@/lib/constants/roles";
 
 export type DangKyRow = {
@@ -96,6 +96,24 @@ export function DangKyList({
     });
   }
 
+  // Tu phuc vu: giang vien/tro giang tu huy dang ky "cho_duyet" cua chinh
+  // minh. Khong gate them theo profile_id o day vi RLS select cua
+  // dang_ky_giang_day da chi tra ve dung dang ky cua ho khi khong canManage
+  // (xem migration RLS) — moi dong khong-canManage nhin thay chac chan la
+  // cua chinh nguoi dang xem.
+  function handleHuy(id: string) {
+    if (!window.confirm("Huỷ đăng ký này? Không thể hoàn tác.")) return;
+    startTransition(async () => {
+      const result = await huyDangKy(id, lopHocId);
+      if (result?.error) toast.error(result.error);
+      else toast.success("Đã huỷ đăng ký");
+    });
+  }
+
+  // Hien cot Hanh dong khi: canManage (Duyet/Tu choi), hoac nguoi xem tu
+  // dang ky (khong canManage) va co it nhat 1 dong dang cho_duyet de huy.
+  const showActionColumn = canManage || items.some((dk) => dk.trang_thai === "cho_duyet");
+
   if (items.length === 0) {
     return (
       <EmptyState
@@ -114,7 +132,7 @@ export function DangKyList({
             <TableHead className="hidden md:table-cell">Vai trò</TableHead>
             <TableHead className="hidden md:table-cell">Đăng ký cho</TableHead>
             <TableHead>Trạng thái</TableHead>
-            {canManage ? <TableHead className="text-right">Hành động</TableHead> : null}
+            {showActionColumn ? <TableHead className="text-right">Hành động</TableHead> : null}
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -123,6 +141,7 @@ export function DangKyList({
             const vaiTroLabel = ROLE_LABEL[nguoi?.role ?? dk.vai_tro];
             const dangKyCho = dangKyChoLabel(dk, buoiMap, baiMap);
             const coTheDuyet = canManage && dk.trang_thai === "cho_duyet";
+            const coTheHuy = !canManage && dk.trang_thai === "cho_duyet";
 
             return (
               <TableRow key={dk.id}>
@@ -193,6 +212,17 @@ export function DangKyList({
                           <TuChoiDialog id={dk.id} lopHocId={lopHocId} />
                         </SheetFooter>
                       ) : null}
+                      {coTheHuy ? (
+                        <SheetFooter>
+                          <Button
+                            variant="destructive"
+                            disabled={isPending}
+                            onClick={() => handleHuy(dk.id)}
+                          >
+                            Huỷ đăng ký
+                          </Button>
+                        </SheetFooter>
+                      ) : null}
                     </SheetContent>
                   </Sheet>
                 </TableCell>
@@ -203,7 +233,7 @@ export function DangKyList({
                     {TRANG_THAI_LABEL[dk.trang_thai]}
                   </Badge>
                 </TableCell>
-                {canManage ? (
+                {showActionColumn ? (
                   <TableCell className="text-right">
                     {coTheDuyet ? (
                       <div className="flex justify-end gap-2">
@@ -212,6 +242,16 @@ export function DangKyList({
                         </Button>
                         <TuChoiDialog id={dk.id} lopHocId={lopHocId} />
                       </div>
+                    ) : null}
+                    {coTheHuy ? (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        disabled={isPending}
+                        onClick={() => handleHuy(dk.id)}
+                      >
+                        Huỷ đăng ký
+                      </Button>
                     ) : null}
                   </TableCell>
                 ) : null}
