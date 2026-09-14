@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { GLASS_SURFACE } from "@/lib/design/glass";
+import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { NAV_GROUPS, NAV_OVERVIEW, type NavItem } from "./nav-config";
 import type { CurrentProfile } from "@/lib/auth";
 
@@ -42,18 +43,24 @@ function NavButton({ item, pathname }: { item: NavItem; pathname: string }) {
   const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
   const Icon = item.icon;
   return (
-    <Link
-      href={item.href}
-      title={item.label}
-      className={cn(
-        "flex h-11 w-11 items-center justify-center rounded-full transition-colors",
-        active
-          ? "bg-data-lop-hoc text-white shadow-[0_10px_24px_-10px_var(--data-lop-hoc)]"
-          : "text-foreground/55 hover:bg-white/70 hover:text-data-lop-hoc dark:hover:bg-white/10",
-      )}
-    >
-      <Icon className="h-5 w-5" strokeWidth={1.5} />
-      <span className="sr-only">{item.label}</span>
-    </Link>
+    <Tooltip>
+      <TooltipTrigger
+        render={
+          <Link
+            href={item.href}
+            className={cn(
+              "flex h-11 w-11 items-center justify-center rounded-full transition-colors",
+              active
+                ? "bg-data-lop-hoc text-white shadow-[0_10px_24px_-10px_var(--data-lop-hoc)]"
+                : "text-foreground/55 hover:bg-white/70 hover:text-data-lop-hoc dark:hover:bg-white/10",
+            )}
+          />
+        }
+      >
+        <Icon className="h-5 w-5" strokeWidth={1.5} />
+        <span className="sr-only">{item.label}</span>
+      </TooltipTrigger>
+      <TooltipContent side="right">{item.label}</TooltipContent>
+    </Tooltip>
   );
 }
