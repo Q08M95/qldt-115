@@ -69,11 +69,11 @@ export function MauBaiGiangDialog({
       >
         {mode === "create" ? (
           <>
-            <Plus className="h-4 w-4" />
+            <Plus className="h-4 w-4" strokeWidth={1.5} />
             Thêm bài giảng
           </>
         ) : (
-          <Pencil className="h-4 w-4" />
+          <Pencil className="h-4 w-4" strokeWidth={1.5} />
         )}
       </DialogTrigger>
       <DialogContent>

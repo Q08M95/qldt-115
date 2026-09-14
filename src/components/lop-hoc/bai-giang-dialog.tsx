@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -111,7 +112,7 @@ export function BaiGiangDialog({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger render={<Button size="sm" variant="ghost" />}>
-        <Pencil className="h-4 w-4" />
+        <Pencil className="h-4 w-4" strokeWidth={1.5} />
       </DialogTrigger>
       <DialogContent className="max-h-[85vh] overflow-y-auto">
         <DialogHeader>
@@ -142,12 +143,7 @@ export function BaiGiangDialog({
           </div>
 
           <label className="flex items-center gap-2 text-sm font-normal">
-            <input
-              type="checkbox"
-              name="mo_dang_ky"
-              defaultChecked={baiGiang.mo_dang_ky}
-              className="h-4 w-4"
-            />
+            <Checkbox name="mo_dang_ky" defaultChecked={baiGiang.mo_dang_ky} />
             Mở đăng ký riêng cho bài này
           </label>
 

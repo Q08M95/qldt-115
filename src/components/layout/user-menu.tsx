@@ -24,7 +24,7 @@ export function UserMenu({ profile }: { profile: CurrentProfile }) {
       </Button>
       <form action={logout}>
         <Button type="submit" variant="outline" size="icon" title="Đăng xuất">
-          <LogOut className="h-4 w-4" />
+          <LogOut className="h-4 w-4" strokeWidth={1.5} />
         </Button>
       </form>
     </div>

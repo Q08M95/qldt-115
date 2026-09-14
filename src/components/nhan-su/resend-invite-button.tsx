@@ -25,7 +25,7 @@ export function ResendInviteButton({ profileId }: { profileId: string }) {
 
   return (
     <Button variant="outline" size="sm" disabled={isPending} onClick={handleClick}>
-      <Mail className="h-4 w-4" />
+      <Mail className="h-4 w-4" strokeWidth={1.5} />
       Gửi lại email đặt mật khẩu
     </Button>
   );

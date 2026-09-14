@@ -144,7 +144,9 @@ export function NhanSuFilters({
           </Select>
         </div>
       ) : null}
-      {isPending ? <Loader2 className="mb-2 h-4 w-4 animate-spin text-muted-foreground" /> : null}
+      {isPending ? (
+        <Loader2 className="mb-2 h-4 w-4 animate-spin text-muted-foreground" strokeWidth={1.5} />
+      ) : null}
     </div>
   );
 }

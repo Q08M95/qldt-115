@@ -35,7 +35,7 @@ export function DeleteProfileButton({
 
   return (
     <Button variant="outline" size="sm" disabled={isPending} onClick={handleClick}>
-      <Trash2 className="h-4 w-4" />
+      <Trash2 className="h-4 w-4" strokeWidth={1.5} />
       Xoá
     </Button>
   );

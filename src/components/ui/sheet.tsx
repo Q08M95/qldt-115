@@ -75,8 +75,7 @@ function SheetContent({
               />
             }
           >
-            <XIcon
-            />
+            <XIcon strokeWidth={1.5} />
             <span className="sr-only">Close</span>
           </SheetPrimitive.Close>
         )}

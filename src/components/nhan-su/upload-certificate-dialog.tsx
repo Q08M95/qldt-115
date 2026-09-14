@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { uploadCertificate } from "@/app/(app)/nhan-su/[id]/certificate-actions";
 
 export function UploadCertificateDialog({ profileId }: { profileId: string }) {
@@ -42,7 +43,7 @@ export function UploadCertificateDialog({ profileId }: { profileId: string }) {
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger render={<Button size="sm" variant="outline" />}>
-        <Plus className="h-4 w-4" />
+        <Plus className="h-4 w-4" strokeWidth={1.5} />
         Thêm chứng chỉ
       </DialogTrigger>
       <DialogContent>
@@ -73,7 +74,7 @@ export function UploadCertificateDialog({ profileId }: { profileId: string }) {
             <Input id="file" name="file" type="file" accept=".pdf,image/*" required />
           </div>
           <div className="flex items-center gap-2">
-            <input id="bat_buoc" name="bat_buoc" type="checkbox" defaultChecked className="h-4 w-4" />
+            <Checkbox id="bat_buoc" name="bat_buoc" defaultChecked />
             <Label htmlFor="bat_buoc" className="font-normal">
               Chứng chỉ bắt buộc (tính vào KPI Nhóm C)
             </Label>

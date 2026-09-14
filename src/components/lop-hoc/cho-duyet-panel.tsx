@@ -52,7 +52,7 @@ export function ChoDuyetPanel({
   return (
     <div className="flex flex-col gap-2 rounded-4xl border border-data-canh-bao/30 bg-data-canh-bao/8 p-4 backdrop-blur-md">
       <div className="flex items-center gap-2">
-        <AlertCircle className="h-4 w-4 text-data-canh-bao" />
+        <AlertCircle className="h-4 w-4 text-data-canh-bao" strokeWidth={1.5} />
         <h2 className="text-sm font-medium">Cần duyệt ({items.length})</h2>
       </div>
       <div className="flex flex-col divide-y">

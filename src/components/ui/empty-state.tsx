@@ -18,7 +18,7 @@ export function EmptyState({
 }) {
   return (
     <div className="flex flex-col items-center justify-center gap-2 rounded-[28px] border border-dashed border-foreground/15 p-10 text-center">
-      <Icon className="h-8 w-8 text-muted-foreground" />
+      <Icon className="h-8 w-8 text-muted-foreground" strokeWidth={1.5} />
       <p className="text-sm font-medium">{title}</p>
       {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}
       {action ? <div className="mt-2">{action}</div> : null}

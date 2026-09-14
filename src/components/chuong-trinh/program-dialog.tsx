@@ -69,12 +69,12 @@ export function ProgramDialog({
       >
         {mode === "create" ? (
           <>
-            <Plus className="h-4 w-4" />
+            <Plus className="h-4 w-4" strokeWidth={1.5} />
             Thêm chương trình
           </>
         ) : (
           <>
-            <Pencil className="h-4 w-4" />
+            <Pencil className="h-4 w-4" strokeWidth={1.5} />
             Sửa
           </>
         )}

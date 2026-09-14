@@ -68,7 +68,7 @@ export function QuickCreateClassDialog({ programs }: { programs: Program[] }) {
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger render={<Button size="sm" />}>
-        <Plus className="h-4 w-4" />
+        <Plus className="h-4 w-4" strokeWidth={1.5} />
         Thêm lớp học
       </DialogTrigger>
       <DialogContent>

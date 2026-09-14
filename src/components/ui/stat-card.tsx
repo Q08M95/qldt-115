@@ -40,7 +40,7 @@ export function StatCard({
             className={cn("flex h-9 w-9 items-center justify-center rounded-full")}
             style={{ backgroundColor: `color-mix(in oklch, ${color} 16%, transparent)`, color }}
           >
-            <Icon className="h-4 w-4" />
+            <Icon className="h-4 w-4" strokeWidth={1.5} />
           </span>
         </div>
         <div className="text-2xl font-semibold">{value}</div>

@@ -44,7 +44,7 @@ export function BuoiGiangQuickAdd({ lopHocId }: { lopHocId: string }) {
         className="h-9"
       />
       <Button type="submit" size="sm" disabled={isPending || !ten.trim()}>
-        <Plus className="h-4 w-4" />
+        <Plus className="h-4 w-4" strokeWidth={1.5} />
         Thêm
       </Button>
     </form>

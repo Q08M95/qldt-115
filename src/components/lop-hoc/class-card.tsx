@@ -85,21 +85,21 @@ export function ClassCard({
             {lop.la_lop_cong_dong ? <Badge variant="outline">Cộng đồng</Badge> : null}
           </div>
           <div className="flex items-center gap-2 text-muted-foreground">
-            <CalendarDays className="h-4 w-4 shrink-0" />
+            <CalendarDays className="h-4 w-4 shrink-0" strokeWidth={1.5} />
             <span>
               {lop.ngay_khai_giang ?? "Chưa xếp ngày"}
               {lop.ngay_ket_thuc ? ` — ${lop.ngay_ket_thuc}` : ""}
             </span>
           </div>
           <div className="flex items-center gap-2 text-muted-foreground">
-            <Users className="h-4 w-4 shrink-0" />
+            <Users className="h-4 w-4 shrink-0" strokeWidth={1.5} />
             <span>
               Cần {lop.so_giang_vien_can} giảng viên · {lop.so_tro_giang_can} trợ giảng
             </span>
           </div>
           {coChiDinh ? (
             <div className="flex items-start gap-2 text-muted-foreground">
-              <UserCheck className="h-4 w-4 shrink-0" />
+              <UserCheck className="h-4 w-4 shrink-0" strokeWidth={1.5} />
               <span>
                 {gvNames.length > 0 ? `GV: ${gvNames.join(", ")}` : null}
                 {gvNames.length > 0 && tgNames.length > 0 ? " · " : ""}

@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -118,7 +119,7 @@ export function BuoiGiangDialog({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogTrigger render={<Button size="sm" variant="ghost" />}>
-        <Pencil className="h-4 w-4" />
+        <Pencil className="h-4 w-4" strokeWidth={1.5} />
       </DialogTrigger>
       <DialogContent className="max-h-[85vh] overflow-y-auto">
         <DialogHeader>
@@ -154,13 +155,11 @@ export function BuoiGiangDialog({
             </div>
           </div>
           <label className="flex items-center gap-2 text-sm font-normal">
-            <input
-              type="checkbox"
+            <Checkbox
               name="mo_dang_ky"
               checked={moDangKy}
               disabled={!moDangKy && soBaiGiang === 0}
-              onChange={(e) => setMoDangKy(e.target.checked)}
-              className="h-4 w-4"
+              onCheckedChange={(checked) => setMoDangKy(checked)}
             />
             Mở đăng ký cho buổi này
           </label>

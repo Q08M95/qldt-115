@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
   SelectContent,
@@ -149,19 +150,17 @@ function NhomCheckboxGroup({
       <div className="flex flex-col gap-1.5">
         {NHOM_PHAN_LOAI_VALUES.map((v) => (
           <label key={v} className="flex items-center gap-2 text-sm font-normal">
-            <input
-              type="checkbox"
+            <Checkbox
               name={name}
-              value={v}
+              value={String(v)}
               checked={selected.has(v)}
-              onChange={(e) => {
+              onCheckedChange={(checked) => {
                 const next = new Set(selected);
-                if (e.target.checked) next.add(v);
+                if (checked) next.add(v);
                 else next.delete(v);
                 onChange(next);
                 onDirty?.();
               }}
-              className="h-4 w-4"
             />
             {NHOM_PHAN_LOAI_LABEL[v]}
           </label>
@@ -361,16 +360,14 @@ export function ClassFormFields({
       </div>
 
       <label className="flex items-center gap-2 text-sm font-normal">
-        <input
-          type="checkbox"
+        <Checkbox
           name="mo_dang_ky"
           checked={moDangKy}
           disabled={!moDangKy && soBaiGiang === 0}
-          onChange={(e) => {
-            setMoDangKy(e.target.checked);
+          onCheckedChange={(checked) => {
+            setMoDangKy(checked);
             onDirty?.();
           }}
-          className="h-4 w-4"
         />
         Mở đăng ký — cho phép nhân sự tự đăng ký dạy lớp này
       </label>
@@ -427,32 +424,26 @@ export function ClassFormFields({
         <Label>Tính chất lớp (ảnh hưởng hệ số quy đổi KPI)</Label>
         <div className="flex flex-wrap gap-4">
           <label className="flex items-center gap-2 text-sm font-normal">
-            <input
-              type="checkbox"
+            <Checkbox
               name="co_kinh_phi"
               defaultChecked={defaults?.co_kinh_phi ?? true}
-              onChange={() => onDirty?.()}
-              className="h-4 w-4"
+              onCheckedChange={() => onDirty?.()}
             />
             Có kinh phí
           </label>
           <label className="flex items-center gap-2 text-sm font-normal">
-            <input
-              type="checkbox"
+            <Checkbox
               name="la_lop_gap"
               defaultChecked={defaults?.la_lop_gap ?? false}
-              onChange={() => onDirty?.()}
-              className="h-4 w-4"
+              onCheckedChange={() => onDirty?.()}
             />
             Lớp đột xuất
           </label>
           <label className="flex items-center gap-2 text-sm font-normal">
-            <input
-              type="checkbox"
+            <Checkbox
               name="la_lop_cong_dong"
               defaultChecked={defaults?.la_lop_cong_dong ?? false}
-              onChange={() => onDirty?.()}
-              className="h-4 w-4"
+              onCheckedChange={() => onDirty?.()}
             />
             Lớp cộng đồng
           </label>

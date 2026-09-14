@@ -171,7 +171,7 @@ function SortableBuoiGiangRow({
     >
       {canEdit ? (
         <TableCell className="w-8 cursor-grab touch-none text-muted-foreground active:cursor-grabbing" {...attributes} {...listeners}>
-          <GripVertical className="h-4 w-4" />
+          <GripVertical className="h-4 w-4" strokeWidth={1.5} />
         </TableCell>
       ) : null}
       <TableCell className="font-medium">{buoiGiang.ten_buoi}</TableCell>
