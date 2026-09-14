@@ -17,7 +17,7 @@ export function EmptyState({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-center justify-center gap-2 rounded-md border border-dashed p-10 text-center">
+    <div className="flex flex-col items-center justify-center gap-2 rounded-[28px] border border-dashed border-foreground/15 p-10 text-center">
       <Icon className="h-8 w-8 text-muted-foreground" />
       <p className="text-sm font-medium">{title}</p>
       {description ? <p className="text-sm text-muted-foreground">{description}</p> : null}

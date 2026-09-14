@@ -57,7 +57,7 @@ export function TuChoiDialog({
             id="ghi_chu"
             value={ghiChu}
             onChange={(e) => setGhiChu(e.target.value)}
-            className="min-h-20 rounded-md border border-input bg-transparent p-2 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
+            className="min-h-20 rounded-2xl border border-white/60 bg-white/70 p-2.5 text-sm outline-none backdrop-blur-md focus-visible:ring-3 focus-visible:ring-ring/50 dark:border-white/10 dark:bg-white/[0.05]"
           />
         </div>
         <DialogFooter>

@@ -16,6 +16,8 @@ import {
 import { TuChoiDialog } from "@/components/lop-hoc/tu-choi-dialog";
 import { createDangKy, duyetDangKy, huyDangKy } from "@/app/(app)/lop-hoc/[id]/dang-ky-actions";
 import { ROLE_LABEL, type Role } from "@/lib/constants/roles";
+import { cn } from "@/lib/utils";
+import { GLASS_SURFACE_LIGHT } from "@/lib/design/glass";
 
 export type DangKyRow = {
   id: string;
@@ -177,7 +179,7 @@ export function DangKyRosterBoard({
         const showCaBuoi = buoi.mo_dang_ky || itemsCaBuoi.length > 0;
 
         return (
-          <div key={buoi.id} className="flex flex-col gap-2 rounded-md border p-3">
+          <div key={buoi.id} className={cn("flex flex-col gap-2 rounded-3xl p-3", GLASS_SURFACE_LIGHT)}>
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h4 className="text-sm font-medium">{buoi.ten_buoi}</h4>
               <span className="text-xs text-muted-foreground">
@@ -238,7 +240,7 @@ export function DangKyRosterBoard({
       })}
 
       {baiLe.length > 0 ? (
-        <div className="flex flex-col gap-2 rounded-md border p-3">
+        <div className={cn("flex flex-col gap-2 rounded-3xl p-3", GLASS_SURFACE_LIGHT)}>
           <h4 className="text-sm font-medium">Bài chưa gom buổi</h4>
           {baiLe.map((bai) => {
             const itemsBai = items.filter((dk) => dk.bai_giang_id === bai.id);

@@ -43,14 +43,14 @@ export function ChoDuyetPanel({
 
   if (items.length === 0) {
     return (
-      <div className="flex items-center gap-2 rounded-lg border border-dashed p-3 text-sm text-muted-foreground">
+      <div className="flex items-center gap-2 rounded-[28px] border border-dashed border-foreground/15 p-3 text-sm text-muted-foreground">
         Không có đăng ký giảng dạy nào đang chờ duyệt.
       </div>
     );
   }
 
   return (
-    <div className="flex flex-col gap-2 rounded-lg border border-data-canh-bao/30 bg-data-canh-bao/5 p-4">
+    <div className="flex flex-col gap-2 rounded-4xl border border-data-canh-bao/30 bg-data-canh-bao/8 p-4 backdrop-blur-md">
       <div className="flex items-center gap-2">
         <AlertCircle className="h-4 w-4 text-data-canh-bao" />
         <h2 className="text-sm font-medium">Cần duyệt ({items.length})</h2>

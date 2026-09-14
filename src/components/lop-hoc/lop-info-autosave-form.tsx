@@ -8,6 +8,8 @@ import {
   type ClassFormProfile,
 } from "./class-form-fields";
 import { updateLopHoc } from "@/app/(app)/lop-hoc/actions";
+import { cn } from "@/lib/utils";
+import { GLASS_SURFACE_LIGHT } from "@/lib/design/glass";
 
 // Thay the EditClassDialog — thong tin lop giờ sua truc tiep tai cho tren
 // trang canvas 1 trang (thiet ke lai 2026-09-14, xem tientrinh.md muc 1.2),
@@ -68,7 +70,7 @@ export function LopInfoAutosaveForm({
   }
 
   return (
-    <div className="flex flex-col gap-4 rounded-lg border p-4">
+    <div className={cn("flex flex-col gap-4 rounded-4xl p-4 md:p-6", GLASS_SURFACE_LIGHT)}>
       <div className="flex items-center justify-between">
         <h2 className="text-sm font-medium text-muted-foreground">Thông tin lớp</h2>
         <SaveStatus status={isPending ? "saving" : status} />

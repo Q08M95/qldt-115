@@ -26,6 +26,8 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { BuoiGiangDialog, type BuoiGiang } from "./buoi-giang-dialog";
 import type { ClassFormProfile } from "./class-form-fields";
 import { deleteBuoiGiang, reorderBuoiGiang } from "@/app/(app)/lop-hoc/[id]/buoi-giang-actions";
+import { cn } from "@/lib/utils";
+import { GLASS_SURFACE_LIGHT } from "@/lib/design/glass";
 
 export function BuoiGiangList({
   lopHocId,
@@ -102,7 +104,7 @@ export function BuoiGiangList({
   }
 
   return (
-    <div className="overflow-x-auto rounded-md border">
+    <div className={cn("overflow-x-auto rounded-3xl", GLASS_SURFACE_LIGHT)}>
       <Table>
         <TableHeader>
           <TableRow>

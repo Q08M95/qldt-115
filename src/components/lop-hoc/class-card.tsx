@@ -8,6 +8,8 @@ import {
   DOI_TUONG_HOC_VIEN_LABEL,
   type TrangThaiLop,
 } from "@/lib/constants/lop-hoc";
+import { cn } from "@/lib/utils";
+import { GLASS_SURFACE } from "@/lib/design/glass";
 
 export type ClassCardData = {
   id: string;
@@ -50,7 +52,12 @@ export function ClassCard({
   const isGvTg = current?.role === "giang_vien" || current?.role === "tro_giang";
 
   return (
-    <div className="flex flex-col overflow-hidden rounded-xl bg-card text-sm text-card-foreground ring-1 ring-foreground/10 transition-shadow hover:shadow-md">
+    <div
+      className={cn(
+        "flex flex-col overflow-hidden rounded-4xl text-sm text-card-foreground transition-transform hover:-translate-y-0.5",
+        GLASS_SURFACE,
+      )}
+    >
       <Link href={`/lop-hoc/${lop.id}`} className="flex flex-col">
         <div className="flex flex-col gap-2 p-4 pb-2">
           <div className="flex items-start justify-between gap-2">

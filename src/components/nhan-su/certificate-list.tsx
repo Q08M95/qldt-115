@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/table";
 import { EmptyState } from "@/components/ui/empty-state";
 import { deleteCertificate, getCertificateSignedUrl } from "@/app/(app)/nhan-su/[id]/certificate-actions";
+import { cn } from "@/lib/utils";
+import { GLASS_SURFACE_LIGHT } from "@/lib/design/glass";
 
 export type CertificateRow = {
   id: string;
@@ -69,7 +71,7 @@ export function CertificateList({
 
   return (
     <div className="flex flex-col gap-2">
-      <div className="overflow-x-auto rounded-md border">
+      <div className={cn("overflow-x-auto rounded-3xl", GLASS_SURFACE_LIGHT)}>
       <Table>
         <TableHeader>
           <TableRow>

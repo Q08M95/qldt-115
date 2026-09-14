@@ -37,7 +37,7 @@ export function StatCard({
         <div className="flex items-start justify-between">
           <span className="text-sm text-muted-foreground">{label}</span>
           <span
-            className={cn("flex h-8 w-8 items-center justify-center rounded-md")}
+            className={cn("flex h-9 w-9 items-center justify-center rounded-full")}
             style={{ backgroundColor: `color-mix(in oklch, ${color} 16%, transparent)`, color }}
           >
             <Icon className="h-4 w-4" />

@@ -20,6 +20,8 @@ import { getCurrentProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { ROLE_LABEL, ROLE_VALUES } from "@/lib/constants/roles";
 import { NHOM_PHAN_LOAI_LABEL, NHOM_PHAN_LOAI_VALUES } from "@/lib/constants/nhan-su";
+import { cn } from "@/lib/utils";
+import { GLASS_SURFACE_LIGHT } from "@/lib/design/glass";
 
 const PAGE_SIZE = 20;
 
@@ -103,7 +105,7 @@ export default async function NhanSuPage({
           <EmptyState title="Chưa có nhân sự phù hợp bộ lọc" />
         ) : (
           <>
-            <div className="overflow-x-auto rounded-md border">
+            <div className={cn("overflow-x-auto rounded-4xl", GLASS_SURFACE_LIGHT)}>
               <Table>
                 <TableHeader>
                   <TableRow>

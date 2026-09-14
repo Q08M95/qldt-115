@@ -12,7 +12,7 @@ export default async function DatLaiMatKhauPage({
   const { error } = await searchParams;
 
   return (
-    <div className="flex min-h-svh w-full items-center justify-center bg-muted/40 p-4">
+    <div className="app-gradient-bg flex min-h-svh w-full items-center justify-center p-4">
       <Card className="w-full max-w-sm">
         <CardHeader>
           <CardTitle>Đặt lại mật khẩu</CardTitle>

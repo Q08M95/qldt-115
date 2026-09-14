@@ -71,6 +71,8 @@ Một khi kỳ đã `da_chot`, điểm và xếp hạng không được sửa tr
 
 ## 3. Design System — "bàn làm việc kỹ thuật số nổi" (Soft UI + Neumorphism + Glassmorphism)
 
+> **Rollout 2 đợt (2026-09-14)**: Đợt 1 — khung sườn dùng chung (`Sidebar`/`Header`/`(app)/layout.tsx`) + 3 primitive nền tảng (`Card`/`Button`/`Input`). Đợt 2 (cùng ngày) — rà toàn bộ trang/component đã build tới thời điểm này (Lớp học, Nhân sự, Cấu hình chương trình, trang auth) và các primitive còn lại (`Select`, `Tabs`, `Dialog`, `Sheet`, `Tooltip`, `DropdownMenu`, `EmptyState`, `StatCard`): thay mọi khối `rounded-md/lg/xl border` tự viết tay bằng bo góc lớn + `GLASS_SURFACE`/`GLASS_SURFACE_LIGHT`. Các module **chưa build** (Lịch giảng, KPI, Cấu hình KPI, Dashboard thật, Thông báo) sẽ tự áp dụng đúng chuẩn này khi agent phụ trách xây ở giai đoạn của họ — không cần rà lại.
+
 > **Chốt 2026-09-14**, thay thế hoàn toàn phong cách cũ tham chiếu `maugiaodien.png` (dạng sidebar liệt kê + header/card nền đặc). Quyết định dựa trên 1 trang thử nghiệm thật (`src/app/thu-nghiem-giao-dien/page.tsx`, dùng dữ liệu nhân sự/lớp học thật, đã xoá sau khi duyệt) — người dùng xác nhận đạt yêu cầu bao gồm cả điểm rủi ro nhất (kính mờ trên bảng dữ liệu dày đặc), nên mục 3.1 cũ (giới hạn kính mờ chỉ cho lớp nổi tạm thời) **bị thay thế**, không còn hiệu lực. Bảng màu 6 tông ở mục 3 dưới đây **không đổi** — lần chốt lại này chỉ đổi chất liệu bề mặt/bố cục, không đổi mã màu.
 
 Toàn bộ UI là 1 không gian 3D đa tầng lớp, nổi trên nền gradient trừu tượng mềm — kết hợp Bento Grid, bo góc cực lớn, thành phần dạng viên thuốc, và kính mờ:
