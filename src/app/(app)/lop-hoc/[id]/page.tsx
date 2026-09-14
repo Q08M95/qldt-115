@@ -12,7 +12,6 @@ import { DangKyRosterBoard } from "@/components/lop-hoc/dang-ky-roster-board";
 import { getCurrentProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { TRANG_THAI_LOP_LABEL, TRANG_THAI_LOP_BADGE, DOI_TUONG_HOC_VIEN_LABEL } from "@/lib/constants/lop-hoc";
-import { NHOM_PHAN_LOAI_LABEL } from "@/lib/constants/nhan-su";
 import { dongBoTrangThaiLop } from "@/lib/lop-hoc/trang-thai";
 import { coTheTuDangKy } from "@/lib/lop-hoc/dang-ky";
 
@@ -82,7 +81,6 @@ export default async function LopHocDetailPage({
     }),
   );
   const profilesForAssign = profilesRaw ?? [];
-  const nguoiMap = new Map(profiles.map((p) => [p.id, p.full_name]));
   const profilesMapForDangKy = new Map(profiles.map((p) => [p.id, p]));
   const coTheDangKy = coTheTuDangKy(lop, current);
   const soChoDuyet = (dangKyList ?? []).filter((d) => d.trang_thai === "cho_duyet").length;
@@ -148,42 +146,6 @@ export default async function LopHocDetailPage({
             <dd className="col-span-1 sm:col-span-2">{lop.ngay_khai_giang ?? "—"}</dd>
             <dt className="text-muted-foreground">Ngày kết thúc</dt>
             <dd className="col-span-1 sm:col-span-2">{lop.ngay_ket_thuc ?? "—"}</dd>
-            <dt className="text-muted-foreground">Chỉ tiêu GV/TG</dt>
-            <dd className="col-span-1 sm:col-span-2">
-              {lop.so_giang_vien_can} giảng viên · {lop.so_tro_giang_can} trợ giảng
-            </dd>
-            <dt className="text-muted-foreground">Chỉ định giảng viên</dt>
-            <dd className="col-span-1 sm:col-span-2">
-              {lop.giang_vien_chi_dinh_ids && lop.giang_vien_chi_dinh_ids.length > 0
-                ? lop.giang_vien_chi_dinh_ids.map((gvId) => nguoiMap.get(gvId) ?? "—").join(", ")
-                : "—"}
-            </dd>
-            <dt className="text-muted-foreground">Chỉ định trợ giảng</dt>
-            <dd className="col-span-1 sm:col-span-2">
-              {lop.tro_giang_chi_dinh_ids && lop.tro_giang_chi_dinh_ids.length > 0
-                ? lop.tro_giang_chi_dinh_ids.map((tgId) => nguoiMap.get(tgId) ?? "—").join(", ")
-                : "—"}
-            </dd>
-            {lop.nhom_giang_vien_phu_hop && lop.nhom_giang_vien_phu_hop.length > 0 ? (
-              <>
-                <dt className="text-muted-foreground">Nhóm GV phù hợp</dt>
-                <dd className="col-span-1 sm:col-span-2">
-                  {lop.nhom_giang_vien_phu_hop
-                    .map((n) => NHOM_PHAN_LOAI_LABEL[n as 1 | 2 | 3 | 4 | 5])
-                    .join(", ")}
-                </dd>
-              </>
-            ) : null}
-            {lop.nhom_tro_giang_phu_hop && lop.nhom_tro_giang_phu_hop.length > 0 ? (
-              <>
-                <dt className="text-muted-foreground">Nhóm TG phù hợp</dt>
-                <dd className="col-span-1 sm:col-span-2">
-                  {lop.nhom_tro_giang_phu_hop
-                    .map((n) => NHOM_PHAN_LOAI_LABEL[n as 1 | 2 | 3 | 4 | 5])
-                    .join(", ")}
-                </dd>
-              </>
-            ) : null}
             {lop.mo_ta ? (
               <>
                 <dt className="text-muted-foreground">Mô tả</dt>
@@ -193,41 +155,45 @@ export default async function LopHocDetailPage({
           </dl>
         )}
 
-        <section className="flex flex-col gap-4 rounded-lg border p-4">
-          <h2 className="text-sm font-medium text-muted-foreground">Buổi giảng &amp; Bài giảng</h2>
+        {canManage ? (
+          <section className="flex flex-col gap-4 rounded-lg border p-4">
+            <h2 className="text-sm font-medium text-muted-foreground">Buổi giảng &amp; Bài giảng</h2>
 
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-medium">{buoiGiang?.length ?? 0} buổi giảng</h3>
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-medium">{buoiGiang?.length ?? 0} buổi giảng</h3>
+              </div>
+              <BuoiGiangQuickAdd lopHocId={lop.id} />
+              <BuoiGiangList
+                lopHocId={lop.id}
+                items={buoiGiang ?? []}
+                profiles={profiles}
+                canEdit={canManage}
+                baiCountByBuoi={baiCountByBuoi}
+              />
             </div>
-            {canManage ? <BuoiGiangQuickAdd lopHocId={lop.id} /> : null}
-            <BuoiGiangList
-              lopHocId={lop.id}
-              items={buoiGiang ?? []}
-              profiles={profiles}
-              canEdit={canManage}
-              baiCountByBuoi={baiCountByBuoi}
-            />
-          </div>
 
-          <div className="flex flex-col gap-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-medium">{baiGiang?.length ?? 0} bài giảng</h3>
+            <div className="flex flex-col gap-3">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-medium">{baiGiang?.length ?? 0} bài giảng</h3>
+              </div>
+              <BaiGiangQuickAdd lopHocId={lop.id} />
+              <BaiGiangList
+                lopHocId={lop.id}
+                items={baiGiang ?? []}
+                buoiList={buoiGiang ?? []}
+                profiles={profiles}
+                canEdit={canManage}
+              />
             </div>
-            {canManage ? <BaiGiangQuickAdd lopHocId={lop.id} /> : null}
-            <BaiGiangList
-              lopHocId={lop.id}
-              items={baiGiang ?? []}
-              buoiList={buoiGiang ?? []}
-              profiles={profiles}
-              canEdit={canManage}
-            />
-          </div>
-        </section>
+          </section>
+        ) : null}
 
         <section className="flex flex-col gap-3 rounded-lg border p-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-sm font-medium text-muted-foreground">Đăng ký &amp; Duyệt</h2>
+            <h2 className="text-sm font-medium text-muted-foreground">
+              {canManage ? "Đăng ký & Duyệt" : "Chương trình lớp và Đăng ký"}
+            </h2>
             {canManage && soChoDuyet > 0 ? (
               <Badge className="border-data-dang-ky/40 bg-data-dang-ky/10 text-data-dang-ky">
                 {soChoDuyet} chờ duyệt

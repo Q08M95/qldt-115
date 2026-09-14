@@ -49,6 +49,7 @@ type BaiNode = {
   ten_bai: string;
   buoi_giang_id: string | null;
   mo_dang_ky: boolean;
+  thoi_luong_tiet: number;
 };
 
 const TRANG_THAI_LABEL: Record<DangKyRow["trang_thai"], string> = {
@@ -135,12 +136,18 @@ export function DangKyRosterBoard({
 
   return (
     <div className="flex flex-col gap-4">
-      {canManage && buoiIds.size + baiGiang.length > 0 ? (
-        <div className="flex items-center gap-3 text-xs text-muted-foreground">
-          <span>
-            Toàn lớp: {demSoDaDuyet(items, "giang_vien")}/{lop.so_giang_vien_can} GV ·{" "}
-            {demSoDaDuyet(items, "tro_giang")}/{lop.so_tro_giang_can} TG đã duyệt
-          </span>
+      {buoiIds.size + baiGiang.length > 0 ? (
+        <div className="text-xs text-muted-foreground">
+          {canManage ? (
+            <span>
+              Toàn lớp: {demSoDaDuyet(items, "giang_vien")}/{lop.so_giang_vien_can} GV ·{" "}
+              {demSoDaDuyet(items, "tro_giang")}/{lop.so_tro_giang_can} TG đã duyệt
+            </span>
+          ) : (
+            <span>
+              Chỉ tiêu chung: {lop.so_giang_vien_can} giảng viên · {lop.so_tro_giang_can} trợ giảng
+            </span>
+          )}
         </div>
       ) : null}
 
@@ -173,12 +180,11 @@ export function DangKyRosterBoard({
           <div key={buoi.id} className="flex flex-col gap-2 rounded-md border p-3">
             <div className="flex flex-wrap items-center justify-between gap-2">
               <h4 className="text-sm font-medium">{buoi.ten_buoi}</h4>
-              {canManage ? (
-                <span className="text-xs text-muted-foreground">
-                  {demSoDaDuyet(itemsThuocBuoi, "giang_vien")}/{buoi.so_giang_vien_can} GV ·{" "}
-                  {demSoDaDuyet(itemsThuocBuoi, "tro_giang")}/{buoi.so_tro_giang_can} TG
-                </span>
-              ) : null}
+              <span className="text-xs text-muted-foreground">
+                {canManage
+                  ? `${demSoDaDuyet(itemsThuocBuoi, "giang_vien")}/${buoi.so_giang_vien_can} GV · ${demSoDaDuyet(itemsThuocBuoi, "tro_giang")}/${buoi.so_tro_giang_can} TG`
+                  : `Cần ${buoi.so_giang_vien_can} GV · ${buoi.so_tro_giang_can} TG`}
+              </span>
             </div>
             {showCaBuoi ? (
               <RegistrationRow
@@ -197,11 +203,15 @@ export function DangKyRosterBoard({
             ) : null}
             {baiCuaBuoi.map((bai) => {
               const itemsBai = items.filter((dk) => dk.bai_giang_id === bai.id);
-              if (!bai.mo_dang_ky && itemsBai.length === 0) return null;
+              // Quan ly chi thay dong lien quan dang ky (van co "Buoi giang &
+              // Bai giang" rieng de xem het chuong trinh); GV/TG luon thay du
+              // moi bai — khung nay gio kiem luon vai tro hien thi "chuong
+              // trinh lop" cho ho (yeu cau nguoi dung 2026-09-14).
+              if (canManage && !bai.mo_dang_ky && itemsBai.length === 0) return null;
               return (
                 <RegistrationRow
                   key={bai.id}
-                  label={bai.ten_bai}
+                  label={`${bai.ten_bai} · ${bai.thoi_luong_tiet} tiết`}
                   moDangKy={bai.mo_dang_ky}
                   itemsHere={itemsBai}
                   lopHocId={lopHocId}
@@ -215,8 +225,13 @@ export function DangKyRosterBoard({
                 />
               );
             })}
-            {!showCaBuoi && baiCuaBuoi.every((b) => !b.mo_dang_ky && !items.some((dk) => dk.bai_giang_id === b.id)) ? (
+            {canManage &&
+            !showCaBuoi &&
+            baiCuaBuoi.every((b) => !b.mo_dang_ky && !items.some((dk) => dk.bai_giang_id === b.id)) ? (
               <p className="text-xs text-muted-foreground">Chưa mở đăng ký ở buổi này.</p>
+            ) : null}
+            {!canManage && baiCuaBuoi.length === 0 && !showCaBuoi ? (
+              <p className="text-xs text-muted-foreground">Chưa có bài giảng.</p>
             ) : null}
           </div>
         );
@@ -227,11 +242,11 @@ export function DangKyRosterBoard({
           <h4 className="text-sm font-medium">Bài chưa gom buổi</h4>
           {baiLe.map((bai) => {
             const itemsBai = items.filter((dk) => dk.bai_giang_id === bai.id);
-            if (!bai.mo_dang_ky && itemsBai.length === 0) return null;
+            if (canManage && !bai.mo_dang_ky && itemsBai.length === 0) return null;
             return (
               <RegistrationRow
                 key={bai.id}
-                label={bai.ten_bai}
+                label={`${bai.ten_bai} · ${bai.thoi_luong_tiet} tiết`}
                 moDangKy={bai.mo_dang_ky}
                 itemsHere={itemsBai}
                 lopHocId={lopHocId}
@@ -294,8 +309,14 @@ function RegistrationRow({
           : itemsHere.map((dk) => (
               <SelfStatus key={dk.id} dk={dk} isPending={isPending} onHuy={onHuy} />
             ))}
-        {!canManage && coTheDangKy && moDangKy && itemsHere.every((dk) => dk.trang_thai === "tu_choi") ? (
-          <Button size="sm" variant="outline" disabled={isPending} onClick={onDangKy}>
+        {!canManage && moDangKy && itemsHere.every((dk) => dk.trang_thai === "tu_choi") ? (
+          <Button
+            size="sm"
+            variant="outline"
+            disabled={isPending || !coTheDangKy}
+            title={!coTheDangKy ? "Bạn không thuộc nhóm được phân công cho lớp này" : undefined}
+            onClick={onDangKy}
+          >
             {itemsHere.length > 0 ? "Đăng ký lại" : "Đăng ký"}
           </Button>
         ) : null}

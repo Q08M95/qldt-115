@@ -454,6 +454,13 @@ create table audit_log (
 > - **Giảng viên/trợ giảng** (RLS đã tự giới hạn `items` chỉ còn đúng đăng ký của chính họ) thấy nút "Đăng ký"/"Đăng ký lại" ngay tại đúng dòng buổi/bài muốn dạy (không qua dropdown chọn cấp nữa), hoặc trạng thái đăng ký hiện tại của mình (Chờ duyệt/Đã duyệt kèm nút Huỷ, hoặc "Đã bị từ chối" kèm lý do nếu có).
 > - `DangKyDialog` (dropdown cũ) **vẫn giữ nguyên**, chỉ còn dùng ở nút "Đăng ký ngay" trên thẻ lớp tại `/lop-hoc` (`class-card.tsx`) — nơi chưa tải sẵn dữ liệu buổi/bài nên giữ luồng đơn giản "cả lớp"; đã xoá `dang-ky-list.tsx` (không còn nơi dùng).
 
+> **Tinh gọn góc nhìn giảng viên/trợ giảng 2026-09-14 (cùng ngày, sau khi test)**: người dùng test xong roster board ở trên và góp ý 5 điểm cho riêng trải nghiệm tự đăng ký (không đổi gì phía quản lý):
+> - `/lop-hoc`: query lọc thêm `mo_dang_ky = true` khi `role` là `giang_vien`/`tro_giang` — GV/TG chỉ thấy lớp đang mở đăng ký, không thấy lớp đã hoàn thành/chưa mở đăng ký như trước (giữ nguyên bố cục 3 cột theo trạng thái, chỉ lọc bớt dữ liệu).
+> - `class-card.tsx`: bỏ hẳn `DangKyDialog` (popup) ở CTA cuối thẻ — GV/TG luôn thấy nút "Xem và đăng ký" dẫn thẳng vào trang chi tiết (nơi có `DangKyRosterBoard` đủ cấu trúc buổi/bài để chọn đúng chỗ muốn dạy, thay vì popup chỉ chọn được "cả lớp"). `DangKyDialog` do đó **hết người dùng, đã xoá file**.
+> - `/lop-hoc/[id]` (view GV/TG, `!canManage`): bớt `<dl>` thông tin lớp — bỏ "Chỉ tiêu GV/TG", "Chỉ định giảng viên/trợ giảng", "Nhóm GV/TG phù hợp" (thông tin quản trị, không cần cho người quyết định có đăng ký hay không); ẩn hẳn khối "Buổi giảng & Bài giảng" (chỉ `canManage` còn thấy — vốn dùng để sửa cấu trúc, GV/TG không sửa được nên không cần xem riêng nữa).
+> - Khối "Đăng ký & Duyệt" đổi tên thành **"Chương trình lớp và Đăng ký"** cho GV/TG — `DangKyRosterBoard` giờ kiêm luôn vai trò hiển thị chương trình: mỗi dòng buổi hiện "Cần X GV · Y TG" (chỉ tiêu tham khảo, không phải số đã duyệt — RLS chỉ cho GV/TG thấy đăng ký của chính họ nên không có cơ sở tính "đã duyệt" đúng), mỗi dòng bài hiện kèm số tiết; và **luôn hiện đủ mọi buổi/bài** (không ẩn bớt như phía quản lý) vì khung này giờ là nơi duy nhất GV/TG xem chương trình lớp.
+> - Nút "Đăng ký" tại mỗi dòng: trước đây ẩn hẳn nếu không thuộc nhóm phù hợp, giờ **vẫn hiện nhưng `disabled`** (kèm `title` giải thích lý do) — theo yêu cầu người dùng "nếu không phải nhóm được phân công thì nút này không sáng" (rõ ràng hơn là ẩn hẳn, người xem biết tính năng tồn tại nhưng mình không đủ điều kiện).
+
 ### 1.3. Trigger & function nền tảng
 1. Trigger tự tạo `profiles` khi có `auth.users` mới đăng ký (role mặc định thấp nhất, admin nâng quyền thủ công sau).
 2. Trigger `updated_at` tự cập nhật cho các bảng có cột này.

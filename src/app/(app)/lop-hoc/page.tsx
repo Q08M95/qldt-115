@@ -43,6 +43,11 @@ export default async function LopHocPage({
   if (doi_tuong && (DOI_TUONG_HOC_VIEN_VALUES as readonly string[]).includes(doi_tuong)) {
     query = query.eq("doi_tuong_hoc_vien", doi_tuong as (typeof DOI_TUONG_HOC_VIEN_VALUES)[number]);
   }
+  // Gian luoc man hinh chinh cho giang vien/tro giang (yeu cau nguoi dung
+  // 2026-09-14): chi hien lop dang mo dang ky, khong can thay het moi lop
+  // nhu goc nhin quan ly.
+  const isSelfService = current?.role === "giang_vien" || current?.role === "tro_giang";
+  if (isSelfService) query = query.eq("mo_dang_ky", true);
 
   // 3 truy van doc lap, chay song song (Promise.all) thay vi tuan tu — moi
   // vong round-trip toi Supabase (Singapore) tu ham Vercel (mac dinh o My
