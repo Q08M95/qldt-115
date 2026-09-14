@@ -83,6 +83,7 @@ export async function duyetDangKy(id: string, lopHocId: string): Promise<{ error
   if (error) return { error: error.message };
 
   revalidatePath(`/lop-hoc/${lopHocId}`);
+  revalidatePath("/lop-hoc");
   return {};
 }
 
@@ -102,6 +103,7 @@ export async function tuChoiDangKy(
   if (error) return { error: error.message };
 
   revalidatePath(`/lop-hoc/${lopHocId}`);
+  revalidatePath("/lop-hoc");
   return {};
 }
 

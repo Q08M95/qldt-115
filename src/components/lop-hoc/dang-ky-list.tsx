@@ -1,10 +1,9 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useTransition } from "react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Label } from "@/components/ui/label";
 import {
   Table,
   TableBody,
@@ -23,15 +22,8 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { duyetDangKy, tuChoiDangKy, huyDangKy } from "@/app/(app)/lop-hoc/[id]/dang-ky-actions";
+import { TuChoiDialog } from "@/components/lop-hoc/tu-choi-dialog";
+import { duyetDangKy, huyDangKy } from "@/app/(app)/lop-hoc/[id]/dang-ky-actions";
 import { ROLE_LABEL, type Role } from "@/lib/constants/roles";
 
 export type DangKyRow = {
@@ -261,48 +253,5 @@ export function DangKyList({
         </TableBody>
       </Table>
     </div>
-  );
-}
-
-function TuChoiDialog({ id, lopHocId }: { id: string; lopHocId: string }) {
-  const [open, setOpen] = useState(false);
-  const [ghiChu, setGhiChu] = useState("");
-  const [isPending, startTransition] = useTransition();
-
-  function handleSubmit() {
-    startTransition(async () => {
-      const result = await tuChoiDangKy(id, lopHocId, ghiChu);
-      if (result?.error) {
-        toast.error(result.error);
-      } else {
-        setOpen(false);
-        toast.success("Đã từ chối đăng ký");
-      }
-    });
-  }
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger render={<Button size="sm" variant="ghost" />}>Từ chối</DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Từ chối đăng ký</DialogTitle>
-        </DialogHeader>
-        <div className="flex flex-col gap-2">
-          <Label htmlFor="ghi_chu">Lý do (tuỳ chọn)</Label>
-          <textarea
-            id="ghi_chu"
-            value={ghiChu}
-            onChange={(e) => setGhiChu(e.target.value)}
-            className="min-h-20 rounded-md border border-input bg-transparent p-2 text-sm outline-none focus-visible:ring-3 focus-visible:ring-ring/50"
-          />
-        </div>
-        <DialogFooter>
-          <Button variant="destructive" disabled={isPending} onClick={handleSubmit}>
-            {isPending ? "Đang gửi..." : "Xác nhận từ chối"}
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
   );
 }

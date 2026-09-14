@@ -11,6 +11,7 @@ import { BuoiGiangList } from "@/components/lop-hoc/buoi-giang-list";
 import { BuoiGiangDialog } from "@/components/lop-hoc/buoi-giang-dialog";
 import { DangKyDialog } from "@/components/lop-hoc/dang-ky-dialog";
 import { DangKyList } from "@/components/lop-hoc/dang-ky-list";
+import { WizardBanner } from "@/components/lop-hoc/wizard-banner";
 import { getCurrentProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { TRANG_THAI_LOP_LABEL, TRANG_THAI_LOP_BADGE, DOI_TUONG_HOC_VIEN_LABEL } from "@/lib/constants/lop-hoc";
@@ -20,10 +21,13 @@ import { coTheTuDangKy } from "@/lib/lop-hoc/dang-ky";
 
 export default async function LopHocDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ wizard?: string }>;
 }) {
   const { id } = await params;
+  const { wizard } = await searchParams;
   const current = await getCurrentProfile();
   const canManage = current?.role === "admin" || current?.role === "quan_ly_dao_tao";
 
@@ -125,6 +129,7 @@ export default async function LopHocDetailPage({
         }
       />
       <div className="flex flex-col gap-4 p-4 md:p-6">
+        {wizard === "step2" ? <WizardBanner tenLop={lop.ten_lop} /> : null}
         <div className="flex flex-wrap items-center gap-3">
           <h1 className="text-xl font-semibold">{lop.ten_lop}</h1>
           {lop.loai_lop ? <Badge variant="outline">{lop.loai_lop}</Badge> : null}
