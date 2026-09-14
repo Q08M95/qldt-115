@@ -8,8 +8,7 @@ import { BaiGiangList } from "@/components/lop-hoc/bai-giang-list";
 import { BaiGiangQuickAdd } from "@/components/lop-hoc/bai-giang-quick-add";
 import { BuoiGiangList } from "@/components/lop-hoc/buoi-giang-list";
 import { BuoiGiangQuickAdd } from "@/components/lop-hoc/buoi-giang-quick-add";
-import { DangKyDialog } from "@/components/lop-hoc/dang-ky-dialog";
-import { DangKyList } from "@/components/lop-hoc/dang-ky-list";
+import { DangKyRosterBoard } from "@/components/lop-hoc/dang-ky-roster-board";
 import { getCurrentProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { TRANG_THAI_LOP_LABEL, TRANG_THAI_LOP_BADGE, DOI_TUONG_HOC_VIEN_LABEL } from "@/lib/constants/lop-hoc";
@@ -85,14 +84,6 @@ export default async function LopHocDetailPage({
   const profilesForAssign = profilesRaw ?? [];
   const nguoiMap = new Map(profiles.map((p) => [p.id, p.full_name]));
   const profilesMapForDangKy = new Map(profiles.map((p) => [p.id, p]));
-  const buoiTenMap = new Map((buoiGiang ?? []).map((b) => [b.id, b.ten_buoi]));
-  const baiTenMap = new Map((baiGiang ?? []).map((b) => [b.id, b.ten_bai]));
-  const buoiOptionsChoDangKy = (buoiGiang ?? [])
-    .filter((b) => b.mo_dang_ky)
-    .map((b) => ({ id: b.id, label: b.ten_buoi }));
-  const baiOptionsChoDangKy = (baiGiang ?? [])
-    .filter((b) => b.mo_dang_ky)
-    .map((b) => ({ id: b.id, label: b.ten_bai }));
   const coTheDangKy = coTheTuDangKy(lop, current);
   const soChoDuyet = (dangKyList ?? []).filter((d) => d.trang_thai === "cho_duyet").length;
 
@@ -243,23 +234,19 @@ export default async function LopHocDetailPage({
               </Badge>
             ) : null}
           </div>
-          {coTheDangKy ? (
-            <div className="flex justify-end">
-              <DangKyDialog
-                lopHocId={lop.id}
-                lopMoDangKy={lop.mo_dang_ky}
-                buoiOptions={buoiOptionsChoDangKy}
-                baiOptions={baiOptionsChoDangKy}
-              />
-            </div>
-          ) : null}
-          <DangKyList
+          <DangKyRosterBoard
             lopHocId={lop.id}
+            lop={{
+              mo_dang_ky: lop.mo_dang_ky,
+              so_giang_vien_can: lop.so_giang_vien_can,
+              so_tro_giang_can: lop.so_tro_giang_can,
+            }}
+            buoiGiang={buoiGiang ?? []}
+            baiGiang={baiGiang ?? []}
             items={dangKyList ?? []}
             profiles={profilesMapForDangKy}
-            buoiMap={buoiTenMap}
-            baiMap={baiTenMap}
             canManage={canManage}
+            coTheDangKy={coTheDangKy}
           />
         </section>
 
