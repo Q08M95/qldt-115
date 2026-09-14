@@ -69,22 +69,26 @@ Một khi kỳ đã `da_chot`, điểm và xếp hạng không được sửa tr
 
 ---
 
-> **🧪 ĐANG THỬ NGHIỆM (2026-09-14) — chưa chốt, mục 3 dưới đây vẫn là chuẩn chính thức hiện hành.** Người dùng đề xuất đổi toàn bộ phong cách UI sang hướng "bàn làm việc kỹ thuật số nổi": Soft UI + Neumorphism + Glassmorphism, bố cục Bento 3 vùng (dock công cụ nổi trái / lưới nội dung giữa / panel chi tiết phải), bo góc ≥24px, thành phần dạng viên thuốc (pill), kính mờ (frosted glass) trên nền gradient trừu tượng mềm (không dùng ảnh phong cảnh thật), icon nét mảnh. Đề xuất này **mâu thuẫn trực tiếp** với mục 3.1 (kính mờ chỉ dùng cho lớp nổi tạm thời, không dùng cho bảng dữ liệu dày đặc) — người dùng đã đồng ý làm **1 trang thử nghiệm trước khi quyết định phạm vi cuối cùng**, xem `src/app/thu-nghiem-giao-dien/page.tsx` (route độc lập, không có trong sidebar/nav-config.ts, không ảnh hưởng trang thật nào). Mobile: dock/panel chỉ áp dụng ≥ `md`, dưới `md` giữ nguyên pattern Sheet/Drawer hiện có (đúng mục 3.2). Bảng màu 6 tông ở mục 3 **không đổi** — thử nghiệm chỉ đổi chất liệu bề mặt, không đổi mã màu. Sau khi người dùng duyệt xong phong cách (giữ nguyên, chỉnh sửa, hoặc bỏ), mục 3/3.1 bên dưới sẽ được viết lại chính thức và trang thử nghiệm sẽ bị xoá — **không được coi khối này là đã chốt cho tới lúc đó**.
+## 3. Design System — "bàn làm việc kỹ thuật số nổi" (Soft UI + Neumorphism + Glassmorphism)
 
-## 3. Design System (tham chiếu từ `maugiaodien.png` cho bố cục, tinh chỉnh chi tiết theo mục 3.1-3.2 dưới đây)
+> **Chốt 2026-09-14**, thay thế hoàn toàn phong cách cũ tham chiếu `maugiaodien.png` (dạng sidebar liệt kê + header/card nền đặc). Quyết định dựa trên 1 trang thử nghiệm thật (`src/app/thu-nghiem-giao-dien/page.tsx`, dùng dữ liệu nhân sự/lớp học thật, đã xoá sau khi duyệt) — người dùng xác nhận đạt yêu cầu bao gồm cả điểm rủi ro nhất (kính mờ trên bảng dữ liệu dày đặc), nên mục 3.1 cũ (giới hạn kính mờ chỉ cho lớp nổi tạm thời) **bị thay thế**, không còn hiệu lực. Bảng màu 6 tông ở mục 3 dưới đây **không đổi** — lần chốt lại này chỉ đổi chất liệu bề mặt/bố cục, không đổi mã màu.
 
-Toàn bộ UI phải nhất quán theo phong cách đã có trong ảnh mẫu, kết hợp thêm các pattern điều hướng hiện đại để **giảm số mục sidebar và giảm số lần người dùng phải nhảy qua lại giữa các trang** để hoàn thành một luồng nghiệp vụ:
+Toàn bộ UI là 1 không gian 3D đa tầng lớp, nổi trên nền gradient trừu tượng mềm — kết hợp Bento Grid, bo góc cực lớn, thành phần dạng viên thuốc, và kính mờ:
 
-- **Bố cục sidebar**: nhóm theo bản chất/tần suất sử dụng, có thể thu gọn từng nhóm (collapsible section) — không liệt kê phẳng từng chức năng con:
-  - `Tổng quan` — đứng riêng, luôn hiện đầu tiên.
-  - Nhóm **Đào tạo**: `Lớp học` (danh sách + trang chi tiết dùng **tab con**: Bài giảng / Đăng ký & Duyệt / Lịch giảng của lớp — duyệt đăng ký xử lý ngay tại tab này, không có trang quản lý đăng ký riêng); `Lịch giảng` (1 route tổng hợp toàn trung tâm, dạng bảng/calendar, toggle **"Tất cả ↔ Của tôi"** thay vì 2 route riêng).
-  - Nhóm **Nhân sự**: `Nhân sự` (danh sách + hồ sơ + chứng chỉ).
-  - Nhóm **Đánh giá**: `Đánh giá & KPI` (tab con: Nhập điểm — admin/quản lý, Bảng xếp hạng, Của tôi — cá nhân).
-  - Nhóm **Cấu hình** (chỉ admin/quản lý thấy nhóm này, vì dùng ít): `Chương trình đào tạo` (chương trình mẫu), `Cấu hình KPI` (kỳ, tiêu chí, trọng số, hệ số quy đổi, ngưỡng xếp hạng).
-  - Giảng viên/trợ giảng tự đăng ký dạy một lớp bằng **nút hành động ngay trong danh sách/chi tiết lớp học** ("Đăng ký dạy lớp này"), không cần trang đăng ký riêng.
-- **Header**: giữ icon lịch, trợ giúp, chuông thông báo (badge đỏ), avatar góc phải — **thêm breadcrumb ngữ cảnh** ngay đầu vùng nội dung (vd `Đào tạo / Cấp cứu cơ bản K12 / Đăng ký`) để người dùng biết đang ở đâu mà không cần nhìn lại sidebar.
+- **Bố cục Bento 3 vùng dọc** (`(app)/layout.tsx`, chỉ áp dụng từ `md` trở lên — xem mục 3.2 cho mobile):
+  - **Dock công cụ nổi bên trái** (`Sidebar` — `src/components/layout/sidebar.tsx`): dải icon dọc dạng viên thuốc/tròn, **icon-only kèm tooltip** (`title`), không còn nhãn chữ thường trực như sidebar liệt kê cũ. Lấy dữ liệu từ `nav-config.ts` như trước (không tự thêm mục ngoài cấu trúc đó).
+  - **Lưới nội dung chính ở giữa**: bố cục Bento — nhiều khối/card kích thước khác nhau xếp theo lưới, khoảng trắng lớn giữa các khối, mỗi khối là 1 mặt kính mờ độc lập (không phải 1 khối lớn duy nhất).
+  - **Panel chi tiết dạng thẻ bên phải**: dùng cho trang có 1 đối tượng "đang chọn" cần xem nhanh (hồ sơ, chi tiết) — tuỳ chọn theo từng trang, không bắt buộc mọi trang phải có.
+  - `Header` (`src/components/layout/header.tsx`) là 1 thanh kính mờ bo tròn hoàn toàn nằm ngang đầu vùng giữa — giữ icon lịch, trợ giúp, chuông thông báo, avatar góc phải như trước.
+  - Giảng viên/trợ giảng tự đăng ký dạy một lớp bằng **nút hành động ngay trong danh sách/chi tiết lớp học**, không cần trang đăng ký riêng (không đổi so với trước).
+- **Hình khối & cấu trúc**: bo góc **tối thiểu 24px** cho mọi khung/thẻ (`rounded-4xl` = 26px là mặc định cho `Card`) — không còn góc vuông cứng ở bất kỳ khối nội dung nào. `Button`, `Badge`, `Input` dạng **viên thuốc** (`rounded-full`) trừ trường hợp đặc biệt (nút trong `ButtonGroup` ghép liền nhau giữ góc vừa phải để trông liền khối).
+- **Bề mặt kính mờ (xem chi tiết công thức ở mục 3.1)** — áp dụng cho MỌI khối nội dung, kể cả bảng dữ liệu dày đặc (Nhân sự, Lớp học, KPI...) — khác hẳn quyết định cũ 2026-09-09.
+- **Nền gradient trừu tượng mềm** (`--app-gradient` trong `globals.css`, dùng qua utility `app-gradient-bg`): không dùng ảnh phong cảnh thật, gradient nhẹ từ màu chủ đạo `#2973B2`. Chỉ hiện ở `md` trở lên, phía sau dock/header/nội dung.
+- **Sắc độ & ánh sáng**: mỗi khối kính mờ có viền sáng mỏng phía trên (`inset 0 1px 0 rgba(255,255,255,.7)`) kết hợp bóng đổ lan toả mềm phía dưới (`shadow` âm offset lớn, blur rộng, dùng màu chủ đạo pha loãng) — công thức chuẩn đặt ở `GLASS_SURFACE`/`GLASS_SURFACE_LIGHT` (`src/lib/design/glass.ts`), không tự sáng tạo giá trị riêng.
 - **Duyệt/thao tác nhanh dùng master-detail + drawer**: các danh sách có thao tác lặp lại nhiều (đăng ký chờ duyệt, lời mời giảng dạy) dùng pattern list + panel bên phải (component `Sheet` của shadcn/ui) để xử lý ngay tại chỗ, không điều hướng sang trang khác. Các hành động đơn giản (duyệt/từ chối, đánh dấu đã đọc, đổi trạng thái buổi giảng) đặt dưới dạng **nút hành động inline ngay trong dòng bảng**; chỉ mở drawer/trang chi tiết khi cần xem đầy đủ thông tin trước khi quyết định.
 - **Trang chủ theo vai trò**: `/dashboard` hiển thị nội dung khác nhau theo vai trò đăng nhập — admin/quản lý thấy số liệu vận hành (lớp thiếu nhân sự, đăng ký chờ duyệt...) trước tiên; giảng viên/trợ giảng thấy lịch giảng sắp tới + điểm KPI cá nhân trước tiên, rồi mới đến các thẻ số liệu chung.
+- **Kiểu chữ**: sans-serif hình học hiện đại (giữ font Geist hiện có — đã đủ "hình học/hiện đại", không cần đổi font), tiêu đề in đậm vừa phải (`font-semibold`, không dùng `font-bold`/`font-black`), nội dung chữ nhỏ gọn (`text-sm`/`text-xs`), nhãn siêu dữ liệu viết hoa dãn chữ rộng (`text-[11px] uppercase tracking-[0.14em]` trở lên, xem `StatPill`/`header.tsx`).
+- **Icon**: hệ thống nét mảnh tối giản — mọi icon `lucide-react` dùng `strokeWidth={1.5}` (mặc định của thư viện là 2, phải set tường minh), không dùng icon dạng khối tô đặc. Đã áp dụng ở dock/header; các trang module áp dụng dần khi được rà soát lại (chưa rà soát hết toàn app trong đợt này).
 - **Bảng màu chính thức** — màu chủ đạo `#2973B2` (xanh dương). 6 tông còn lại được thiết kế hài hoà với màu chủ đạo và **đã kiểm chứng bằng OKLCH/OKLab** (đủ độ sáng, đủ độ bão hoà để không "xám hoá", đủ tách biệt dưới mô phỏng mù màu đỏ-lục/protanopia-deuteranopia, đủ tương phản với nền sáng/tối) — **không tự ý đổi các mã màu dưới đây khi sinh code**; nếu cần thêm màu mới, phải kiểm tra lại theo đúng phương pháp này (xem skill `dataviz` nếu cần chạy lại) trước khi chốt:
 
   | Vai trò dữ liệu | Tông màu | Light mode | Dark mode |
@@ -104,27 +108,27 @@ Toàn bộ UI phải nhất quán theo phong cách đã có trong ảnh mẫu, k
 - **Component**: dùng shadcn/ui làm nền (bao gồm `Sheet`/`Drawer` cho pattern duyệt nhanh, `Breadcrumb` cho ngữ cảnh trang, `Tabs` cho các trang gộp nhiều view), không tự tạo lại các component cơ bản (button, table, card, dialog...) đã có sẵn.
 - **Đại diện nhân sự**: không dùng ảnh đại diện tải lên — mọi nơi cần thể hiện 1 người (header, danh sách nhân sự, trang chi tiết...) dùng chung component `PersonAvatar` (huy hiệu chữ cái đầu họ tên, tô nền theo đúng màu vai trò ở bảng trên: giảng viên tím, trợ giảng hồng, admin/quản lý đào tạo xanh dương) kèm hiển thị đầy đủ họ tên bên cạnh — không tự bịa màu ngẫu nhiên theo hash tên vì sẽ phá vỡ bảng màu đã kiểm chứng CVD.
 
-### 3.1. Hiệu ứng kính mờ (glassmorphism) — dùng CÓ CHỌN LỌC
+### 3.1. Hiệu ứng kính mờ (glassmorphism) — ÁP DỤNG TOÀN APP (chốt lại 2026-09-14)
 
-Quyết định chốt ngày 2026-09-09 sau khi tham khảo 1 ảnh mẫu dashboard phong cách kính mờ/pastel do người dùng cung cấp: **không áp dụng kính mờ toàn app**, chỉ dùng cho lớp nổi tạm thời, vì 2 lý do kỹ thuật:
-1. Nền bán trong suốt làm giảm độ tương phản của bảng màu 6 tông đã kiểm chứng OKLCH/CVD ở trên — rủi ro nhất trên các trang bảng/form dữ liệu dày đặc (Nhân sự, Lớp học, KPI...), vốn chiếm phần lớn diện tích màn hình của app này (khác ảnh mẫu tham khảo, vốn toàn card + chart).
-2. `backdrop-filter: blur()` tốn GPU; lặp lại ở nhiều phần tử cùng lúc (nhiều dòng bảng, nhiều card xếp chồng) gây giật/tụt pin trên mobile — đi ngược nguyên tắc "mượt" của app.
+> Thay thế hoàn toàn quyết định 2026-09-09 (kính mờ chỉ cho lớp nổi tạm thời). Lý do đảo ngược: người dùng yêu cầu đổi hẳn phong cách UI, đã tự kiểm chứng qua trang thử nghiệm thật (dữ liệu nhân sự thật trên nền kính mờ) và xác nhận đạt — kể cả đúng rủi ro mà quyết định cũ lo ngại (tương phản trên bảng dữ liệu dày đặc). 2 lý do kỹ thuật cũ (tương phản, hiệu năng GPU) **không còn là lý do chặn** nhưng vẫn là rủi ro cần để ý khi build từng trang — xem cách giảm nhẹ bên dưới.
 
-**Được áp dụng kính mờ** (lớp nổi, số lượng ít, hiển thị tạm thời):
-- Dropdown thông báo, tooltip, popover.
-- Nền overlay phía sau `Dialog`/`Sheet`/`Drawer` khi mở.
-- Header khi cuộn trang (sticky header nền mờ nhẹ thay vì nền đặc cứng).
+**Áp dụng kính mờ cho mọi khối nội dung** — Card, dock, header, stat card, khối bảng dữ liệu, panel chi tiết... Không còn phân biệt "lớp nổi tạm thời" vs "nội dung chính" như trước.
 
-**KHÔNG áp dụng kính mờ** (nội dung chính, hiển thị liên tục, nhiều phần tử lặp lại):
-- Nền bảng dữ liệu, từng dòng bảng, form nhập liệu, danh sách dài, stat card chính — giữ nền đặc theo token màu hiện có (`--card`, `--popover`...).
+**2 công thức chuẩn** (`src/lib/design/glass.ts`, không tự sáng tạo giá trị riêng):
+- `GLASS_SURFACE` — dùng cho khối lớn, số lượng ít trên 1 màn hình (Card, dock, header, panel): nền trắng/đen ~55-60% opacity (light) / ~6% (dark) + `backdrop-blur-2xl` (khoảng 24px) + viền trắng/đen ~10-50% opacity + `shadow` kép (inset viền sáng trên + bóng đổ lan toả mềm dùng màu chủ đạo pha loãng).
+- `GLASS_SURFACE_LIGHT` — dùng cho khối lặp lại nhiều lần trên 1 màn hình (hàng trong bảng, chip, card nhỏ trong lưới) hoặc khối bao lớn ít cần độ sâu: giảm xuống `backdrop-blur-md` (~12px), giảm opacity/bóng đổ — để giảm gánh nặng GPU khi có nhiều phần tử cùng lúc (đúng lo ngại hiệu năng của quyết định cũ, chỉ là hạ mức thay vì cấm hẳn).
+- Overlay phía sau `Dialog`/`Sheet`/`Drawer` và sticky header khi cuộn (`PageHeader`) giữ nguyên công thức nhẹ đã có từ trước (`backdrop-blur-md`, `bg-black/15` hoặc `bg-background/85`) — không cần nâng lên `GLASS_SURFACE` vì đây là lớp overlay/sticky, không phải khối nội dung.
 
-**Thông số thống nhất khi áp dụng**: dựa trên token nền hiện có (`--popover`/`--card`), không tạo màu mới — thêm opacity ~80-90% (light mode) / ~75-85% (dark mode) + `backdrop-blur-md` (8-12px) + viền 1px mờ (trắng/đen ~10-20% opacity) + bóng đổ mềm. Mọi agent khi cần thêm 1 phần tử kính mờ mới đều dùng đúng công thức này, không tự sáng tạo giá trị riêng.
+**Giảm rủi ro tương phản/hiệu năng khi build từng trang** (bắt buộc, không tuỳ chọn):
+1. Chữ/badge màu trong 1 khối kính mờ vẫn phải giữ đúng 6 tông đã kiểm chứng OKLCH/CVD — không tự làm nhạt màu thêm để "hợp" nền kính, vì test CVD đã tính trên nền đặc, làm nhạt thêm có thể tụt dưới ngưỡng đã kiểm chứng.
+2. Trang có bảng dữ liệu rất dài (vd Nhân sự hàng trăm dòng) nên ưu tiên `GLASS_SURFACE_LIGHT` cho khối bao ngoài + để từng dòng bảng **không** lặp lại `backdrop-blur` riêng (chỉ khối cha mờ, dòng con trong suốt kế thừa) — tránh lặp `backdrop-filter` ở hàng trăm phần tử con cùng lúc.
+3. Nếu 1 trang cụ thể sau khi build thực tế bị giật/mờ chữ trên mobile thật, được phép hạ khối đó xuống nền đặc như cũ (ngoại lệ cục bộ), miễn ghi rõ lý do bằng comment tại chỗ đó.
 
 ### 3.2. Responsive / Mobile-first — bắt buộc từ MỌI giai đoạn, không chỉ Giai đoạn 11
 
 Trước đây responsive chỉ được xử lý gộp ở Giai đoạn 11. Từ 2026-09-09, mỗi giai đoạn (kể cả các giai đoạn module nghiệp vụ 3-9) phải tự đảm bảo **responsive cơ bản trên mobile** (≥375px) trước khi coi là đạt Gate của giai đoạn đó — Giai đoạn 11 chỉ còn là đợt rà soát toàn diện lần cuối, xử lý phần còn sót, không phải lần đầu tiên nghĩ đến mobile.
 
-- **Sidebar trên mobile** (dưới breakpoint `md`, ~768px): không hiển thị cố định như desktop — chuyển thành `Sheet`/`Drawer` trượt ra khi bấm icon hamburger ở Header.
+- **Dock/header kính mờ + nền gradient chỉ áp dụng từ `md` trở lên** (chốt 2026-09-14, cùng đợt đổi phong cách mục 3): dưới `md` không dùng dock/header/gradient — thay bằng 1 thanh header phẳng đơn giản (không kính mờ) + icon hamburger mở `Sheet`/`Drawer` (`MobileNav`), giữ đúng hành vi/markup đã có từ 2026-09-09, chỉ khác ở desktop.
 - **Bảng dữ liệu dài trên mobile**: ưu tiên cân nhắc dạng danh sách/card dọc thay vì bắt cuộn ngang một bảng nhiều cột, tuỳ theo số cột thực tế của từng trang (không bắt buộc cứng nếu bảng ít cột vẫn đọc được).
 - **Cách người dùng xem trước giao diện mobile** (vì môi trường chạy Claude Code hiện tại không có trình duyệt thật để tự chụp responsive): dùng Chrome DevTools (phím tắt `Ctrl+Shift+M` — Toggle device toolbar) khi chạy `npm run dev`, hoặc mở thẳng URL đã deploy (`qldt-115.vercel.app`) bằng điện thoại thật — đây là cách đáng tin cậy nhất để đối chiếu.
 

@@ -95,6 +95,14 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  /* Nen gradient truu tuong mem cho khung "ban lam viec noi" (CLAUDE.md
+     muc 3.1, chot 2026-09-14) — khong dung anh phong canh that, du hue voi
+     mau chu dao #2973B2. Chi ap dung o (app)/layout.tsx tu md tro len. */
+  --app-gradient:
+    radial-gradient(1100px circle at 12% -8%, oklch(92% 0.05 240 / 70%), transparent 60%),
+    radial-gradient(900px circle at 105% 15%, oklch(90% 0.06 250 / 55%), transparent 55%),
+    radial-gradient(800px circle at 50% 120%, oklch(88% 0.05 230 / 50%), transparent 60%),
+    linear-gradient(180deg, oklch(97% 0.012 240) 0%, oklch(93.5% 0.02 235) 100%);
 }
 
 .dark {
@@ -136,6 +144,10 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.556 0 0);
+  --app-gradient:
+    radial-gradient(1100px circle at 12% -8%, oklch(30% 0.05 250 / 55%), transparent 60%),
+    radial-gradient(900px circle at 105% 15%, oklch(28% 0.06 245 / 45%), transparent 55%),
+    linear-gradient(180deg, oklch(18% 0.01 250) 0%, oklch(14% 0.015 245) 100%);
 }
 
 @layer base {
@@ -148,4 +160,11 @@
   html {
     @apply font-sans;
   }
+}
+
+/* @utility (khong phai class thuong) de ho tro duoc tien to bien the nhu
+   md:app-gradient-bg — chi ap dung tu md tro len o (app)/layout.tsx, mobile
+   giu nen mac dinh (CLAUDE.md muc 3.1/3.2, chot 2026-09-14). */
+@utility app-gradient-bg {
+  background: var(--app-gradient);
 }

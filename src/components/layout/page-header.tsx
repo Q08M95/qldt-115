@@ -28,7 +28,7 @@ export function PageHeader({
     // nam trong <main overflow-y-auto>, noi dung se cuon o duoi lop nay nen
     // hieu ung mo moi co y nghia thi giac (khac header ngoai cung khong co
     // gi cuon phia sau, giu nguyen nen dac).
-    <div className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-2 border-b bg-background/85 px-4 py-3 backdrop-blur-md md:px-6">
+    <div className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-2 border-b border-white/40 bg-background/85 px-4 py-3 backdrop-blur-md md:rounded-t-[32px] md:border-white/30 md:px-6 md:dark:border-white/10">
       <Breadcrumb>
         <BreadcrumbList>
           {items.map((item, index) => {
