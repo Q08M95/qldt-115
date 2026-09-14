@@ -69,6 +69,8 @@ Một khi kỳ đã `da_chot`, điểm và xếp hạng không được sửa tr
 
 ---
 
+> **🧪 ĐANG THỬ NGHIỆM (2026-09-14) — chưa chốt, mục 3 dưới đây vẫn là chuẩn chính thức hiện hành.** Người dùng đề xuất đổi toàn bộ phong cách UI sang hướng "bàn làm việc kỹ thuật số nổi": Soft UI + Neumorphism + Glassmorphism, bố cục Bento 3 vùng (dock công cụ nổi trái / lưới nội dung giữa / panel chi tiết phải), bo góc ≥24px, thành phần dạng viên thuốc (pill), kính mờ (frosted glass) trên nền gradient trừu tượng mềm (không dùng ảnh phong cảnh thật), icon nét mảnh. Đề xuất này **mâu thuẫn trực tiếp** với mục 3.1 (kính mờ chỉ dùng cho lớp nổi tạm thời, không dùng cho bảng dữ liệu dày đặc) — người dùng đã đồng ý làm **1 trang thử nghiệm trước khi quyết định phạm vi cuối cùng**, xem `src/app/thu-nghiem-giao-dien/page.tsx` (route độc lập, không có trong sidebar/nav-config.ts, không ảnh hưởng trang thật nào). Mobile: dock/panel chỉ áp dụng ≥ `md`, dưới `md` giữ nguyên pattern Sheet/Drawer hiện có (đúng mục 3.2). Bảng màu 6 tông ở mục 3 **không đổi** — thử nghiệm chỉ đổi chất liệu bề mặt, không đổi mã màu. Sau khi người dùng duyệt xong phong cách (giữ nguyên, chỉnh sửa, hoặc bỏ), mục 3/3.1 bên dưới sẽ được viết lại chính thức và trang thử nghiệm sẽ bị xoá — **không được coi khối này là đã chốt cho tới lúc đó**.
+
 ## 3. Design System (tham chiếu từ `maugiaodien.png` cho bố cục, tinh chỉnh chi tiết theo mục 3.1-3.2 dưới đây)
 
 Toàn bộ UI phải nhất quán theo phong cách đã có trong ảnh mẫu, kết hợp thêm các pattern điều hướng hiện đại để **giảm số mục sidebar và giảm số lần người dùng phải nhảy qua lại giữa các trang** để hoàn thành một luồng nghiệp vụ:
