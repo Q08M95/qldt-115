@@ -38,7 +38,7 @@ import {
   setBuoiGiang,
 } from "@/app/(app)/lop-hoc/[id]/bai-giang-actions";
 import { cn } from "@/lib/utils";
-import { GLASS_SURFACE_LIGHT } from "@/lib/design/glass";
+import { SURFACE_MUTED } from "@/lib/design/surface";
 
 export function BaiGiangList({
   lopHocId,
@@ -130,7 +130,7 @@ export function BaiGiangList({
 
   return (
     <div className="flex flex-col gap-2">
-      <div className={cn("overflow-x-auto rounded-3xl", GLASS_SURFACE_LIGHT)}>
+      <div className={cn("overflow-x-auto rounded-2xl", SURFACE_MUTED)}>
         <Table>
           <TableHeader>
             <TableRow>

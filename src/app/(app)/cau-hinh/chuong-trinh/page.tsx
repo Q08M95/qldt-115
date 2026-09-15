@@ -14,7 +14,7 @@ import { ProgramDialog } from "@/components/chuong-trinh/program-dialog";
 import { getCurrentProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { cn } from "@/lib/utils";
-import { GLASS_SURFACE_LIGHT } from "@/lib/design/glass";
+import { SURFACE_MUTED } from "@/lib/design/surface";
 
 export default async function ChuongTrinhPage() {
   const current = await getCurrentProfile();
@@ -41,7 +41,7 @@ export default async function ChuongTrinhPage() {
             description="Tạo chương trình mẫu để tái sử dụng khi mở lớp học mới."
           />
         ) : (
-          <div className={cn("overflow-x-auto rounded-4xl", GLASS_SURFACE_LIGHT)}>
+          <div className={cn("overflow-x-auto rounded-2xl", SURFACE_MUTED)}>
             <Table>
               <TableHeader>
                 <TableRow>

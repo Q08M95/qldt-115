@@ -87,13 +87,16 @@
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
   --radius: 0.625rem;
-  --sidebar: oklch(0.985 0 0);
-  --sidebar-foreground: oklch(0.145 0 0);
+  /* Sidebar dac mau navy co dinh, KHONG doi theo light/dark mode — day la
+     "brand chrome" luon toi, giong sidebar trong mauthietke.png (chot lai
+     2026-09-15, thay the hoan toan dock noi kinh mo cu). */
+  --sidebar: oklch(24% 0.05 255);
+  --sidebar-foreground: oklch(0.98 0 0);
   --sidebar-primary: #2973b2;
   --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: oklch(0.97 0 0);
-  --sidebar-accent-foreground: oklch(0.205 0 0);
-  --sidebar-border: oklch(0.922 0 0);
+  --sidebar-accent: oklch(1 0 0 / 12%);
+  --sidebar-accent-foreground: oklch(0.98 0 0);
+  --sidebar-border: oklch(1 0 0 / 10%);
   --sidebar-ring: oklch(0.708 0 0);
   /* Nen gradient truu tuong mem cho khung "ban lam viec noi" (CLAUDE.md
      muc 3.1, chot 2026-09-14) — khong dung anh phong canh that, du hue voi
@@ -136,14 +139,8 @@
   --chart-3: oklch(0.439 0 0);
   --chart-4: oklch(0.371 0 0);
   --chart-5: oklch(0.269 0 0);
-  --sidebar: oklch(0.205 0 0);
-  --sidebar-foreground: oklch(0.985 0 0);
-  --sidebar-primary: #2973b2;
-  --sidebar-primary-foreground: #ffffff;
-  --sidebar-accent: oklch(0.269 0 0);
-  --sidebar-accent-foreground: oklch(0.985 0 0);
-  --sidebar-border: oklch(1 0 0 / 10%);
-  --sidebar-ring: oklch(0.556 0 0);
+  /* Sidebar giu nguyen mau navy dinh nghia o :root (khong doi theo dark
+     mode) — xem giai thich o :root. */
   --app-gradient:
     radial-gradient(1100px circle at 12% -8%, oklch(34% 0.09 250 / 75%), transparent 60%),
     radial-gradient(900px circle at 105% 15%, oklch(31% 0.1 245 / 65%), transparent 55%),

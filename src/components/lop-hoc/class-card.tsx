@@ -9,7 +9,7 @@ import {
   type TrangThaiLop,
 } from "@/lib/constants/lop-hoc";
 import { cn } from "@/lib/utils";
-import { GLASS_SURFACE } from "@/lib/design/glass";
+import { SURFACE_CARD } from "@/lib/design/surface";
 
 export type ClassCardData = {
   id: string;
@@ -54,8 +54,8 @@ export function ClassCard({
   return (
     <div
       className={cn(
-        "flex flex-col overflow-hidden rounded-4xl text-sm text-card-foreground transition-transform hover:-translate-y-0.5",
-        GLASS_SURFACE,
+        "flex flex-col overflow-hidden rounded-2xl text-sm text-card-foreground transition-transform hover:-translate-y-0.5",
+        SURFACE_CARD,
       )}
     >
       <Link href={`/lop-hoc/${lop.id}`} className="flex flex-col">

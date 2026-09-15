@@ -3,8 +3,6 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipTrigger, TooltipContent } from "@/components/ui/tooltip";
 import { UserMenu } from "@/components/layout/user-menu";
-import { cn } from "@/lib/utils";
-import { GLASS_SURFACE } from "@/lib/design/glass";
 import type { CurrentProfile } from "@/lib/auth";
 
 function HeaderIconButton({
@@ -38,30 +36,19 @@ function HeaderIconButton({
   );
 }
 
-// Thanh header dang pill kinh mo — chi desktop (md+, CLAUDE.md muc 3.2).
-// Duoi md dung thanh don gian rieng trong (app)/layout.tsx (khong kinh mo,
-// giu pattern cu). Chot 2026-09-14 sau khi duyet /thu-nghiem-giao-dien.
+// Thanh cong cu tren cung — NAM BEN TRONG khung "cua so app" hop nhat
+// (khong con la 1 pill kinh mo noi rieng nhu truoc), chi desktop (md+,
+// CLAUDE.md muc 3.2). Chot lai 2026-09-15 theo mauthietke.png.
 export function Header({ profile }: { profile: CurrentProfile }) {
   return (
-    <header
-      className={cn(
-        "hidden h-16 items-center justify-between rounded-[28px] px-3 md:flex",
-        GLASS_SURFACE,
-      )}
-    >
-      {/* Wordmark — bo dong ten/email nguoi dung o day (da co o UserMenu ben
-          phai, tranh lap lai), doi thanh 1 khoi thuong hieu ro trong luong
-          hon: dau hieu tron mau chu dao + tieu de dam + nhan phu viet hoa
-          dan chu (dung chuan nhan sieu du lieu, CLAUDE.md muc 3). */}
+    <header className="hidden h-16 shrink-0 items-center justify-between border-b border-border px-4 md:flex">
       <div className="flex items-center gap-2.5">
         <span className="flex h-9 w-9 items-center justify-center rounded-full bg-data-lop-hoc/12 text-data-lop-hoc">
           <Siren className="h-4.5 w-4.5" strokeWidth={1.5} />
         </span>
         <div className="flex flex-col leading-none">
           <p className="font-heading text-sm font-semibold text-foreground">Quản lý đào tạo</p>
-          <p className="mt-1 text-[10px] font-medium tracking-[0.16em] text-foreground/45 uppercase">
-            Trung tâm Cấp cứu 115
-          </p>
+          <p className="mt-1 text-xs text-muted-foreground">Trung tâm Cấp cứu 115</p>
         </div>
       </div>
       <div className="flex items-center gap-1.5">

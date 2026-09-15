@@ -24,11 +24,9 @@ export function PageHeader({
   actions?: React.ReactNode;
 }) {
   return (
-    // Dinh o dau khi cuon (sticky) + kinh mo (CLAUDE.md muc 3.1): PageHeader
-    // nam trong <main overflow-y-auto>, noi dung se cuon o duoi lop nay nen
-    // hieu ung mo moi co y nghia thi giac (khac header ngoai cung khong co
-    // gi cuon phia sau, giu nguyen nen dac).
-    <div className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-2 border-b border-white/40 bg-background/85 px-4 py-3 backdrop-blur-md md:rounded-t-[32px] md:border-white/30 md:px-6 md:dark:border-white/10">
+    // Dinh o dau khi cuon (sticky), nen dac (Flat SaaS UI — CLAUDE.md muc 3,
+    // chot lai 2026-09-15, khong con backdrop-blur nhu ban cu).
+    <div className="sticky top-0 z-10 flex flex-wrap items-center justify-between gap-2 border-b border-border bg-card px-4 py-3 md:px-6">
       <Breadcrumb>
         <BreadcrumbList>
           {items.map((item, index) => {

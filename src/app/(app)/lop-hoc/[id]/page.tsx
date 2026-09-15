@@ -15,7 +15,7 @@ import { TRANG_THAI_LOP_LABEL, TRANG_THAI_LOP_BADGE, DOI_TUONG_HOC_VIEN_LABEL } 
 import { dongBoTrangThaiLop } from "@/lib/lop-hoc/trang-thai";
 import { coTheTuDangKy } from "@/lib/lop-hoc/dang-ky";
 import { cn } from "@/lib/utils";
-import { GLASS_SURFACE_LIGHT } from "@/lib/design/glass";
+import { SURFACE_MUTED } from "@/lib/design/surface";
 
 // Trang chi tiet lop hoc — thiet ke lai 2026-09-14 thanh 1 canvas cuon doc
 // duy nhat, khong con Tabs va khong con wizard 2 buoc (WizardBanner/
@@ -158,7 +158,7 @@ export default async function LopHocDetailPage({
         )}
 
         {canManage ? (
-          <section className={cn("flex flex-col gap-4 rounded-4xl p-4 md:p-6", GLASS_SURFACE_LIGHT)}>
+          <section className={cn("flex flex-col gap-4 rounded-2xl p-4 md:p-6", SURFACE_MUTED)}>
             <h2 className="text-sm font-medium text-muted-foreground">Buổi giảng &amp; Bài giảng</h2>
 
             <div className="flex flex-col gap-3">
@@ -191,7 +191,7 @@ export default async function LopHocDetailPage({
           </section>
         ) : null}
 
-        <section className={cn("flex flex-col gap-3 rounded-4xl p-4 md:p-6", GLASS_SURFACE_LIGHT)}>
+        <section className={cn("flex flex-col gap-3 rounded-2xl p-4 md:p-6", SURFACE_MUTED)}>
           <div className="flex items-center justify-between">
             <h2 className="text-sm font-medium text-muted-foreground">
               {canManage ? "Đăng ký & Duyệt" : "Chương trình lớp và Đăng ký"}
@@ -218,7 +218,7 @@ export default async function LopHocDetailPage({
           />
         </section>
 
-        <section className={cn("flex flex-col gap-3 rounded-4xl p-4 md:p-6", GLASS_SURFACE_LIGHT)}>
+        <section className={cn("flex flex-col gap-3 rounded-2xl p-4 md:p-6", SURFACE_MUTED)}>
           <h2 className="text-sm font-medium text-muted-foreground">Lịch giảng</h2>
           <EmptyState
             title="Chưa có nội dung"

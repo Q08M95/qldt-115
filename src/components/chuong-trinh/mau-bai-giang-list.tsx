@@ -25,7 +25,7 @@ import { EmptyState } from "@/components/ui/empty-state";
 import { MauBaiGiangDialog, type MauBaiGiang } from "./mau-bai-giang-dialog";
 import { deleteMauBaiGiang, reorderMauBaiGiang } from "@/app/(app)/cau-hinh/chuong-trinh/[id]/actions";
 import { cn } from "@/lib/utils";
-import { GLASS_SURFACE_LIGHT } from "@/lib/design/glass";
+import { SURFACE_MUTED } from "@/lib/design/surface";
 
 export function MauBaiGiangList({
   chuongTrinhId,
@@ -95,7 +95,7 @@ export function MauBaiGiangList({
 
   return (
     <div className="flex flex-col gap-2">
-      <div className={cn("overflow-x-auto rounded-3xl", GLASS_SURFACE_LIGHT)}>
+      <div className={cn("overflow-x-auto rounded-2xl", SURFACE_MUTED)}>
         <Table>
           <TableHeader>
             <TableRow>

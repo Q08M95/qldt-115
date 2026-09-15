@@ -27,15 +27,15 @@ export function MobileNav({ role }: { role: CurrentProfile["role"] }) {
   return (
     <Sheet open={open} onOpenChange={setOpen}>
       <SheetTrigger render={<Button variant="ghost" size="icon" className="md:hidden" />}>
-        <Menu className="h-5 w-5" />
+        <Menu className="h-5 w-5" strokeWidth={1.5} />
         <span className="sr-only">Mở menu điều hướng</span>
       </SheetTrigger>
       <SheetContent
         side="left"
         className="flex w-72 flex-col gap-0 bg-sidebar p-0 text-sidebar-foreground"
       >
-        <SheetHeader className="border-b px-4 py-3">
-          <SheetTitle>QLĐT 115</SheetTitle>
+        <SheetHeader className="border-b border-sidebar-border px-4 py-3">
+          <SheetTitle className="text-sidebar-foreground">QLĐT 115</SheetTitle>
         </SheetHeader>
         <SidebarNav role={role} onNavigate={() => setOpen(false)} />
       </SheetContent>

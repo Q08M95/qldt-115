@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, type LucideIcon } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -57,9 +57,12 @@ function NavGroupSection({ label, children }: { label: string; children: React.R
   const [open, setOpen] = useState(true);
   return (
     <Collapsible open={open} onOpenChange={setOpen} className="mt-2">
-      <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground hover:text-foreground">
+      <CollapsibleTrigger className="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-xs font-medium text-sidebar-foreground/50 hover:text-sidebar-foreground">
         {label}
-        <ChevronDown className={cn("h-3.5 w-3.5 transition-transform", open && "rotate-180")} />
+        <ChevronDown
+          className={cn("h-3.5 w-3.5 transition-transform", open && "rotate-180")}
+          strokeWidth={1.5}
+        />
       </CollapsibleTrigger>
       <CollapsibleContent className="flex flex-col gap-1 pt-1">{children}</CollapsibleContent>
     </Collapsible>
@@ -71,7 +74,7 @@ function NavLink({
   active,
   onNavigate,
 }: {
-  item: { label: string; href: string; icon: React.ComponentType<{ className?: string }> };
+  item: { label: string; href: string; icon: LucideIcon };
   active: boolean;
   onNavigate?: () => void;
 }) {
@@ -87,7 +90,7 @@ function NavLink({
           : "text-sidebar-foreground hover:bg-sidebar-accent hover:text-sidebar-accent-foreground",
       )}
     >
-      <Icon className="h-4 w-4" />
+      <Icon className="h-4 w-4" strokeWidth={1.5} />
       {item.label}
     </Link>
   );
