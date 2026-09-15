@@ -1,6 +1,5 @@
 import { notFound } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PageHeader } from "@/components/layout/page-header";
 import { CertificateList } from "@/components/nhan-su/certificate-list";
 import { UploadCertificateDialog } from "@/components/nhan-su/upload-certificate-dialog";
@@ -11,9 +10,18 @@ import { PersonAvatar } from "@/components/nhan-su/person-avatar";
 import { ProfileForm } from "@/components/nhan-su/profile-form";
 import { getCurrentProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { ROLE_LABEL } from "@/lib/constants/roles";
+import { ROLE_LABEL, type Role } from "@/lib/constants/roles";
 import { NHOM_PHAN_LOAI_LABEL } from "@/lib/constants/nhan-su";
 import { updateProfileByAdmin } from "../actions";
+
+// Card thong tin ca nhan tint mau theo vai tro (nhu khoi "About Company"
+// trong mauthietke.png) — dung dung 6 tong da kiem chung, khong bia mau moi.
+const ROLE_TINT_CLASS: Record<Role, string> = {
+  giang_vien: "border-data-giang-vien/20 bg-data-giang-vien/6",
+  tro_giang: "border-data-tro-giang/20 bg-data-tro-giang/6",
+  quan_ly_dao_tao: "border-data-lop-hoc/20 bg-data-lop-hoc/6",
+  admin: "border-data-lop-hoc/20 bg-data-lop-hoc/6",
+};
 
 export default async function NhanSuDetailPage({
   params,
@@ -42,42 +50,51 @@ export default async function NhanSuDetailPage({
   const isSelf = current?.id === id;
   const canEditCertificates = isAdmin || isSelf;
 
+  // Dong metadata duoi ten (nhu dong dia chi duoi ten cong ty trong mau) —
+  // gop cac truong co gia tri, bo qua truong rong.
+  const metaLine = [profile.chuc_danh, profile.khoa_phong_cong_tac].filter(Boolean).join(" · ");
+
   return (
     <>
-      <PageHeader
-        items={[{ label: "Nhân sự", href: "/nhan-su" }, { label: profile.full_name }]}
-        actions={
-          isAdmin || isQuanLy ? (
+      <PageHeader items={[{ label: "Nhân sự", href: "/nhan-su" }, { label: profile.full_name }]} />
+      <div className="flex flex-col gap-4 p-4 md:p-6">
+        {/* Khoi dau trang chi tiet (nhu khoi "Dunder Mifflin" trong mau):
+            avatar + ten + badge + dong metadata, nut hanh dong ben phai. */}
+        <div className="flex flex-wrap items-start justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <PersonAvatar fullName={profile.full_name} role={profile.role} size="lg" />
+            <div>
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="text-xl font-semibold">{profile.full_name}</h1>
+                <Badge variant="outline">{ROLE_LABEL[profile.role] ?? profile.role}</Badge>
+                <Badge variant={profile.trang_thai_hoat_dong ? "default" : "secondary"}>
+                  {profile.trang_thai_hoat_dong ? "Đang hoạt động" : "Đã khoá"}
+                </Badge>
+                {(isAdmin || isQuanLy) && profile.nhom_phan_loai ? (
+                  <Badge variant="outline">
+                    {NHOM_PHAN_LOAI_LABEL[profile.nhom_phan_loai as 1 | 2 | 3 | 4 | 5]}
+                  </Badge>
+                ) : null}
+              </div>
+              {metaLine ? <p className="mt-1 text-sm text-muted-foreground">{metaLine}</p> : null}
+            </div>
+          </div>
+          {isAdmin || isQuanLy ? (
             <div className="flex items-center gap-2">
               {isAdmin ? <ResendInviteButton profileId={profile.id} /> : null}
               <ToggleActiveButton id={profile.id} active={profile.trang_thai_hoat_dong} />
               {isAdmin ? <DeleteProfileButton id={profile.id} redirectAfter="/nhan-su" /> : null}
             </div>
-          ) : null
-        }
-      />
-      <div className="flex flex-col gap-4 p-4 md:p-6">
-        <div className="flex flex-wrap items-center gap-3">
-          <PersonAvatar fullName={profile.full_name} role={profile.role} size="lg" />
-          <h1 className="text-xl font-semibold">{profile.full_name}</h1>
-          <Badge variant="outline">{ROLE_LABEL[profile.role] ?? profile.role}</Badge>
-          <Badge variant={profile.trang_thai_hoat_dong ? "default" : "secondary"}>
-            {profile.trang_thai_hoat_dong ? "Đang hoạt động" : "Đã khoá"}
-          </Badge>
-          {(isAdmin || isQuanLy) && profile.nhom_phan_loai ? (
-            <Badge variant="outline">
-              {NHOM_PHAN_LOAI_LABEL[profile.nhom_phan_loai as 1 | 2 | 3 | 4 | 5]}
-            </Badge>
           ) : null}
         </div>
 
-        <Tabs defaultValue="ho-so">
-          <TabsList>
-            <TabsTrigger value="ho-so">Hồ sơ</TabsTrigger>
-            <TabsTrigger value="chung-chi">Chứng chỉ</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="ho-so" className="pt-4">
+        {/* 2 cot: thong tin ca nhan (tint mau, giong "About Company") ben
+            trai + panel chung chi (danh sach, giong Notes & Calls) ben phai —
+            thay the pattern Tabs cu, khong con can chuyen tab qua lai vi ca 2
+            khoi deu du nho de hien song song. */}
+        <div className="grid gap-4 lg:grid-cols-3">
+          <div className={`flex flex-col gap-4 rounded-2xl border p-4 md:p-6 lg:col-span-2 ${ROLE_TINT_CLASS[profile.role]}`}>
+            <h2 className="text-sm font-medium text-muted-foreground">Thông tin cá nhân</h2>
             {isAdmin ? (
               <ProfileForm
                 profile={profile}
@@ -85,7 +102,7 @@ export default async function NhanSuDetailPage({
                 onSubmit={updateProfileByAdmin.bind(null, profile.id)}
               />
             ) : (
-              <dl className="grid max-w-lg grid-cols-2 gap-x-4 gap-y-3 text-sm">
+              <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
                 <dt className="text-muted-foreground">Học vị</dt>
                 <dd>{profile.hoc_vi ?? "—"}</dd>
                 <dt className="text-muted-foreground">Chức danh</dt>
@@ -108,21 +125,20 @@ export default async function NhanSuDetailPage({
                 ) : null}
               </dl>
             )}
-          </TabsContent>
+          </div>
 
-          <TabsContent value="chung-chi" className="flex flex-col gap-4 pt-4">
-            {canEditCertificates ? (
-              <div>
-                <UploadCertificateDialog profileId={profile.id} />
-              </div>
-            ) : null}
+          <div className="flex flex-col gap-3 lg:col-span-1">
+            <div className="flex items-center justify-between">
+              <h2 className="text-sm font-medium text-muted-foreground">Chứng chỉ</h2>
+              {canEditCertificates ? <UploadCertificateDialog profileId={profile.id} /> : null}
+            </div>
             <CertificateList
               profileId={profile.id}
               certificates={certificates ?? []}
               canEdit={canEditCertificates}
             />
-          </TabsContent>
-        </Tabs>
+          </div>
+        </div>
       </div>
     </>
   );

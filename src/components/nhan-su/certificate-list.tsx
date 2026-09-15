@@ -2,20 +2,11 @@
 
 import { useTransition } from "react";
 import { toast } from "sonner";
+import { FileText, Eye, Trash2 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { EmptyState } from "@/components/ui/empty-state";
 import { deleteCertificate, getCertificateSignedUrl } from "@/app/(app)/nhan-su/[id]/certificate-actions";
-import { cn } from "@/lib/utils";
-import { SURFACE_MUTED } from "@/lib/design/surface";
 
 export type CertificateRow = {
   id: string;
@@ -33,6 +24,9 @@ function isExpired(ngayHetHan: string | null) {
   return new Date(ngayHetHan) < new Date();
 }
 
+// Danh sach dang cot doc gon (khong dung Table) — panel nay dat trong cot
+// hep ben phai trang chi tiet nhan su (mauthietke.png: panel Notes & Calls/
+// Tasks ben phai la danh sach item, khong phai bang nhieu cot).
 export function CertificateList({
   profileId,
   certificates,
@@ -71,61 +65,53 @@ export function CertificateList({
 
   return (
     <div className="flex flex-col gap-2">
-      <div className={cn("overflow-x-auto rounded-2xl", SURFACE_MUTED)}>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Tên chứng chỉ</TableHead>
-            <TableHead>Số chứng chỉ</TableHead>
-            <TableHead>Nơi cấp</TableHead>
-            <TableHead>Ngày cấp</TableHead>
-            <TableHead>Trạng thái</TableHead>
-            <TableHead className="text-right">Hành động</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {certificates.map((c) => (
-            <TableRow key={c.id}>
-              <TableCell className="font-medium">
-                {c.ten_chung_chi}
-                {c.bat_buoc ? (
-                  <Badge variant="outline" className="ml-2">
-                    Bắt buộc
-                  </Badge>
-                ) : null}
-              </TableCell>
-              <TableCell>{c.so_chung_chi ?? "—"}</TableCell>
-              <TableCell>{c.noi_cap ?? "—"}</TableCell>
-              <TableCell>{c.ngay_cap ?? "—"}</TableCell>
-              <TableCell>
-                {isExpired(c.ngay_het_han) ? (
-                  <Badge variant="destructive">Đã hết hạn</Badge>
-                ) : (
-                  <Badge>Còn hiệu lực</Badge>
-                )}
-              </TableCell>
-              <TableCell className="flex justify-end gap-2">
-                {c.file_url ? (
-                  <Button size="sm" variant="outline" onClick={() => handleView(c.file_url!)}>
-                    Xem file
-                  </Button>
-                ) : null}
-                {canEdit ? (
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    disabled={isPending}
-                    onClick={() => handleDelete(c.id, c.file_url ?? "")}
-                  >
-                    Xoá
-                  </Button>
-                ) : null}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-      </div>
+      {certificates.map((c) => (
+        <div key={c.id} className="flex items-start gap-3 rounded-xl border border-border p-3">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
+            <FileText className="h-4 w-4" strokeWidth={1.5} />
+          </span>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center gap-1.5">
+              <p className="truncate text-sm font-medium">{c.ten_chung_chi}</p>
+              {c.bat_buoc ? <Badge variant="outline">Bắt buộc</Badge> : null}
+            </div>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {c.so_chung_chi ?? "—"} · {c.noi_cap ?? "—"}
+            </p>
+            <p className="text-xs text-muted-foreground">Cấp ngày {c.ngay_cap ?? "—"}</p>
+            <div className="mt-1.5">
+              {isExpired(c.ngay_het_han) ? (
+                <Badge variant="destructive">Đã hết hạn</Badge>
+              ) : (
+                <Badge>Còn hiệu lực</Badge>
+              )}
+            </div>
+          </div>
+          <div className="flex shrink-0 flex-col gap-1">
+            {c.file_url ? (
+              <Button
+                size="icon-sm"
+                variant="ghost"
+                title="Xem file"
+                onClick={() => handleView(c.file_url!)}
+              >
+                <Eye className="h-4 w-4" strokeWidth={1.5} />
+              </Button>
+            ) : null}
+            {canEdit ? (
+              <Button
+                size="icon-sm"
+                variant="ghost"
+                title="Xoá"
+                disabled={isPending}
+                onClick={() => handleDelete(c.id, c.file_url ?? "")}
+              >
+                <Trash2 className="h-4 w-4" strokeWidth={1.5} />
+              </Button>
+            ) : null}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
