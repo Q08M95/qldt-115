@@ -28,10 +28,9 @@ export function GlobalSearch({ compact = false }: { compact?: boolean }) {
   }, []);
 
   useEffect(() => {
-    if (!open || !q.trim()) {
-      setResults(null);
-      return;
-    }
+    // Khong setState dong bo o day khi rong — man hinh rong da tu che bang
+    // dieu kien !q.trim() trong JSX ben duoi, khong can dat lai `results`.
+    if (!open || !q.trim()) return;
     const timeout = setTimeout(() => {
       startTransition(async () => {
         setResults(await globalSearch(q));

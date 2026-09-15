@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, Pencil } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { EmptyState } from "@/components/ui/empty-state";
 import { PageHeader } from "@/components/layout/page-header";
 import { AddProfileDialog } from "@/components/nhan-su/add-profile-dialog";
@@ -20,6 +21,9 @@ import { cn } from "@/lib/utils";
 
 const PAGE_SIZE = 30;
 
+// Master-detail 2/3-1/3 (thietke-giao-dien.md muc 4/5.3): cot trai 2/3 = chi
+// tiet nguoi dang chon (Tab Tong quan/Chung chi), cot phai 1/3 = danh sach
+// gon. Tim kiem tach rieng 1 hang. Mac dinh tu chon nguoi dau danh sach.
 export default async function NhanSuPage({
   searchParams,
 }: {
@@ -43,9 +47,6 @@ export default async function NhanSuPage({
   const from = (page - 1) * PAGE_SIZE;
   const { data: profiles, count } = await query.range(from, from + PAGE_SIZE - 1);
 
-  // Mac dinh tu chon nguoi dau tien trong danh sach khi chua bam chon ai —
-  // tranh vung chinh 2/3 trong rong luc moi vao trang (yeu cau nguoi dung
-  // 2026-09-15: "khong giu trang thai rong ban dau").
   const effectiveXem = xem || profiles?.[0]?.id || null;
 
   const [{ data: selectedProfile }, { data: selectedCertificates }] = effectiveXem
@@ -85,19 +86,23 @@ export default async function NhanSuPage({
         actions={current?.role === "admin" ? <AddProfileDialog /> : null}
       />
       <div className="flex flex-col gap-4 p-4 md:p-6">
-        {/* Tim kiem tach rieng thanh 1 hang, khong thuoc cot nao (yeu cau
-            nguoi dung 2026-09-15, giong thanh search noi bat dau mauthietke.png). */}
         <div className={cn(effectiveXem && "hidden lg:block")}>
           <NhanSuFilters q={q ?? ""} />
         </div>
 
         <div className="grid gap-4 lg:grid-cols-3">
-          {/* Cot trai 2/3 — chi tiet 1 nhan su, chia theo Tab + card tint mau
-              theo loai noi dung (dung pattern "About Company" cua
-              mauthietke.png). Day gio la vung chinh, thay cho danh sach. */}
           <div className={cn("flex flex-col gap-4 lg:col-span-2", !effectiveXem && "hidden lg:flex")}>
             {!selectedProfile ? (
-              <EmptyState title="Chưa có nhân sự phù hợp tìm kiếm" />
+              <EmptyState
+                title="Chưa có nhân sự phù hợp tìm kiếm"
+                action={
+                  q ? (
+                    <Button variant="outline" size="sm" render={<Link href="/nhan-su" />}>
+                      Xoá tìm kiếm
+                    </Button>
+                  ) : undefined
+                }
+              />
             ) : (
               <>
                 <Link
@@ -128,7 +133,7 @@ export default async function NhanSuPage({
                       ) : null}
                     </div>
                   </div>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-1">
                     {canManage ? (
                       <>
                         {isAdmin ? <ResendInviteButton profileId={selectedProfile.id} /> : null}
@@ -136,9 +141,20 @@ export default async function NhanSuPage({
                         {isAdmin ? <DeleteProfileButton id={selectedProfile.id} /> : null}
                       </>
                     ) : null}
-                    <Button size="sm" render={<Link href={`/nhan-su/${selectedProfile.id}`} />}>
-                      Sửa hồ sơ
-                    </Button>
+                    <Tooltip>
+                      <TooltipTrigger
+                        render={
+                          <Button
+                            size="icon-sm"
+                            variant="outline"
+                            render={<Link href={`/nhan-su/${selectedProfile.id}`} />}
+                          />
+                        }
+                      >
+                        <Pencil className="size-4" strokeWidth={1.5} />
+                      </TooltipTrigger>
+                      <TooltipContent>Sửa hồ sơ</TooltipContent>
+                    </Tooltip>
                   </div>
                 </div>
 
@@ -152,12 +168,7 @@ export default async function NhanSuPage({
                   </TabsList>
 
                   <TabsContent value="tong-quan" className="pt-4">
-                    <div
-                      className={cn(
-                        "rounded-2xl border p-4 md:p-6",
-                        ROLE_TINT_CLASS[selectedProfile.role],
-                      )}
-                    >
+                    <div className={cn("rounded-2xl border p-4 md:p-6", ROLE_TINT_CLASS[selectedProfile.role])}>
                       <dl className="grid grid-cols-2 gap-x-4 gap-y-3 text-sm">
                         <dt className="text-muted-foreground">Học vị</dt>
                         <dd>{selectedProfile.hoc_vi ?? "—"}</dd>
@@ -197,9 +208,6 @@ export default async function NhanSuPage({
             )}
           </div>
 
-          {/* Cot phai 1/3 — danh sach chung, gom gon toi da (chi avatar nho +
-              ten + vai tro), khong con la bang. Bam vao 1 dong doi
-              ?xem=<id>. Tren mobile: an khi dang xem chi tiet. */}
           <div className={cn("flex flex-col gap-2 lg:col-span-1", effectiveXem && "hidden lg:flex")}>
             {!profiles || profiles.length === 0 ? (
               <EmptyState title="Chưa có nhân sự phù hợp tìm kiếm" />

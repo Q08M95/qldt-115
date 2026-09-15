@@ -15,18 +15,20 @@ export default async function HoSoPage() {
     <>
       <PageHeader items={[{ label: "Hồ sơ cá nhân" }]} />
       <div className="p-4 md:p-6">
-        <ProfileForm
-          profile={{
-            full_name: profile.full_name,
-            role: profile.role,
-            hoc_vi: profile.hoc_vi,
-            chuc_danh: profile.chuc_danh,
-            chuyen_mon: profile.chuyen_mon,
-            khoa_phong_cong_tac: profile.khoa_phong_cong_tac,
-          }}
-          showRole={false}
-          onSubmit={updateOwnProfile}
-        />
+        <div className="max-w-2xl rounded-2xl border border-border bg-card p-4 md:p-6">
+          <ProfileForm
+            profile={{
+              full_name: profile.full_name,
+              role: profile.role,
+              hoc_vi: profile.hoc_vi,
+              chuc_danh: profile.chuc_danh,
+              chuyen_mon: profile.chuyen_mon,
+              khoa_phong_cong_tac: profile.khoa_phong_cong_tac,
+            }}
+            showRole={false}
+            onSubmit={updateOwnProfile}
+          />
+        </div>
       </div>
     </>
   );
