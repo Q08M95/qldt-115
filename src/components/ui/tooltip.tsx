@@ -8,12 +8,10 @@ function TooltipProvider(props: TooltipPrimitive.Provider.Props) {
   return <TooltipPrimitive.Provider delay={200} {...props} />
 }
 
+// TooltipProvider duoc bao 1 lan duy nhat o RootLayout (khong tu boc rieng o
+// day) de dung chung 1 nhom delay cho toan app.
 function Tooltip(props: TooltipPrimitive.Root.Props) {
-  return (
-    <TooltipProvider>
-      <TooltipPrimitive.Root data-slot="tooltip" {...props} />
-    </TooltipProvider>
-  )
+  return <TooltipPrimitive.Root data-slot="tooltip" {...props} />
 }
 
 function TooltipTrigger(props: TooltipPrimitive.Trigger.Props) {
