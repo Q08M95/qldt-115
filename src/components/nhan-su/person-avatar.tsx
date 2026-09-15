@@ -13,6 +13,16 @@ const ROLE_AVATAR_CLASS: Record<Role, string> = {
   admin: "bg-data-lop-hoc/15 text-data-lop-hoc",
 };
 
+// Tint nen the/card theo vai tro (nhu khoi "About Company" trong
+// mauthietke.png) — dung chung 1 bang mau voi ROLE_AVATAR_CLASS o tren,
+// tranh dinh nghia lap o nhieu noi.
+export const ROLE_TINT_CLASS: Record<Role, string> = {
+  giang_vien: "border-data-giang-vien/20 bg-data-giang-vien/6",
+  tro_giang: "border-data-tro-giang/20 bg-data-tro-giang/6",
+  quan_ly_dao_tao: "border-data-lop-hoc/20 bg-data-lop-hoc/6",
+  admin: "border-data-lop-hoc/20 bg-data-lop-hoc/6",
+};
+
 function initialsOf(fullName: string): string {
   const words = fullName.trim().split(/\s+/).filter(Boolean);
   if (words.length === 0) return "??";

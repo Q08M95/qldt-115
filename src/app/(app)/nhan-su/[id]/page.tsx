@@ -6,22 +6,13 @@ import { UploadCertificateDialog } from "@/components/nhan-su/upload-certificate
 import { ToggleActiveButton } from "@/components/nhan-su/toggle-active-button";
 import { ResendInviteButton } from "@/components/nhan-su/resend-invite-button";
 import { DeleteProfileButton } from "@/components/nhan-su/delete-profile-button";
-import { PersonAvatar } from "@/components/nhan-su/person-avatar";
+import { PersonAvatar, ROLE_TINT_CLASS } from "@/components/nhan-su/person-avatar";
 import { ProfileForm } from "@/components/nhan-su/profile-form";
 import { getCurrentProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { ROLE_LABEL, type Role } from "@/lib/constants/roles";
+import { ROLE_LABEL } from "@/lib/constants/roles";
 import { NHOM_PHAN_LOAI_LABEL } from "@/lib/constants/nhan-su";
 import { updateProfileByAdmin } from "../actions";
-
-// Card thong tin ca nhan tint mau theo vai tro (nhu khoi "About Company"
-// trong mauthietke.png) — dung dung 6 tong da kiem chung, khong bia mau moi.
-const ROLE_TINT_CLASS: Record<Role, string> = {
-  giang_vien: "border-data-giang-vien/20 bg-data-giang-vien/6",
-  tro_giang: "border-data-tro-giang/20 bg-data-tro-giang/6",
-  quan_ly_dao_tao: "border-data-lop-hoc/20 bg-data-lop-hoc/6",
-  admin: "border-data-lop-hoc/20 bg-data-lop-hoc/6",
-};
 
 export default async function NhanSuDetailPage({
   params,

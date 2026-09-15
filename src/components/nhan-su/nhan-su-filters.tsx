@@ -2,150 +2,47 @@
 
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
-import { Loader2 } from "lucide-react";
+import { Loader2, Search } from "lucide-react";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { ROLE_LABEL } from "@/lib/constants/roles";
-import { NHOM_PHAN_LOAI_VALUES, NHOM_PHAN_LOAI_LABEL } from "@/lib/constants/nhan-su";
 
-const ROLE_FILTER_LABEL: Record<string, string> = {
-  all: "Tất cả vai trò",
-  ...ROLE_LABEL,
-};
-
-const TRANG_THAI_LABEL: Record<string, string> = {
-  all: "Tất cả",
-  hoat_dong: "Đang hoạt động",
-  khoa: "Đã khoá",
-};
-
-const NHOM_FILTER_LABEL: Record<string, string> = {
-  all: "Tất cả nhóm",
-  ...Object.fromEntries(NHOM_PHAN_LOAI_VALUES.map((v) => [String(v), NHOM_PHAN_LOAI_LABEL[v]])),
-};
-
-// Loc tu dong khi doi Select/go chu — khong can bam nut "Loc" rieng, tao
-// cam giac phan hoi nhanh hon. Search box debounce 400ms de tranh push URL
-// lien tuc theo tung phim go. isPending duoc dung that (khac ban truoc bo
-// sot) de hien bao mo/spinner trong luc doi trang render lai sau khi loc.
-export function NhanSuFilters({
-  role,
-  trangThai,
-  nhom,
-  canFilterNhom,
-  q,
-}: {
-  role: string;
-  trangThai: string;
-  nhom: string;
-  canFilterNhom: boolean;
-  q: string;
-}) {
+// Chi con 1 o tim kiem duy nhat (bo Vai tro/Trang thai/Nhom phan loai theo
+// yeu cau nguoi dung 2026-09-15 — cac o loc rieng khong can thiet nua,
+// mauthietke.png cung chi dung 1 o search). Debounce 400ms tranh push URL
+// lien tuc theo tung phim go.
+export function NhanSuFilters({ q }: { q: string }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const [isPending, startTransition] = useTransition();
   const [searchTerm, setSearchTerm] = useState(q);
 
-  function updateParam(key: string, value: string | null) {
-    const params = new URLSearchParams(searchParams.toString());
-    if (value && value !== "all") {
-      params.set(key, value);
-    } else {
-      params.delete(key);
-    }
-    params.delete("page"); // doi bo loc thi quay lai trang 1
-    startTransition(() => {
-      router.push(`${pathname}?${params.toString()}`, { scroll: false });
-    });
-  }
-
   useEffect(() => {
     if (searchTerm === q) return;
-    const timeout = setTimeout(() => updateParam("q", searchTerm), 400);
+    const timeout = setTimeout(() => {
+      const params = new URLSearchParams(searchParams.toString());
+      if (searchTerm) params.set("q", searchTerm);
+      else params.delete("q");
+      params.delete("page");
+      params.delete("xem");
+      startTransition(() => {
+        router.push(`${pathname}?${params.toString()}`, { scroll: false });
+      });
+    }, 400);
     return () => clearTimeout(timeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [searchTerm]);
 
   return (
-    <div
-      className="flex flex-wrap items-end gap-2 transition-opacity"
-      style={{ opacity: isPending ? 0.6 : 1 }}
-      aria-busy={isPending}
-    >
-      <div className="flex flex-col gap-1">
-        <label className="text-xs text-muted-foreground" htmlFor="q">
-          Tìm theo tên
-        </label>
-        <Input
-          id="q"
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder="Nhập tên..."
-          className="w-48"
-        />
-      </div>
-      <div className="flex flex-col gap-1">
-        <label className="text-xs text-muted-foreground" htmlFor="role">
-          Vai trò
-        </label>
-        <Select value={role} onValueChange={(value) => updateParam("role", value)}>
-          <SelectTrigger id="role" className="w-44">
-            <SelectValue>{(value: string) => ROLE_FILTER_LABEL[value] ?? value}</SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            {Object.entries(ROLE_FILTER_LABEL).map(([value, label]) => (
-              <SelectItem key={value} value={value}>
-                {label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      <div className="flex flex-col gap-1">
-        <label className="text-xs text-muted-foreground" htmlFor="trang_thai">
-          Trạng thái
-        </label>
-        <Select value={trangThai} onValueChange={(value) => updateParam("trang_thai", value)}>
-          <SelectTrigger id="trang_thai" className="w-40">
-            <SelectValue>{(value: string) => TRANG_THAI_LABEL[value] ?? value}</SelectValue>
-          </SelectTrigger>
-          <SelectContent>
-            {Object.entries(TRANG_THAI_LABEL).map(([value, label]) => (
-              <SelectItem key={value} value={value}>
-                {label}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-      </div>
-      {canFilterNhom ? (
-        <div className="flex flex-col gap-1">
-          <label className="text-xs text-muted-foreground" htmlFor="nhom">
-            Nhóm phân loại
-          </label>
-          <Select value={nhom} onValueChange={(value) => updateParam("nhom", value)}>
-            <SelectTrigger id="nhom" className="w-52">
-              <SelectValue>{(value: string) => NHOM_FILTER_LABEL[value] ?? value}</SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {Object.entries(NHOM_FILTER_LABEL).map(([value, label]) => (
-                <SelectItem key={value} value={value}>
-                  {label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      ) : null}
+    <div className="relative flex-1" aria-busy={isPending}>
+      <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-muted-foreground" strokeWidth={1.5} />
+      <Input
+        value={searchTerm}
+        onChange={(e) => setSearchTerm(e.target.value)}
+        placeholder="Tìm theo tên..."
+        className="pl-9"
+      />
       {isPending ? (
-        <Loader2 className="mb-2 h-4 w-4 animate-spin text-muted-foreground" strokeWidth={1.5} />
+        <Loader2 className="absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 animate-spin text-muted-foreground" strokeWidth={1.5} />
       ) : null}
     </div>
   );
