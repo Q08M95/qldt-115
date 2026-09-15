@@ -39,7 +39,7 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
-  /* Bang mau chinh thuc — CLAUDE.md muc 3. KHONG tu doi ma hex. */
+  /* Bang mau vai tro du lieu — xem thietke-giao-dien.md muc 1 */
   --color-data-giang-vien: var(--data-giang-vien);
   --color-data-tro-giang: var(--data-tro-giang);
   --color-data-lop-hoc: var(--data-lop-hoc);
@@ -64,13 +64,15 @@
   --popover-foreground: oklch(0.145 0 0);
   --primary: #2973b2;
   --primary-foreground: #ffffff;
-  /* Bang mau chinh thuc (light mode) — CLAUDE.md muc 3 */
-  --data-giang-vien: #6c2c8f;
-  --data-tro-giang: #b8415a;
+  /* Bang mau (light mode) — thietke-giao-dien.md muc 1. Lay cam hung tu
+     mauthietke.png, khong con khoa cung theo cong thuc OKLCH/CVD cu (chot
+     lai 2026-09-15, xem ghi chu trong thietke-giao-dien.md). */
+  --data-giang-vien: #7c3aed;
+  --data-tro-giang: #e11d48;
   --data-lop-hoc: #2973b2;
-  --data-dang-ky: #1aa7a0;
-  --data-canh-bao: #d9711f;
-  --data-kpi: #0a6b2a;
+  --data-dang-ky: #d97706;
+  --data-canh-bao: #dc2626;
+  --data-kpi: #16a34a;
   --secondary: oklch(0.97 0 0);
   --secondary-foreground: oklch(0.205 0 0);
   --muted: oklch(0.97 0 0);
@@ -117,13 +119,14 @@
   --popover-foreground: oklch(0.985 0 0);
   --primary: #2973b2;
   --primary-foreground: #ffffff;
-  /* Bang mau chinh thuc (dark mode) — CLAUDE.md muc 3 */
-  --data-giang-vien: #ae73d2;
-  --data-tro-giang: #b8415a;
+  /* Bang mau (dark mode) — thietke-giao-dien.md muc 1, ban sang/tuoi hon
+     tuong ung moi mau light mode de du tuong phan tren nen toi. */
+  --data-giang-vien: #a78bfa;
+  --data-tro-giang: #fb7185;
   --data-lop-hoc: #2973b2;
-  --data-dang-ky: #1aa7a0;
-  --data-canh-bao: #d9711f;
-  --data-kpi: #08722e;
+  --data-dang-ky: #fbbf24;
+  --data-canh-bao: #f87171;
+  --data-kpi: #4ade80;
   --secondary: oklch(0.269 0 0);
   --secondary-foreground: oklch(0.985 0 0);
   --muted: oklch(0.269 0 0);
